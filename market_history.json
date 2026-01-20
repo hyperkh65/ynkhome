@@ -1,0 +1,162 @@
+[
+    {
+        "date": "2026-01-11",
+        "usd": 1465.2,
+        "cny": 208.4,
+        "metals": {
+            "aluminum": {
+                "last": 18500
+            },
+            "copper": {
+                "last": 67200
+            },
+            "steel": {
+                "last": 3820
+            }
+        }
+    },
+    {
+        "date": "2026-01-12",
+        "usd": 1468.5,
+        "cny": 209.1,
+        "metals": {
+            "aluminum": {
+                "last": 18620
+            },
+            "copper": {
+                "last": 67500
+            },
+            "steel": {
+                "last": 3850
+            }
+        }
+    },
+    {
+        "date": "2026-01-13",
+        "usd": 1471.2,
+        "cny": 210.3,
+        "metals": {
+            "aluminum": {
+                "last": 18750
+            },
+            "copper": {
+                "last": 67800
+            },
+            "steel": {
+                "last": 3890
+            }
+        }
+    },
+    {
+        "date": "2026-01-14",
+        "usd": 1469.8,
+        "cny": 209.8,
+        "metals": {
+            "aluminum": {
+                "last": 18810
+            },
+            "copper": {
+                "last": 68100
+            },
+            "steel": {
+                "last": 3910
+            }
+        }
+    },
+    {
+        "date": "2026-01-15",
+        "usd": 1472.5,
+        "cny": 211.2,
+        "metals": {
+            "aluminum": {
+                "last": 18900
+            },
+            "copper": {
+                "last": 68400
+            },
+            "steel": {
+                "last": 3940
+            }
+        }
+    },
+    {
+        "date": "2026-01-16",
+        "usd": 1475.1,
+        "cny": 211.9,
+        "metals": {
+            "aluminum": {
+                "last": 18980
+            },
+            "copper": {
+                "last": 68650
+            },
+            "steel": {
+                "last": 3960
+            }
+        }
+    },
+    {
+        "date": "2026-01-17",
+        "usd": 1478.4,
+        "cny": 212.5,
+        "metals": {
+            "aluminum": {
+                "last": 19100
+            },
+            "copper": {
+                "last": 69000
+            },
+            "steel": {
+                "last": 3980
+            }
+        }
+    },
+    {
+        "date": "2026-01-18",
+        "usd": 1476.2,
+        "cny": 212.1,
+        "metals": {
+            "aluminum": {
+                "last": 19050
+            },
+            "copper": {
+                "last": 68800
+            },
+            "steel": {
+                "last": 3970
+            }
+        }
+    },
+    {
+        "date": "2026-01-19",
+        "usd": 1474.9,
+        "cny": 211.8,
+        "metals": {
+            "aluminum": {
+                "last": 18920
+            },
+            "copper": {
+                "last": 68520
+            },
+            "steel": {
+                "last": 3955
+            }
+        }
+    },
+    {
+        "date": "2026-01-20",
+        "usd": 1476.8,
+        "cny": 212.2,
+        "metals": {
+            "aluminum": {
+                "last": 18950
+            },
+            "copper": {
+                "last": 68500
+            },
+            "steel": {
+                "last": 3950
+            }
+        }
+    }
+]
