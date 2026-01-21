@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { getProducts, saveProduct, deleteProduct } from '@/utils/storage';
 import styles from './admin.module.css';
 
 export default function AdminPage() {
@@ -27,20 +28,12 @@ export default function AdminPage() {
 
     useEffect(() => {
         if (isAuthenticated) {
-            fetchProducts();
+            loadProducts();
         }
     }, [isAuthenticated]);
 
-    const fetchProducts = async () => {
-        try {
-            const res = await fetch('/api/products');
-            const data = await res.json();
-            if (data.success) {
-                setProducts(data.data);
-            }
-        } catch (err) {
-            console.error('Failed to fetch products', err);
-        }
+    const loadProducts = () => {
+        setProducts(getProducts());
     };
 
     const handleLogin = (e) => {
@@ -57,11 +50,8 @@ export default function AdminPage() {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleFileChange = (e, field) => {
-        const file = e.target.files[0];
-        if (file) {
-            setFormData(prev => ({ ...prev, [field]: file.name }));
-        }
+    const handleClearImage = () => {
+        setFormData(prev => ({ ...prev, image: '' }));
     };
 
     const resetForm = () => {
@@ -95,28 +85,19 @@ export default function AdminPage() {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-    const handleDelete = async (id) => {
+    const handleDelete = (id) => {
         if (!confirm('Are you sure you want to delete this product?')) return;
-
-        try {
-            const res = await fetch(`/api/products/${id}`, { method: 'DELETE' });
-            const data = await res.json();
-            if (data.success) {
-                fetchProducts();
-                if (editingId === id) resetForm();
-            } else {
-                alert('Failed to delete product - ' + (data.error || 'Unknown Error'));
-            }
-        } catch (err) {
-            console.error(err);
-        }
+        deleteProduct(id);
+        loadProducts();
+        if (editingId === id) resetForm();
     };
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = (e) => {
         e.preventDefault();
 
         // Construct payload
         const payload = {
+            id: editingId, // if null, storage handles it
             name: formData.name,
             description: formData.description,
             image: formData.image,
@@ -130,28 +111,10 @@ export default function AdminPage() {
             }
         };
 
-        try {
-            const url = editingId ? `/api/products/${editingId}` : '/api/products';
-            const method = editingId ? 'PUT' : 'POST';
-
-            const res = await fetch(url, {
-                method: method,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            const data = await res.json();
-            if (data.success) {
-                alert(editingId ? 'Product Updated' : 'Product Created');
-                fetchProducts();
-                resetForm();
-            } else {
-                alert('Operation failed: ' + data.error);
-            }
-        } catch (err) {
-            console.error(err);
-            alert('An error occurred');
-        }
+        saveProduct(payload);
+        alert(editingId ? 'Product Updated' : 'Product Created');
+        loadProducts();
+        resetForm();
     };
 
     if (!isAuthenticated) {
@@ -227,22 +190,19 @@ export default function AdminPage() {
                             </div>
                             <div className={styles.formGroup} style={{ gridColumn: 'span 2' }}>
                                 <label className={styles.label}>Image URL</label>
-                                <input type="text" name="image" className={styles.input} value={formData.image} onChange={handleInputChange} placeholder="https://..." />
+                                <div style={{ display: 'flex', gap: '8px' }}>
+                                    <input type="text" name="image" className={styles.input} value={formData.image} onChange={handleInputChange} placeholder="https://..." style={{ flex: 1 }} />
+                                    <button type="button" onClick={handleClearImage} style={{ padding: '0 12px', border: '1px solid #e2e8f0', background: 'white', borderRadius: '8px', cursor: 'pointer' }}>Clear</button>
+                                </div>
                             </div>
 
-                            <div className={styles.formGroup}>
-                                <label className={styles.label}>Compliance Certificates (ZIP)</label>
-                                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                                    <input type="file" className={styles.fileInput} onChange={(e) => handleFileChange(e, 'certificate')} accept=".zip,.rar,.7z" />
-                                    {formData.certificate && <span style={{ fontSize: '0.8rem', color: '#10b981', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '150px' }}>{formData.certificate}</span>}
-                                </div>
+                            <div className={styles.formGroup} style={{ gridColumn: 'span 2' }}>
+                                <label className={styles.label}>Compliance Certificates (ZIP Link)</label>
+                                <input type="text" name="certificate" className={styles.input} value={formData.certificate} onChange={handleInputChange} placeholder="Paste link (e.g. Google Drive / Dropbox URL)" />
                             </div>
-                            <div className={styles.formGroup}>
-                                <label className={styles.label}>Spec Sheet (PDF)</label>
-                                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                                    <input type="file" className={styles.fileInput} onChange={(e) => handleFileChange(e, 'specSheet')} accept=".pdf" />
-                                    {formData.specSheet && <span style={{ fontSize: '0.8rem', color: '#10b981', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '150px' }}>{formData.specSheet}</span>}
-                                </div>
+                            <div className={styles.formGroup} style={{ gridColumn: 'span 2' }}>
+                                <label className={styles.label}>Spec Sheet (PDF Link)</label>
+                                <input type="text" name="specSheet" className={styles.input} value={formData.specSheet} onChange={handleInputChange} placeholder="Paste link (e.g. Google Drive / Dropbox URL)" />
                             </div>
 
                             <div style={{ gridColumn: 'span 2', display: 'flex', gap: '12px', marginTop: '12px' }}>

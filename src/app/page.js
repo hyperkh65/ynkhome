@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import styles from './page.module.css';
 import MarketChart from '@/components/MarketChart';
 
+import { getProducts } from '@/utils/storage';
+
 export default function Home() {
   const [isMounted, setIsMounted] = useState(false);
   const [activeTab, setActiveTab] = useState('Overview');
@@ -67,6 +69,9 @@ export default function Home() {
 
   useEffect(() => {
     setIsMounted(true);
+    // Load Catalog Data from Local Storage
+    setCatalogData(getProducts());
+
     const formatTime = (offset) => {
       const d = new Date(new Date().getTime() + (offset * 60 * 60 * 1000));
       return d.getUTCHours().toString().padStart(2, '0') + ':' + d.getUTCMinutes().toString().padStart(2, '0') + ':' + d.getUTCSeconds().toString().padStart(2, '0');
@@ -104,13 +109,6 @@ export default function Home() {
           if (validItems.length > 0) {
             setIncheonPort(validItems);
           }
-        }
-
-        // Fetch Catalog Data
-        const pRes = await fetch('/api/products');
-        const pData = await pRes.json();
-        if (pData.success) {
-          setCatalogData(pData.data);
         }
       } catch (err) { console.error(err); }
     };
