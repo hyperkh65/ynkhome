@@ -117,10 +117,10 @@ export default function Home() {
     try {
       const res = await fetch(`/api/incheon/tracking?blNo=${trackingNo}`);
       const data = await res.json();
-      if (data.success && data.data && data.data.length > 0) {
-        setTrackResult(data.data[0]); // Show the primary B/L info
+      if (data.success && data.data) {
+        setTrackResult(data.data); // CargoCsclPrgsInfoQryRslt object
       } else {
-        setTrackResult({ error: 'No shipment found for this B/L number. Please verify and try again.' });
+        setTrackResult({ error: data.error || 'No shipment found in UNIPASS for this B/L number.' });
       }
     } catch (err) {
       console.error(err);
@@ -423,30 +423,48 @@ export default function Home() {
                   ) : (
                     <div style={{ textAlign: 'center', color: '#1a1a1a', padding: '40px', width: '100%' }}>
                       <h2 style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
-                        <span style={{ fontSize: '1.5rem' }}>🛰️</span> B/L Status Connected
+                        <span style={{ fontSize: '1.5rem' }}>🇰🇷</span> UNIPASS Live Connected
                       </h2>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                        <div className={styles.marketCard} style={{ background: 'white', border: 'none', boxShadow: 'var(--shadow-soft)', gridColumn: 'span 2' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                            <strong>Current Status</strong>
+                            <span style={{ background: 'var(--accent-purple)', color: 'white', padding: '4px 12px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 700 }}>
+                              {trackResult.csclPrgsSttsNm || 'Unknown'}
+                            </span>
+                          </div>
+                        </div>
+
                         <div className={styles.marketCard} style={{ background: 'white', border: 'none', boxShadow: 'var(--shadow-soft)' }}>
                           <strong>B/L Number</strong>
-                          <span style={{ color: 'var(--accent-purple)', fontWeight: 700 }}>{trackResult.blNo}</span>
+                          <span style={{ fontWeight: 600, fontSize: '0.85rem' }}>{trackResult.hblNo || trackResult.mblNo}</span>
                         </div>
                         <div className={styles.marketCard} style={{ background: 'white', border: 'none', boxShadow: 'var(--shadow-soft)' }}>
-                          <strong>MRN Number</strong>
-                          <span style={{ fontWeight: 600 }}>{trackResult.mrnNo || 'N/A'}</span>
+                          <strong>Vessel / Voyage</strong>
+                          <span style={{ fontSize: '0.85rem' }}>{trackResult.shipNm || 'N/A'} {trackResult.vydf}</span>
+                        </div>
+
+                        <div className={styles.marketCard} style={{ background: 'white', border: 'none', boxShadow: 'var(--shadow-soft)' }}>
+                          <strong>Loading Port</strong>
+                          <span style={{ fontSize: '0.85rem' }}>{trackResult.ldngPrtNm || 'N/A'}</span>
                         </div>
                         <div className={styles.marketCard} style={{ background: 'white', border: 'none', boxShadow: 'var(--shadow-soft)' }}>
-                          <strong>Reporting Agent</strong>
-                          <span style={{ fontSize: '0.85rem' }}>{trackResult.agentCode || 'N/A'}</span>
+                          <strong>Discharge Port</strong>
+                          <span style={{ fontSize: '0.85rem' }}>{trackResult.dschPrtNm || 'N/A'}</span>
+                        </div>
+
+                        <div className={styles.marketCard} style={{ background: 'white', border: 'none', boxShadow: 'var(--shadow-soft)' }}>
+                          <strong>Packages / Weight</strong>
+                          <span style={{ fontSize: '0.85rem' }}>{trackResult.pckGcnt} {trackResult.pckUt} / {trackResult.ttwg} {trackResult.wgUt}</span>
                         </div>
                         <div className={styles.marketCard} style={{ background: 'white', border: 'none', boxShadow: 'var(--shadow-soft)' }}>
-                          <strong>Declaration Date</strong>
-                          <span style={{ fontSize: '0.85rem' }}>{trackResult.declDate || 'N/A'}</span>
+                          <strong>Customs Office</strong>
+                          <span style={{ fontSize: '0.85rem' }}>{trackResult.etprCstmNm || 'N/A'}</span>
                         </div>
+
                         <div className={styles.marketCard} style={{ background: 'white', border: 'none', boxShadow: 'var(--shadow-soft)', gridColumn: 'span 2' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-around', width: '100%' }}>
-                            <div><strong>Type</strong> <span style={{ color: 'var(--accent-purple)' }}>{trackResult.declTypeCd || 'N/A'}</span></div>
-                            <div style={{ width: '1px', background: '#e2e8f0' }}></div>
-                            <div><strong>Call Year</strong> <span style={{ fontWeight: 600 }}>{trackResult.callYy || 'N/A'}</span></div>
+                          <div style={{ textAlign: 'left', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                            <strong>Consignee:</strong> {trackResult.cneeNm || 'HIDDEN FOR PRIVACY'}
                           </div>
                         </div>
                       </div>
