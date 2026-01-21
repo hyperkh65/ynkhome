@@ -6,10 +6,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>YNK Global Terminal · ERP</title>
 
-  <!-- Tailwind CDN (Critical for layout if using Tailwind classes) -->
+  <!-- Tailwind CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- Fallback/Premium Styles Inlined for Reliability -->
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
 
@@ -28,7 +27,6 @@
       --glass-border: rgba(255, 255, 255, 0.3);
     }
 
-    /* Robust Hidden Class */
     .hidden {
       display: none !important;
     }
@@ -42,7 +40,6 @@
       min-height: 100vh;
     }
 
-    /* Sidebar Styling */
     #sidebar {
       width: var(--sidebar-width);
       background: var(--sidebar-bg);
@@ -108,7 +105,6 @@
       box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
     }
 
-    /* Content Area */
     #main-content {
       flex: 1;
       margin-left: var(--sidebar-width);
@@ -134,7 +130,6 @@
       margin: 0.25rem 0 0;
     }
 
-    /* Premium Components */
     .card {
       background: var(--bg-card);
       backdrop-filter: blur(10px);
@@ -191,7 +186,6 @@
       opacity: 0.8;
     }
 
-    /* Tables */
     .table-container {
       overflow-x: auto;
       border-radius: 12px;
@@ -216,15 +210,6 @@
       border-bottom: 1px solid #f1f5f9;
     }
 
-    tr:last-child td {
-      border-bottom: none;
-    }
-
-    tr:hover td {
-      background: rgba(241, 245, 249, 0.5);
-    }
-
-    /* Forms */
     input,
     select,
     textarea {
@@ -261,22 +246,12 @@
       box-shadow: 0 4px 12px rgba(10, 185, 129, 0.2);
     }
 
-    .btn-primary:hover {
-      box-shadow: 0 6px 16px rgba(10, 185, 129, 0.3);
-      transform: translateY(-1px);
-    }
-
     .btn-outline {
       background: white;
       border: 1px solid #e2e8f0;
       color: var(--text-main);
     }
 
-    .btn-outline:hover {
-      background: #f8fafc;
-    }
-
-    /* Auth Panel */
     #authPanel {
       position: fixed;
       inset: 0;
@@ -327,28 +302,6 @@
       color: white;
     }
 
-    .auth-card input::placeholder {
-      color: #64748b;
-    }
-
-    /* Animations */
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(10px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .tab-pane {
-      animation: fadeIn 0.4s ease forwards;
-    }
-
-    /* Mobile Responsiveness */
     @media (max-width: 1024px) {
       #sidebar {
         transform: translateX(-100%);
@@ -367,6 +320,12 @@
   <!-- External Resources -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
   <script src="https://unpkg.com/lucide@latest" defer></script>
+
+  <script>
+    // PRE-MODULE PROXY SETUP
+    window.PROXY = window.location.origin + '/api/notion';
+    console.log("[YNK] Proxy URL set to:", window.PROXY);
+  </script>
 </head>
 
 <body class="bg-slate-50">
@@ -394,12 +353,6 @@
       <div class="nav-item" data-tab="quotes">
         <i data-lucide="file-text"></i> <span>견적서</span>
       </div>
-      <div class="nav-item" data-tab="po">
-        <i data-lucide="package"></i> <span>발주 관리</span>
-      </div>
-      <div class="nav-item" data-tab="import">
-        <i data-lucide="ship"></i> <span>수입 업무</span>
-      </div>
     </nav>
 
     <div class="p-4 mt-auto border-t border-slate-700">
@@ -408,7 +361,7 @@
           <i data-lucide="user" class="w-5 h-5"></i>
         </div>
         <div class="overflow-hidden">
-          <p class="text-sm font-medium truncate" id="userEmailDisplay">User</p>
+          <p class="text-sm font-medium truncate" id="userEmailDisplay">Guest</p>
           <button id="btnLogout" class="text-xs text-red-400 hover:underline">Sign Out</button>
         </div>
       </div>
@@ -422,11 +375,9 @@
         <h1 id="currentPageTitle">Dashboard</h1>
         <p id="currentPageDesc">종합 분석 및 모니터링</p>
       </div>
-      <div class="flex gap-3">
-        <button class="btn-premium btn-outline" id="btnRefresh">
-          <i data-lucide="refresh-cw" class="w-4 h-4"></i> 새로고침
-        </button>
-      </div>
+      <button class="btn-premium btn-outline" id="btnRefresh">
+        <i data-lucide="refresh-cw" class="w-4 h-4"></i> 새로고침
+      </button>
     </header>
 
     <!-- Tab Contents -->
@@ -434,90 +385,79 @@
       <!-- Dashboard -->
       <section id="tab-dashboard" class="tab-pane space-y-6">
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div class="kpi-card blue shadow-sm">
-            <span class="kpi-label uppercase tracking-wider">THIS MONTH PO</span>
+          <div class="kpi-card blue">
+            <span class="kpi-label uppercase">PO (Monthly)</span>
             <span id="dashPo" class="kpi-value">0</span>
           </div>
-          <div class="kpi-card green shadow-sm">
-            <span class="kpi-label uppercase tracking-wider">THIS MONTH SALES</span>
+          <div class="kpi-card green">
+            <span class="kpi-label uppercase">Sales (Monthly)</span>
             <span id="dashSales" class="kpi-value">0</span>
           </div>
-          <div class="kpi-card purple shadow-sm">
-            <span class="kpi-label uppercase tracking-wider">CLIENTS</span>
+          <div class="kpi-card purple">
+            <span class="kpi-label uppercase">Clients</span>
             <span id="dashClients" class="kpi-value">0</span>
           </div>
-          <div class="kpi-card indigo shadow-sm">
-            <span class="kpi-label uppercase tracking-wider">PRODUCTS</span>
+          <div class="kpi-card indigo">
+            <span class="kpi-label uppercase">Products</span>
             <span id="dashProductsCount" class="kpi-value">0</span>
           </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div class="card">
-            <div class="flex justify-between items-center mb-4">
-              <h3 class="font-bold">최근 환율 추이</h3>
-              <select id="fxCurrency" class="w-24 text-xs font-semibold py-1 px-2">
-                <option value="USDKRW">USD</option>
-                <option value="CNYKRW">CNY</option>
-              </select>
-            </div>
+            <h3 class="font-bold mb-4">최근 환율 추이</h3>
             <canvas id="chartFx" height="200"></canvas>
           </div>
           <div class="card">
-            <div class="flex justify-between items-center mb-4">
-              <h3 class="font-bold">LME 금속 시세</h3>
-              <select id="lmeMetal" class="w-24 text-xs font-semibold py-1 px-2">
-                <option value="copper">Copper</option>
-                <option value="aluminum">Aluminum</option>
-              </select>
-            </div>
+            <h3 class="font-bold mb-4">LME 금속 시세</h3>
             <canvas id="chartLME" height="200"></canvas>
           </div>
         </div>
       </section>
 
-      <!-- Sales -->
-      <section id="tab-sales" class="tab-pane hidden space-y-6">
-        <div class="card">
-          <div class="flex justify-between items-center mb-4">
-            <h3 class="font-bold text-lg">매출 조회</h3>
-          </div>
-          <form id="formSalesSearch" class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 p-4 bg-slate-100 rounded-xl">
-            <input id="sCustomer" placeholder="거래처명" class="text-sm">
-            <input id="sItem" placeholder="상품명" class="text-sm">
-            <select id="sType" class="text-sm">
-              <option value="">전체 내역</option>
-              <option value="내자">내자</option>
-              <option value="외자">외자</option>
-            </select>
-            <button type="submit" class="btn-premium btn-primary text-sm">검색</button>
-          </form>
-          <div class="table-container">
-            <table class="text-sm">
-              <thead>
-                <tr>
-                  <th>번호</th>
-                  <th>날짜</th>
-                  <th>거래처</th>
-                  <th>상품</th>
-                  <th>합계</th>
-                  <th>조작</th>
-                </tr>
-              </thead>
-              <tbody id="salesTbody"></tbody>
-            </table>
-          </div>
+      <!-- Placeholder sections -->
+      <section id="tab-sales" class="tab-pane hidden card">
+        <h3 class="font-bold mb-4">매출 내역</h3>
+        <div class="table-container">
+          <table class="text-sm">
+            <thead>
+              <tr>
+                <th>날짜</th>
+                <th>거래처</th>
+                <th>합계</th>
+              </tr>
+            </thead>
+            <tbody id="salesTbody"></tbody>
+          </table>
         </div>
       </section>
-
-      <!-- Simple placeholders for other modules -->
       <section id="tab-products" class="tab-pane hidden card">
-        <h3 class="font-bold mb-4">상품 정보</h3>
-        <tbody id="productListBody"></tbody>
+        <h3 class="font-bold mb-4">상품 리스트</h3>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>코드</th>
+                <th>제품명</th>
+              </tr>
+            </thead>
+            <tbody id="productListBody"></tbody>
+          </table>
+        </div>
       </section>
       <section id="tab-clients" class="tab-pane hidden card">
-        <h3 class="font-bold mb-4">거래처 관리</h3>
-        <tbody id="clientPickerBody"></tbody>
+        <h3 class="font-bold mb-4">거래처 리스트</h3>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>업체명</th>
+                <th>대표</th>
+              </tr>
+            </thead>
+            <tbody id="clientPickerBody"></tbody>
+          </table>
+        </div>
       </section>
     </div>
   </main>
@@ -526,17 +466,16 @@
   <div id="authPanel">
     <div class="auth-card">
       <div class="mb-8 flex flex-col items-center">
-        <div
-          class="w-16 h-16 bg-emerald-500 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-emerald-500/30">
+        <div class="w-16 h-16 bg-emerald-500 rounded-2xl flex items-center justify-center mb-4">
           <i data-lucide="lock" class="w-8 h-8 text-white"></i>
         </div>
         <h2>ERP LOGIN</h2>
-        <p>YNK Global 시스템인증이 필요합니다.</p>
+        <p>YNK Global ERP 시스템 인증</p>
       </div>
 
       <form id="loginForm">
         <div class="auth-input-group">
-          <label>이메일 주소</label>
+          <label>이메일</label>
           <input id="loginEmail" type="email" placeholder="you@example.com" required>
         </div>
         <div class="auth-input-group">
@@ -544,16 +483,12 @@
           <input id="loginPassword" type="password" placeholder="••••••••" required>
         </div>
         <button type="submit" class="btn-premium btn-primary w-full py-4 mt-6">접속하기</button>
-        <div id="loginMsg" class="mt-4 text-center text-red-400 font-medium hidden">이메일 또는 비밀번호가 틀립니다.</div>
+        <div id="loginMsg" class="mt-4 text-center text-red-400 font-medium hidden">인증 실패: 정보를 다시 확인해 주세요.</div>
       </form>
     </div>
   </div>
 
-  <!-- COORDINATOR SCRIPT -->
   <script type="module">
-    // Set Proxy FIRST
-    window.PROXY = window.location.origin + '/api/notion';
-
     import { showApp, switchTab } from './js/ui.js';
     import { login } from './js/auth.js';
     import { loadDashboard } from './js/dashboard.js';
@@ -561,70 +496,58 @@
     import { loadProducts } from './js/products.js';
     import { loadClients } from './js/clients.js';
 
-    // Wait for Lucide
-    function initIcons() {
-      if (window.lucide) {
-        window.lucide.createIcons();
-      } else {
-        setTimeout(initIcons, 100);
-      }
-    }
+    console.log("[YNK] ERP Modules Loaded.");
+
+    const initIcons = () => { if (window.lucide) window.lucide.createIcons(); else setTimeout(initIcons, 100); };
     initIcons();
 
-    // Tab Logic
-    document.querySelectorAll('.nav-item').forEach(item => {
-      item.onclick = async () => {
-        const tab = item.dataset.tab;
-        switchTab(tab);
-        updateHeader(tab);
-        await refreshData(tab);
-      };
-    });
-
-    function updateHeader(tab) {
-      const titles = {
-        dashboard: { t: 'Dashboard', d: 'Global Operation Monitoring' },
-        sales: { t: 'Sales Management', d: '매출 실적 및 거래 내역' },
-        products: { t: 'Product Catalog', d: '전체 상품 정보 관리' },
-        clients: { t: 'Client Directory', d: '거래처 및 파트너 관리' },
-        quotes: { t: 'Quotations', d: '견적서 작성 및 이력' },
-        po: { t: 'Purchase Orders', d: '발주 관리 및 발주서 생성' },
-        import: { t: 'Import Management', d: '수입 원가 및 통관 관리' }
-      };
-      const info = titles[tab] || titles.dashboard;
-      document.getElementById('currentPageTitle').textContent = info.t;
-      document.getElementById('currentPageDesc').textContent = info.d;
-      initIcons();
-    }
-
-    async function refreshData(tab) {
+    const refreshData = async (tab) => {
+      console.log("[YNK] Refreshing data for tab:", tab);
       try {
         if (tab === 'sales') await loadSales();
         else if (tab === 'products') await loadProducts();
         else if (tab === 'clients') await loadClients();
-        else if (tab === 'dashboard') await loadDashboard();
-      } catch (e) { console.error(e); }
-    }
+        else if (tab === 'dashboard' || !tab) await loadDashboard();
+      } catch (e) {
+        console.error("[YNK] Data load error:", e);
+      }
+    };
+
+    // Tab Events
+    const items = document.querySelectorAll('.nav-item');
+    items.forEach(item => {
+      item.onclick = async () => {
+        items.forEach(nav => nav.classList.remove('active'));
+        item.classList.add('active');
+        const tab = item.dataset.tab;
+        switchTab(tab);
+        await refreshData(tab);
+      };
+    });
 
     // Login logic
     document.getElementById('loginForm').onsubmit = async (e) => {
       e.preventDefault();
-      const email = document.getElementById('loginEmail').value;
-      const pass = document.getElementById('loginPassword').value;
+      const email = document.getElementById('loginEmail').value.trim();
+      const pass = document.getElementById('loginPassword').value.trim();
       const msg = document.getElementById('loginMsg');
 
+      console.log("[YNK] Attempting login for:", email);
       try {
         const ok = await login(email, pass);
         if (ok) {
+          console.log("[YNK] Login Success!");
           localStorage.setItem('ynk_erp_user', email);
           showApp(email);
           await loadDashboard();
         } else {
+          console.warn("[YNK] Login Failed: Invalid Credentials");
           msg.classList.remove('hidden');
-          setTimeout(() => msg.classList.add('hidden'), 2000);
+          setTimeout(() => msg.classList.add('hidden'), 3000);
         }
       } catch (err) {
-        alert("로그인 중 서버 연결 실패: " + err.message);
+        console.error("[YNK] Login Error:", err);
+        alert("서버 연결 실패: " + err.message);
       }
     };
 
@@ -635,15 +558,15 @@
 
     document.getElementById('btnRefresh').onclick = () => window.location.reload();
 
-    // Session Restore
-    window.addEventListener('load', async () => {
+    // Check session
+    window.onload = async () => {
       const saved = localStorage.getItem('ynk_erp_user');
       if (saved) {
+        console.log("[YNK] Restoring session for:", saved);
         showApp(saved);
         await loadDashboard();
       }
-    });
-
+    };
   </script>
 </body>
 
