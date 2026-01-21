@@ -36,9 +36,10 @@ export default function Home() {
   ]);
 
   const [hubs, setHubs] = useState([
-    { id: 'busan', name: 'Busan (KR)', status: 'Stable', color: '#dcfce7', textColor: '#166534' },
-    { id: 'shanghai', name: 'Shang. (CN)', status: 'Moderate', color: '#fef3c7', textColor: '#92400e' },
-    { id: 'hcm', name: 'HCM (VN)', status: 'Delay', color: '#fee2e2', textColor: '#991b1b' }
+    { id: 'it1', name: 'E1컨테이너터미널', status: 'Checking...', color: '#f1f5f9', textColor: '#64748b' },
+    { id: 'it2', name: '인천컨테이너터미널', status: 'Checking...', color: '#f1f5f9', textColor: '#64748b' },
+    { id: 'it3', name: '한진인천컨테이너터미널', status: 'Checking...', color: '#f1f5f9', textColor: '#64748b' },
+    { id: 'it4', name: '선광신컨테이너터미널', status: 'Checking...', color: '#f1f5f9', textColor: '#64748b' }
   ]);
   const [incheonPort, setIncheonPort] = useState([]);
 
@@ -165,7 +166,6 @@ export default function Home() {
         <main>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px' }}>
             <h1 className={styles.sectionTitle}>{activeTab}</h1>
-            <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', fontWeight: 600 }}>v4.3.5-CONNECT</span>
           </div>
 
           {activeTab === 'Overview' && (
