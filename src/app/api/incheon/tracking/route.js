@@ -2,11 +2,15 @@ import { XMLParser } from 'fast-xml-parser';
 
 export async function GET(request) {
     const { searchParams } = new URL(request.url);
-    const termCd = searchParams.get('termCd') || 'IT003'; // Default to IT003 if not provided
-    const searchYear = new Date().getFullYear().toString();
+    const blNo = searchParams.get('blNo');
+
+    if (!blNo) {
+        return Response.json({ success: false, error: 'B/L number is required' }, { status: 400 });
+    }
 
     const serviceKey = 'fdaB3P7aU1Lg%2FFcn7n6x93VXyImQ6iNeXCeM8V1g61tVZqqwB3pgFlLMlVXrfSlz5t14b8D2tRjVRFiFesN%2Bew%3D%3D';
-    const url = `https://opendata.icpa.or.kr/OpenAPI/service/ipaTrmnlIntegratInfo/getTrmnlIntegratInfo?serviceKey=${serviceKey}&termCd=${termCd}&searchYear=${searchYear}&numOfRows=10&skipRow=0&endRow=10`;
+    // Endpoint for Shipment Declaration (B/L search)
+    const url = `https://opendata.icpa.or.kr/OpenAPI/service/ipaShipDeclInfo/getShipDeclInfo?serviceKey=${serviceKey}&blNo=${blNo}&numOfRows=10&pageNo=1`;
 
     try {
         const response = await fetch(url, {
@@ -20,14 +24,14 @@ export async function GET(request) {
             ignoreAttributes: false,
             trimValues: true,
             parseTagValue: true,
-            isArray: (name) => ['item', 'GetTrmnlIntegratInfoVO'].indexOf(name) !== -1
+            isArray: (name) => ['item', 'GetShipDeclInfoVO'].indexOf(name) !== -1
         });
 
         const jObj = parser.parse(xmlData);
 
-        // Structure: GetTrmnlIntegratInfoResponse -> body -> item -> GetTrmnlIntegratInfoVO
-        const items = jObj?.GetTrmnlIntegratInfoResponse?.body?.item?.[0]?.GetTrmnlIntegratInfoVO ||
-            jObj?.GetTrmnlIntegratInfoResponse?.body?.item?.GetTrmnlIntegratInfoVO || [];
+        // Structure for ipaShipDeclInfo: GetShipDeclInfoResponse -> body -> item -> GetShipDeclInfoVO
+        const items = jObj?.GetShipDeclInfoResponse?.body?.item?.[0]?.GetShipDeclInfoVO ||
+            jObj?.GetShipDeclInfoResponse?.body?.item?.GetShipDeclInfoVO || [];
 
         return Response.json({
             success: true,

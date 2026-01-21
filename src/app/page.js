@@ -115,12 +115,12 @@ export default function Home() {
     setIsTracking(true);
     setTrackResult(null);
     try {
-      const res = await fetch(`/api/incheon/tracking?termCd=${trackingNo}`);
+      const res = await fetch(`/api/incheon/tracking?blNo=${trackingNo}`);
       const data = await res.json();
       if (data.success && data.data && data.data.length > 0) {
-        setTrackResult(data.data[0]); // Show the most recent activity
+        setTrackResult(data.data[0]); // Show the primary B/L info
       } else {
-        setTrackResult({ error: 'No active container work found for this code.' });
+        setTrackResult({ error: 'No shipment found for this B/L number. Please verify and try again.' });
       }
     } catch (err) {
       console.error(err);
@@ -403,7 +403,7 @@ export default function Home() {
                 <input
                   type="text"
                   className={styles.catBtn}
-                  placeholder="Enter Terminal Code (e.g., IT003)..."
+                  placeholder="Enter B/L Number..."
                   style={{ flex: 1, padding: '12px', border: '2px solid #e2e8f0', borderRadius: '16px' }}
                   value={trackingNo}
                   onChange={(e) => setTrackingNo(e.target.value)}
@@ -423,37 +423,37 @@ export default function Home() {
                   ) : (
                     <div style={{ textAlign: 'center', color: '#1a1a1a', padding: '40px', width: '100%' }}>
                       <h2 style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
-                        <span style={{ fontSize: '1.5rem' }}>⚡</span> Terminal Operations Detected
+                        <span style={{ fontSize: '1.5rem' }}>🛰️</span> B/L Status Connected
                       </h2>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                         <div className={styles.marketCard} style={{ background: 'white', border: 'none', boxShadow: 'var(--shadow-soft)' }}>
-                          <strong>Terminal</strong>
-                          <span style={{ color: 'var(--accent-purple)', fontWeight: 700 }}>{trackResult.termNm}</span>
+                          <strong>B/L Number</strong>
+                          <span style={{ color: 'var(--accent-purple)', fontWeight: 700 }}>{trackResult.blNo}</span>
                         </div>
                         <div className={styles.marketCard} style={{ background: 'white', border: 'none', boxShadow: 'var(--shadow-soft)' }}>
-                          <strong>Vessel Code</strong>
-                          <span style={{ fontWeight: 600 }}>{trackResult.shipCd || 'N/A'}</span>
+                          <strong>MRN Number</strong>
+                          <span style={{ fontWeight: 600 }}>{trackResult.mrnNo || 'N/A'}</span>
                         </div>
                         <div className={styles.marketCard} style={{ background: 'white', border: 'none', boxShadow: 'var(--shadow-soft)' }}>
-                          <strong>Work Start</strong>
-                          <span style={{ fontSize: '0.85rem' }}>{trackResult.stvBeginDt}</span>
+                          <strong>Reporting Agent</strong>
+                          <span style={{ fontSize: '0.85rem' }}>{trackResult.agentCode || 'N/A'}</span>
                         </div>
                         <div className={styles.marketCard} style={{ background: 'white', border: 'none', boxShadow: 'var(--shadow-soft)' }}>
-                          <strong>Work End</strong>
-                          <span style={{ fontSize: '0.85rem' }}>{trackResult.stvEndDt || 'IN PROGRESS'}</span>
+                          <strong>Declaration Date</strong>
+                          <span style={{ fontSize: '0.85rem' }}>{trackResult.declDate || 'N/A'}</span>
                         </div>
                         <div className={styles.marketCard} style={{ background: 'white', border: 'none', boxShadow: 'var(--shadow-soft)', gridColumn: 'span 2' }}>
                           <div style={{ display: 'flex', justifyContent: 'space-around', width: '100%' }}>
-                            <div><strong>Discharge</strong> <span style={{ color: '#ef4444' }}>{trackResult.disActTeu} TEU</span></div>
+                            <div><strong>Type</strong> <span style={{ color: 'var(--accent-purple)' }}>{trackResult.declTypeCd || 'N/A'}</span></div>
                             <div style={{ width: '1px', background: '#e2e8f0' }}></div>
-                            <div><strong>Loading</strong> <span style={{ color: '#10b981' }}>{trackResult.lodActTeu} TEU</span></div>
+                            <div><strong>Call Year</strong> <span style={{ fontWeight: 600 }}>{trackResult.callYy || 'N/A'}</span></div>
                           </div>
                         </div>
                       </div>
                     </div>
                   )
                 ) : (
-                  <p>ENTER TERMINAL CODE (e.g., IT003) TO START TRACKING</p>
+                  <p>ENTER B/L NUMBER TO TRACK SHIPMENT</p>
                 )}
               </div>
             </div>
