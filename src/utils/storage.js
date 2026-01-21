@@ -108,3 +108,34 @@ export const deleteNotice = async (id) => {
 
     if (error) throw error;
 };
+
+// --- Market History ---
+export const getMarketHistory = async () => {
+    if (!supabase) return [];
+
+    const { data, error } = await supabase
+        .from('market_history')
+        .select('*')
+        .order('date', { ascending: true });
+
+    if (error) {
+        console.error('Error fetching market history:', error);
+        return [];
+    }
+    return data || [];
+};
+
+export const saveMarketHistory = async (record) => {
+    if (!supabase) throw new Error("Database not connected");
+
+    const { data, error } = await supabase
+        .from('market_history')
+        .upsert(record, { onConflict: 'date' })
+        .select();
+
+    if (error) {
+        console.error('Error saving market history:', error);
+        throw error;
+    }
+    return data;
+};

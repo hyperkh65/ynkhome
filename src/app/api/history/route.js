@@ -1,14 +1,12 @@
 import { NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
+import { saveMarketHistory } from '@/utils/storage';
 
 export async function GET(request) {
     try {
         // Verify Cron Secret if deployed on Vercel
         const authHeader = request.headers.get('authorization');
         if (process.env.NODE_ENV === 'production' && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-            // For local testing, we can skip this, but in production, it's essential
-            // return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+            // Authorized session check can go here
         }
 
         // 1. Fetch current market data from our existing API
@@ -19,37 +17,19 @@ export async function GET(request) {
         if (!marketData.success) throw new Error('Failed to fetch market data');
 
         // 2. Prepare data to save
+        // We use the latest price as the 'Closing Price' for the day
         const record = {
             date: new Date().toISOString().split('T')[0], // YYYY-MM-DD
-            timestamp: new Date().toISOString(),
             usd: marketData.rates.usd,
             cny: marketData.rates.cny,
-            metals: marketData.metals
+            metals: marketData.metals, // Object containing {alum, copper, etc} with {last, prevClose}
+            timestamp: new Date().toISOString()
         };
 
-        // 3. Save to local JSON file (acting as a simple DB)
-        const filePath = path.join(process.cwd(), 'market_history.json');
+        // 3. Save to Supabase (using upsert logic in storage.js)
+        await saveMarketHistory(record);
 
-        let history = [];
-        if (fs.existsSync(filePath)) {
-            const fileData = fs.readFileSync(filePath, 'utf8');
-            history = JSON.parse(fileData);
-        }
-
-        // Prevent duplicate entries for the same day
-        const existingIndex = history.findIndex(item => item.date === record.date);
-        if (existingIndex > -1) {
-            history[existingIndex] = record; // Update if already exists
-        } else {
-            history.push(record);
-        }
-
-        // Keep only last 30 days of data for now
-        if (history.length > 30) history.shift();
-
-        fs.writeFileSync(filePath, JSON.stringify(history, null, 2));
-
-        return NextResponse.json({ success: true, message: 'Closing prices saved successfully', record });
+        return NextResponse.json({ success: true, message: 'Market closing prices saved to Database successfully', record });
     } catch (error) {
         console.error('History Save Error:', error);
         return NextResponse.json({ success: false, error: error.message }, { status: 500 });
