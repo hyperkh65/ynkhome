@@ -92,16 +92,14 @@ export default function Home() {
         const hData = await hRes.json();
         if (Array.isArray(hData)) setHistoryData(hData.reverse());
 
-        // Fetch Incheon Port Data
+        // Fetch Incheon Port Data (XML parsed to JSON on server)
         const iRes = await fetch('/api/incheon/congestion');
-        const iData = await iRes.json();
-
-        // Flexible parsing for different public data response formats
-        const items = iData?.response?.body?.items?.item || iData?.items?.item || iData?.items || iData?.item || null;
-        if (items) {
-          setIncheonPort(Array.isArray(items) ? items : [items]);
-        } else {
-          console.warn("No Incheon data found:", iData);
+        if (iRes.ok) {
+          const iData = await iRes.json();
+          const rawItems = iData?.response?.body?.items?.item;
+          if (rawItems) {
+            setIncheonPort(Array.isArray(rawItems) ? rawItems : [rawItems]);
+          }
         }
       } catch (err) { console.error(err); }
     };
@@ -166,7 +164,7 @@ export default function Home() {
         <main>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px' }}>
             <h1 className={styles.sectionTitle}>{activeTab}</h1>
-            <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', fontWeight: 600 }}>v4.2.1-FIX</span>
+            <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', fontWeight: 600 }}>v4.2.2-XML</span>
           </div>
 
           {activeTab === 'Overview' && (
