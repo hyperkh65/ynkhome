@@ -182,6 +182,13 @@ export default function Home() {
       const noticeList = await getNotices();
       setNotices(noticeList);
 
+      // 3. Fetch Market History
+      const hRes = await fetch('/api/market/history');
+      const hData = await hRes.json();
+      if (Array.isArray(hData)) {
+        setHistoryData(hData);
+      }
+
       fetch('/api/news')
         .then(res => res.json())
         .then(data => setNews(data.news || []))
@@ -398,6 +405,7 @@ export default function Home() {
               <div style={{ marginTop: '20px', borderTop: '1px solid #f1f5f9', paddingTop: '20px' }}>
                 <MarketChart
                   marketData={marketData}
+                  historyData={historyData}
                   selectedMetal={selectedMetal}
                   setSelectedMetal={setSelectedMetal}
                   selectedCurrency={selectedCurrency}
@@ -678,6 +686,7 @@ export default function Home() {
             <div style={{ flex: 1, minHeight: 0 }}>
               <MarketChart
                 marketData={marketData}
+                historyData={historyData}
                 selectedMetal={selectedMetal}
                 setSelectedMetal={setSelectedMetal}
                 selectedCurrency={selectedCurrency}
