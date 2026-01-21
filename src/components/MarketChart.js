@@ -8,7 +8,7 @@ export default function MarketChart({
     selectedMetal,
     setSelectedMetal,
     selectedCurrency,
-    setSelectedCurrency
+    setSelectedCurrency,
     historyData = []
 }) {
     const [viewType, setViewType] = useState('metal'); // 'metal' | 'currency'
