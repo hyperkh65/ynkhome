@@ -644,22 +644,22 @@ export default function Home() {
                       )}
 
                       {/* Timeline */}
-                      {trackResult.details && trackResult.details.length > 0 && (
+                      {trackResult.details && Array.isArray(trackResult.details) && trackResult.details.length > 0 && (
                         <div style={{ background: '#fafafa', borderRadius: '10px', padding: '12px' }}>
                           <h3 style={{ fontSize: '0.8rem', fontWeight: 600, marginBottom: '10px', color: '#1d1d1f' }}>📍 Timeline</h3>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                             {trackResult.details.map((detail, idx) => (
                               <div key={idx} style={{ padding: '8px', background: 'white', borderRadius: '8px', border: '1px solid #e5e5ea' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3px' }}>
-                                  <span style={{ fontSize: '0.7rem', fontWeight: 600, color: '#1d1d1f' }}>{detail.cargTrcnRelaBsopTpcd || 'Activity'}</span>
-                                  {detail.prcsDttm && (
+                                  <span style={{ fontSize: '0.7rem', fontWeight: 600, color: '#1d1d1f' }}>{detail?.cargTrcnRelaBsopTpcd || 'Activity'}</span>
+                                  {detail?.prcsDttm && (
                                     <span style={{ fontSize: '0.65rem', color: '#86868b' }}>
                                       {detail.prcsDttm.substring(0, 8)} {detail.prcsDttm.substring(8, 10)}:{detail.prcsDttm.substring(10, 12)}
                                     </span>
                                   )}
                                 </div>
-                                {detail.rlbrCn && (<div style={{ fontSize: '0.65rem', color: '#6b7280' }}>{detail.rlbrCn}</div>)}
-                                {detail.shedNm && (<div style={{ fontSize: '0.65rem', color: '#86868b', marginTop: '2px' }}>📍 {detail.shedNm}</div>)}
+                                {detail?.rlbrCn && (<div style={{ fontSize: '0.65rem', color: '#6b7280' }}>{detail.rlbrCn}</div>)}
+                                {detail?.shedNm && (<div style={{ fontSize: '0.65rem', color: '#86868b', marginTop: '2px' }}>📍 {detail.shedNm}</div>)}
                               </div>
                             ))}
                           </div>

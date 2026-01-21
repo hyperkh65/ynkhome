@@ -67,7 +67,8 @@ export async function GET(request) {
             return Response.json({
                 success: true,
                 type: 'EXPORT',
-                data: Array.isArray(expResult) ? expResult[0] : expResult
+                data: Array.isArray(expResult) ? expResult[0] : expResult,
+                details: [] // Export API doesn't provide timeline details
             });
         }
 
