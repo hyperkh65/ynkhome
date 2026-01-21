@@ -2,7 +2,8 @@
  * YNK ERP2 · Core Module (Notion API Proxy + Helpers)
  ************************************************************/
 
-export const PROXY = window.PROXY || '/api/notion';
+// PROXY will be evaluated inside functions to ensure window.PROXY is picked up if set late.
+const getProxy = () => window.PROXY || '/api/notion';
 
 export const DB_USERS = '26d1f4ff9a0e800cba14e56be989568b';
 export const DB_SALES = '26e1f4ff9a0e801f807fde6aa13b12a0';
@@ -20,7 +21,7 @@ export const num = n => ({ number: (n === '' || n == null) ? null : Number(n) })
 
 /* --------- Request Wrapper --------- */
 async function api(path, body) {
-  const r = await fetch(PROXY + path, {
+  const r = await fetch(getProxy() + path, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body)
@@ -41,7 +42,7 @@ export async function uploadFile(inputEl) {
   const f = inputEl.files[0];
   const fd = new FormData();
   fd.append('file', f);
-  const r = await fetch(PROXY + '/upload', { method: 'POST', body: fd });
+  const r = await fetch(getProxy() + '/upload', { method: 'POST', body: fd });
   const j = await r.json();
   return [{ name: f.name, external: { url: j.url } }];
 }

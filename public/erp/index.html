@@ -6,16 +6,367 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>YNK Global Terminal · ERP</title>
 
-  <!-- Tailwind -->
+  <!-- Tailwind CDN (Critical for layout if using Tailwind classes) -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest"></script>
 
-  <link rel="stylesheet" href="erp-modern.css">
+  <!-- Fallback/Premium Styles Inlined for Reliability -->
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+
+    :root {
+      --primary: #10b981;
+      --primary-dark: #059669;
+      --secondary: #6366f1;
+      --accent: #f43f5e;
+      --bg-app: #f8fafc;
+      --bg-card: rgba(255, 255, 255, 0.8);
+      --sidebar-width: 260px;
+      --sidebar-bg: #1e293b;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --glass: rgba(255, 255, 255, 0.7);
+      --glass-border: rgba(255, 255, 255, 0.3);
+    }
+
+    /* Robust Hidden Class */
+    .hidden {
+      display: none !important;
+    }
+
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg-app);
+      color: var(--text-main);
+      margin: 0;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar Styling */
+    #sidebar {
+      width: var(--sidebar-width);
+      background: var(--sidebar-bg);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 50;
+      transition: transform 0.3s ease;
+      box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
+    }
+
+    #sidebar .logo {
+      padding: 2rem;
+      font-size: 1.5rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    #sidebar .logo-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 0.8rem;
+    }
+
+    #sidebar nav {
+      flex: 1;
+      padding: 1rem;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.875rem 1rem;
+      border-radius: 10px;
+      color: #94a3b8;
+      text-decoration: none;
+      transition: all 0.2s;
+      cursor: pointer;
+      margin-bottom: 0.25rem;
+    }
+
+    .nav-item:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: white;
+    }
+
+    .nav-item.active {
+      background: linear-gradient(90deg, var(--primary), #10b981cc);
+      color: white;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
+
+    /* Content Area */
+    #main-content {
+      flex: 1;
+      margin-left: var(--sidebar-width);
+      padding: 2rem;
+      transition: margin-left 0.3s ease;
+    }
+
+    header.top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+
+    .page-title h1 {
+      font-size: 1.875rem;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    .page-title p {
+      color: var(--text-muted);
+      margin: 0.25rem 0 0;
+    }
+
+    /* Premium Components */
+    .card {
+      background: var(--bg-card);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+    }
+
+    .kpi-card {
+      border-radius: 20px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s;
+    }
+
+    .kpi-card:hover {
+      transform: translateY(-4px);
+    }
+
+    .kpi-card.blue {
+      background: linear-gradient(135deg, #eff6ff, #dbeafe);
+      color: #1e40af;
+    }
+
+    .kpi-card.green {
+      background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+      color: #166534;
+    }
+
+    .kpi-card.purple {
+      background: linear-gradient(135deg, #faf5ff, #f3e8ff);
+      color: #6b21a8;
+    }
+
+    .kpi-card.indigo {
+      background: linear-gradient(135deg, #eef2ff, #e0e7ff);
+      color: #3730a3;
+    }
+
+    .kpi-value {
+      font-size: 1.75rem;
+      font-weight: 700;
+    }
+
+    .kpi-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      opacity: 0.8;
+    }
+
+    /* Tables */
+    .table-container {
+      overflow-x: auto;
+      border-radius: 12px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+    }
+
+    th {
+      background: #f1f5f9;
+      padding: 1rem;
+      font-weight: 600;
+      text-align: left;
+      border-bottom: 2px solid #e2e8f0;
+    }
+
+    td {
+      padding: 1rem;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover td {
+      background: rgba(241, 245, 249, 0.5);
+    }
+
+    /* Forms */
+    input,
+    select,
+    textarea {
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 0.75rem 1rem;
+      transition: all 0.2s;
+      outline: none;
+      width: 100%;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+    }
+
+    .btn-premium {
+      padding: 0.75rem 1.5rem;
+      border-radius: 12px;
+      font-weight: 600;
+      transition: all 0.2s;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      border: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      box-shadow: 0 4px 12px rgba(10, 185, 129, 0.2);
+    }
+
+    .btn-primary:hover {
+      box-shadow: 0 6px 16px rgba(10, 185, 129, 0.3);
+      transform: translateY(-1px);
+    }
+
+    .btn-outline {
+      background: white;
+      border: 1px solid #e2e8f0;
+      color: var(--text-main);
+    }
+
+    .btn-outline:hover {
+      background: #f8fafc;
+    }
+
+    /* Auth Panel */
+    #authPanel {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at top right, #334155, #0f172a);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+
+    .auth-card {
+      width: 100%;
+      max-width: 420px;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 24px;
+      padding: 2.5rem;
+      color: white;
+    }
+
+    .auth-card h2 {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+      text-align: center;
+    }
+
+    .auth-card p {
+      text-align: center;
+      color: #94a3b8;
+      margin-bottom: 2rem;
+    }
+
+    .auth-input-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .auth-input-group label {
+      display: block;
+      font-size: 0.875rem;
+      margin-bottom: 0.5rem;
+      color: #cbd5e1;
+    }
+
+    .auth-card input {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: white;
+    }
+
+    .auth-card input::placeholder {
+      color: #64748b;
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .tab-pane {
+      animation: fadeIn 0.4s ease forwards;
+    }
+
+    /* Mobile Responsiveness */
+    @media (max-width: 1024px) {
+      #sidebar {
+        transform: translateX(-100%);
+      }
+
+      #sidebar.open {
+        transform: translateX(0);
+      }
+
+      #main-content {
+        margin-left: 0;
+      }
+    }
+  </style>
+
+  <!-- External Resources -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+  <script src="https://unpkg.com/lucide@latest" defer></script>
 </head>
 
 <body class="bg-slate-50">
@@ -72,37 +423,32 @@
         <p id="currentPageDesc">종합 분석 및 모니터링</p>
       </div>
       <div class="flex gap-3">
-        <button class="btn-premium btn-outline" onclick="window.location.reload()">
+        <button class="btn-premium btn-outline" id="btnRefresh">
           <i data-lucide="refresh-cw" class="w-4 h-4"></i> 새로고침
         </button>
       </div>
     </header>
 
     <!-- Tab Contents -->
-    <div id="appPanel">
-
+    <div id="appPanel" class="hidden">
       <!-- Dashboard -->
       <section id="tab-dashboard" class="tab-pane space-y-6">
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div class="kpi-card blue shadow-sm">
             <span class="kpi-label uppercase tracking-wider">THIS MONTH PO</span>
             <span id="dashPo" class="kpi-value">0</span>
-            <span class="text-xs opacity-60">이번달 총 발주 금액</span>
           </div>
           <div class="kpi-card green shadow-sm">
             <span class="kpi-label uppercase tracking-wider">THIS MONTH SALES</span>
             <span id="dashSales" class="kpi-value">0</span>
-            <span class="text-xs opacity-60">이번달 총 매출 금액</span>
           </div>
           <div class="kpi-card purple shadow-sm">
             <span class="kpi-label uppercase tracking-wider">CLIENTS</span>
             <span id="dashClients" class="kpi-value">0</span>
-            <span class="text-xs opacity-60">등록된 총 거래처 수</span>
           </div>
           <div class="kpi-card indigo shadow-sm">
             <span class="kpi-label uppercase tracking-wider">PRODUCTS</span>
             <span id="dashProductsCount" class="kpi-value">0</span>
-            <span class="text-xs opacity-60">등록된 총 상품 수</span>
           </div>
         </div>
 
@@ -135,9 +481,6 @@
         <div class="card">
           <div class="flex justify-between items-center mb-4">
             <h3 class="font-bold text-lg">매출 조회</h3>
-            <button id="btnOpenSalesEntry" class="btn-premium btn-primary">
-              <i data-lucide="plus" class="w-4 h-4"></i> 신규 매출 입력
-            </button>
           </div>
           <form id="formSalesSearch" class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 p-4 bg-slate-100 rounded-xl">
             <input id="sCustomer" placeholder="거래처명" class="text-sm">
@@ -147,7 +490,7 @@
               <option value="내자">내자</option>
               <option value="외자">외자</option>
             </select>
-            <button class="btn-premium btn-primary text-sm">검색</button>
+            <button type="submit" class="btn-premium btn-primary text-sm">검색</button>
           </form>
           <div class="table-container">
             <table class="text-sm">
@@ -157,10 +500,7 @@
                   <th>날짜</th>
                   <th>거래처</th>
                   <th>상품</th>
-                  <th>수량</th>
-                  <th>단가</th>
                   <th>합계</th>
-                  <th>담당</th>
                   <th>조작</th>
                 </tr>
               </thead>
@@ -170,53 +510,15 @@
         </div>
       </section>
 
-      <!-- Products, Clients, etc. follow same pattern... -->
-      <section id="tab-products" class="tab-pane hidden space-y-6">
-        <div class="card">
-          <div class="flex justify-between items-center mb-4">
-            <h3 class="font-bold text-lg">상품 리스트</h3>
-            <button id="btnOpenProductEntry" class="btn-premium btn-primary">상품 등록</button>
-          </div>
-          <div class="table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th>코드</th>
-                  <th>제품명</th>
-                  <th>제조사</th>
-                  <th>원가</th>
-                  <th>조작</th>
-                </tr>
-              </thead>
-              <tbody id="productListBody"></tbody>
-            </table>
-          </div>
-        </div>
+      <!-- Simple placeholders for other modules -->
+      <section id="tab-products" class="tab-pane hidden card">
+        <h3 class="font-bold mb-4">상품 정보</h3>
+        <tbody id="productListBody"></tbody>
       </section>
-
-      <section id="tab-clients" class="tab-pane hidden space-y-6">
-        <div class="card">
-          <div class="flex justify-between items-center mb-4">
-            <h3 class="font-bold text-lg">거래처 관리</h3>
-            <button id="btnOpenClientEntry" class="btn-premium btn-primary">거래처 추가</button>
-          </div>
-          <div class="table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th>업체명</th>
-                  <th>대표</th>
-                  <th>전화</th>
-                  <th>구분</th>
-                  <th>조작</th>
-                </tr>
-              </thead>
-              <tbody id="clientPickerBody"></tbody>
-            </table>
-          </div>
-        </div>
+      <section id="tab-clients" class="tab-pane hidden card">
+        <h3 class="font-bold mb-4">거래처 관리</h3>
+        <tbody id="clientPickerBody"></tbody>
       </section>
-
     </div>
   </main>
 
@@ -229,7 +531,7 @@
           <i data-lucide="lock" class="w-8 h-8 text-white"></i>
         </div>
         <h2>ERP LOGIN</h2>
-        <p>YNK Global ERP 시스템에 오신 것을 환영합니다.</p>
+        <p>YNK Global 시스템인증이 필요합니다.</p>
       </div>
 
       <form id="loginForm">
@@ -241,19 +543,17 @@
           <label>비밀번호</label>
           <input id="loginPassword" type="password" placeholder="••••••••" required>
         </div>
-        <button class="btn-premium btn-primary w-full py-4 mt-6">접속하기</button>
-        <div id="loginMsg" class="mt-4 text-center text-red-400 font-medium hidden">인증 정보가 올바르지 않습니다.</div>
+        <button type="submit" class="btn-premium btn-primary w-full py-4 mt-6">접속하기</button>
+        <div id="loginMsg" class="mt-4 text-center text-red-400 font-medium hidden">이메일 또는 비밀번호가 틀립니다.</div>
       </form>
     </div>
   </div>
 
-  <!-- Lucide Init -->
-  <script>
-    lucide.createIcons();
-  </script>
-
-  <!-- Coordinator Script -->
+  <!-- COORDINATOR SCRIPT -->
   <script type="module">
+    // Set Proxy FIRST
+    window.PROXY = window.location.origin + '/api/notion';
+
     import { showApp, switchTab } from './js/ui.js';
     import { login } from './js/auth.js';
     import { loadDashboard } from './js/dashboard.js';
@@ -261,16 +561,23 @@
     import { loadProducts } from './js/products.js';
     import { loadClients } from './js/clients.js';
 
-    // Set a global for PROXY to ensure all modules use the same one
-    window.PROXY = window.location.origin + '/api/notion';
+    // Wait for Lucide
+    function initIcons() {
+      if (window.lucide) {
+        window.lucide.createIcons();
+      } else {
+        setTimeout(initIcons, 100);
+      }
+    }
+    initIcons();
 
-    // Tab switching
+    // Tab Logic
     document.querySelectorAll('.nav-item').forEach(item => {
       item.onclick = async () => {
         const tab = item.dataset.tab;
         switchTab(tab);
         updateHeader(tab);
-        await refreshTabData(tab);
+        await refreshData(tab);
       };
     });
 
@@ -287,18 +594,16 @@
       const info = titles[tab] || titles.dashboard;
       document.getElementById('currentPageTitle').textContent = info.t;
       document.getElementById('currentPageDesc').textContent = info.d;
-      lucide.createIcons();
+      initIcons();
     }
 
-    async function refreshTabData(tab) {
+    async function refreshData(tab) {
       try {
         if (tab === 'sales') await loadSales();
         else if (tab === 'products') await loadProducts();
         else if (tab === 'clients') await loadClients();
         else if (tab === 'dashboard') await loadDashboard();
-      } catch (e) {
-        console.error("Refresh data error:", e);
-      }
+      } catch (e) { console.error(e); }
     }
 
     // Login logic
@@ -319,24 +624,27 @@
           setTimeout(() => msg.classList.add('hidden'), 2000);
         }
       } catch (err) {
-        alert("로그인 중 오류가 발생했습니다: " + err.message);
+        alert("로그인 중 서버 연결 실패: " + err.message);
       }
     };
 
-    // Logout
     document.getElementById('btnLogout').onclick = () => {
       localStorage.removeItem('ynk_erp_user');
       window.location.reload();
     };
 
-    // Initial check (Simplified session check)
-    const saved = localStorage.getItem('ynk_erp_user');
-    if (saved) {
-      showApp(saved);
-      loadDashboard();
-    }
-  </script>
+    document.getElementById('btnRefresh').onclick = () => window.location.reload();
 
+    // Session Restore
+    window.addEventListener('load', async () => {
+      const saved = localStorage.getItem('ynk_erp_user');
+      if (saved) {
+        showApp(saved);
+        await loadDashboard();
+      }
+    });
+
+  </script>
 </body>
 
 </html>
