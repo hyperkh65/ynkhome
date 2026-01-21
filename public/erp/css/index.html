@@ -2856,7 +2856,7 @@ document.getElementById('btnPrintPo').onclick = () => {
   };
 
   // 실제 서버 경로에 맞게 조정하세요.
-  const url = `https://ynk2014.com/erp/templates/purchase.html?data=${encodeURIComponent(JSON.stringify(payload))}`;
+  const url = `/erp/templates/purchase.html?data=${encodeURIComponent(JSON.stringify(payload))}`;
   // 또는 같은 서버/폴더라면: const url = `templates/purchase.html?data=...`
   window.open(url, "_blank");
 };
@@ -2922,7 +2922,7 @@ async function openPoFromSearch(no){
       total
     };
 
-    const url = `https://ynk2014.com/erp5/templates/purchase.html?data=${encodeURIComponent(JSON.stringify(payload))}`;
+    const url = `/erp/templates/purchase.html?data=${encodeURIComponent(JSON.stringify(payload))}`;
     window.open(url, '_blank');
   } catch (err) {
     alert('발주 상세 불러오기 오류: ' + err.message);
@@ -3370,7 +3370,7 @@ document.getElementById("btnPrintImport").addEventListener("click", async () => 
 
   // 4) 수입서 출력 페이지로 이동 (⭐ 발주서/견적서와 동일 패턴)
   const url =
-    `https://ynk2014.com/erp/templates/import.html?data=${encodeURIComponent(JSON.stringify(payload))}`;
+    `/erp/templates/import.html?data=${encodeURIComponent(JSON.stringify(payload))}`;
 
   window.open(url, "_blank");
 });
@@ -3409,7 +3409,7 @@ if (btnPrintImport) {
 
     // 4) 외부 페이지로 이동 (★핵심)
     const url =
-      `https://ynk2014.com/erp/templates/import.html?data=${encodeURIComponent(JSON.stringify(payload))}`;
+      `/erp/templates/import.html?data=${encodeURIComponent(JSON.stringify(payload))}`;
 
     window.open(url, "_blank");
   });

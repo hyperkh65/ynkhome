@@ -2736,7 +2736,7 @@ document.getElementById('btnPrintPo').onclick = () => {
     total
   };
 
-  const url = `https://ynk2014.com/erp/templates/purchase.html?data=${encodeURIComponent(JSON.stringify(payload))}`;
+  const url = `/erp/templates/purchase.html?data=${encodeURIComponent(JSON.stringify(payload))}`;
 
   window.open(url, '_blank');
 };
@@ -2808,7 +2808,7 @@ async function openPoFromSearch(no){
       })),
       total: total
     };
-    const url = `https://ynk2014.com/erp/templates/purchase.html?data=${encodeURIComponent(JSON.stringify(payload))}`;
+    const url = `/erp/templates/purchase.html?data=${encodeURIComponent(JSON.stringify(payload))}`;
     window.open(url, '_blank');
   }catch(err){
     alert('발주 상세 불러오기 오류: ' + err.message);

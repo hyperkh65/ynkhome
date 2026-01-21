@@ -37,7 +37,7 @@
       <div>
         <label class="text-sm">Proxy Base URL</label>
         <input id="cfgProxy" class="mt-1 w-full border rounded-xl px-3 py-2"
-          value="https://ynk2014.com:4443/notion" />
+          value="/api/notion" />
         <p class="text-xs text-gray-500 mt-1">엔드포인트: /query, /create, /update, /delete, /upload, /upload-client</p>
       </div>
       <div>
@@ -264,7 +264,7 @@
 <script>
   // ===== CONFIG 저장 =====
   const CFG_KEY='ynk_erp_cfg_v1';
-  let CFG={ proxy:'https://ynk2014.com:4443/notion',
+  let CFG={ proxy:'/api/notion',
             dbUsers:'26d1f4ff9a0e800cba14e56be989568b',
             dbClients:'2701f4ff9a0e80c69aa8faf0d877a8e1',
             dbProducts:'', dbSales:'', dbQuotes:'' };
