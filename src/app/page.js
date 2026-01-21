@@ -110,13 +110,24 @@ export default function Home() {
     return () => clearInterval(timeTimer);
   }, []);
 
-  const handleTrack = () => {
+  const handleTrack = async () => {
     if (!trackingNo) return;
     setIsTracking(true);
-    setTimeout(() => {
+    setTrackResult(null);
+    try {
+      const res = await fetch(`/api/incheon/tracking?termCd=${trackingNo}`);
+      const data = await res.json();
+      if (data.success && data.data && data.data.length > 0) {
+        setTrackResult(data.data[0]); // Show the most recent activity
+      } else {
+        setTrackResult({ error: 'No active container work found for this code.' });
+      }
+    } catch (err) {
+      console.error(err);
+      setTrackResult({ error: 'Satellite link failed. Please retry.' });
+    } finally {
       setIsTracking(false);
-      setTrackResult({ vessel: 'OCEAN VOYAGER V.12', position: '1.2852° N, 103.8510° E', status: 'IN TRANSIT', eta: '2024-02-15' });
-    }, 1500);
+    }
   };
 
   if (!isMounted) return null;
@@ -392,8 +403,8 @@ export default function Home() {
                 <input
                   type="text"
                   className={styles.catBtn}
-                  placeholder="Enter B/L Number..."
-                  style={{ flex: 1, padding: '12px' }}
+                  placeholder="Enter Terminal Code (e.g., IT003)..."
+                  style={{ flex: 1, padding: '12px', border: '2px solid #e2e8f0', borderRadius: '16px' }}
                   value={trackingNo}
                   onChange={(e) => setTrackingNo(e.target.value)}
                 />
@@ -401,18 +412,48 @@ export default function Home() {
               </div>
 
               <div style={{ height: '500px', background: '#eef2f6', borderRadius: '24px', display: 'flex', alignItems: 'center', justifycontent: 'center', color: '#94a3b8', border: '2px dashed #cbd5e1' }}>
-                {trackResult ? (
-                  <div style={{ textAlign: 'center', color: '#1a1a1a', padding: '40px' }}>
-                    <h2 style={{ marginBottom: '20px' }}>🛰️ Satellite Visual Connected</h2>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-                      <div className={styles.marketCard}><strong>Vessel</strong> {trackResult.vessel}</div>
-                      <div className={styles.marketCard}><strong>Status</strong> {trackResult.status}</div>
-                      <div className={styles.marketCard}><strong>Coordinates</strong> {trackResult.position}</div>
-                      <div className={styles.marketCard}><strong>ETA</strong> {trackResult.eta}</div>
-                    </div>
+                {isTracking ? (
+                  <div style={{ textAlign: 'center' }}>
+                    <div className={styles.loadingPulse} style={{ width: '40px', height: '40px', margin: '0 auto 20px', background: 'var(--accent-purple)', borderRadius: '50%' }}></div>
+                    <p>SCANNING TERMINAL DATA...</p>
                   </div>
+                ) : trackResult ? (
+                  trackResult.error ? (
+                    <p style={{ color: '#ef4444' }}>{trackResult.error}</p>
+                  ) : (
+                    <div style={{ textAlign: 'center', color: '#1a1a1a', padding: '40px', width: '100%' }}>
+                      <h2 style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+                        <span style={{ fontSize: '1.5rem' }}>⚡</span> Terminal Operations Detected
+                      </h2>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                        <div className={styles.marketCard} style={{ background: 'white', border: 'none', boxShadow: 'var(--shadow-soft)' }}>
+                          <strong>Terminal</strong>
+                          <span style={{ color: 'var(--accent-purple)', fontWeight: 700 }}>{trackResult.termNm}</span>
+                        </div>
+                        <div className={styles.marketCard} style={{ background: 'white', border: 'none', boxShadow: 'var(--shadow-soft)' }}>
+                          <strong>Vessel Code</strong>
+                          <span style={{ fontWeight: 600 }}>{trackResult.shipCd || 'N/A'}</span>
+                        </div>
+                        <div className={styles.marketCard} style={{ background: 'white', border: 'none', boxShadow: 'var(--shadow-soft)' }}>
+                          <strong>Work Start</strong>
+                          <span style={{ fontSize: '0.85rem' }}>{trackResult.stvBeginDt}</span>
+                        </div>
+                        <div className={styles.marketCard} style={{ background: 'white', border: 'none', boxShadow: 'var(--shadow-soft)' }}>
+                          <strong>Work End</strong>
+                          <span style={{ fontSize: '0.85rem' }}>{trackResult.stvEndDt || 'IN PROGRESS'}</span>
+                        </div>
+                        <div className={styles.marketCard} style={{ background: 'white', border: 'none', boxShadow: 'var(--shadow-soft)', gridColumn: 'span 2' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-around', width: '100%' }}>
+                            <div><strong>Discharge</strong> <span style={{ color: '#ef4444' }}>{trackResult.disActTeu} TEU</span></div>
+                            <div style={{ width: '1px', background: '#e2e8f0' }}></div>
+                            <div><strong>Loading</strong> <span style={{ color: '#10b981' }}>{trackResult.lodActTeu} TEU</span></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )
                 ) : (
-                  <p>AWAITING SATELLITE CONNECTION DATA...</p>
+                  <p>ENTER TERMINAL CODE (e.g., IT003) TO START TRACKING</p>
                 )}
               </div>
             </div>
