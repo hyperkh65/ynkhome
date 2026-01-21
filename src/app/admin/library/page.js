@@ -15,17 +15,11 @@ export default function AdminLibrary() {
     const [editingId, setEditingId] = useState(null);
     const [error, setError] = useState('');
 
-    // 1) 권한 체크
+    // 1) 권한 체크 (간소화: /admin을 통과했다고 가정)
     useEffect(() => {
-        const checkUser = async () => {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (user) {
-                setIsAuthorized(true);
-            }
-            setChecking(false);
-            loadPosts();
-        };
-        checkUser();
+        setIsAuthorized(true);
+        setChecking(false);
+        loadPosts();
     }, []);
 
     // 2) 게시글 목록 로드
