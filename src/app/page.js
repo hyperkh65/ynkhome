@@ -751,8 +751,10 @@ export default function Home() {
                               {i < 4 && <div style={{ width: '2px', height: '30px', background: '#f1f5f9' }}></div>}
                             </div>
                             <div>
-                              <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{detail.prgsStts}</div>
-                              <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>{detail.prgsDt} • {detail.prgsLocation || 'Customs Zone'}</div>
+                              <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{detail.prgsSttsNm}</div>
+                              <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                                {detail.prgsDt ? `${detail.prgsDt.substring(0, 4)}-${detail.prgsDt.substring(4, 6)}-${detail.prgsDt.substring(6, 8)} ${detail.prgsDt.substring(8, 10)}:${detail.prgsDt.substring(10, 12)}` : 'N/A'} • {detail.shedNm || 'Customs Zone'}
+                              </div>
                             </div>
                           </div>
                         ))}
