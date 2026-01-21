@@ -46,6 +46,11 @@ export default function Home() {
     const newId = Math.max(...products.map(p => p.id), 0) + 1;
     setProducts([...products, { id: newId, name: `Product ${newId}`, length: '', width: '', height: '', qty: '' }]);
   };
+  const removeProduct = (id) => {
+    if (products.length > 1) {
+      setProducts(products.filter(p => p.id !== id));
+    }
+  };
   const updateProduct = (id, field, value) => {
     setProducts(products.map(p => p.id === id ? { ...p, [field]: value } : p));
   };
@@ -290,15 +295,46 @@ export default function Home() {
                     </div>
                   </div>
 
-                  <div style={{ background: '#f8fafc', padding: '20px', borderRadius: '20px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                  <div style={{ background: '#f8fafc', padding: '20px', borderRadius: '24px', border: '1px solid #e2e8f0' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                       <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>CBM Estimator</span>
-                      <span style={{ color: '#7c3aed', fontWeight: 700 }}>{calculateTotalCBM().toFixed(2)} m³</span>
+                      <span style={{ color: '#7c3aed', fontWeight: 700 }}>{calculateTotalCBM().toFixed(3)} m³</span>
                     </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '16px', maxHeight: '300px', overflowY: 'auto', paddingRight: '4px' }}>
+                      {products.map((product) => (
+                        <div key={product.id} style={{ background: 'white', padding: '12px', borderRadius: '16px', border: '1px solid #f1f5f9' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                            <input
+                              style={{ border: 'none', fontWeight: 600, fontSize: '0.8rem', width: '100px' }}
+                              value={product.name}
+                              onChange={(e) => updateProduct(product.id, 'name', e.target.value)}
+                            />
+                            {products.length > 1 && (
+                              <button onClick={() => removeProduct(product.id)} style={{ border: 'none', background: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '1rem' }}>&times;</button>
+                            )}
+                          </div>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
+                            <input type="number" placeholder="L" style={{ width: '100%', padding: '4px', borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '0.7rem' }} value={product.length} onChange={(e) => updateProduct(product.id, 'length', e.target.value)} />
+                            <input type="number" placeholder="W" style={{ width: '100%', padding: '4px', borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '0.7rem' }} value={product.width} onChange={(e) => updateProduct(product.id, 'width', e.target.value)} />
+                            <input type="number" placeholder="H" style={{ width: '100%', padding: '4px', borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '0.7rem' }} value={product.height} onChange={(e) => updateProduct(product.id, 'height', e.target.value)} />
+                            <input type="number" placeholder="Qty" style={{ width: '100%', padding: '4px', borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '0.7rem' }} value={product.qty} onChange={(e) => updateProduct(product.id, 'qty', e.target.value)} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <button onClick={addProduct} style={{ width: '100%', padding: '8px', borderRadius: '12px', border: '1px dashed #7c3aed', background: '#f5f3ff', color: '#7c3aed', fontWeight: 600, fontSize: '0.8rem', cursor: 'pointer', marginBottom: '16px' }}>
+                      + Add Product
+                    </button>
+
                     <div style={{ height: '8px', background: '#e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
-                      <div style={{ height: '100%', width: `${Math.min(calculateTotalCBM() * 2, 100)}%`, background: '#7c3aed' }}></div>
+                      <div style={{ height: '100%', width: `${Math.min((calculateTotalCBM() / 28) * 100, 100)}%`, background: '#7c3aed', transition: 'width 0.3s ease' }}></div>
                     </div>
-                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '8px' }}>Approx. 20ft container fill rate</p>
+                    <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '8px', display: 'flex', justifyContent: 'space-between' }}>
+                      <span>20ft Container Fill Rate</span>
+                      <span>{((calculateTotalCBM() / 28) * 100).toFixed(1)}%</span>
+                    </p>
                   </div>
                 </div>
 
