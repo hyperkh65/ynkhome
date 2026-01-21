@@ -117,8 +117,8 @@ export default function Home() {
     try {
       const res = await fetch(`/api/incheon/tracking?blNo=${trackingNo}`);
       const data = await res.json();
-      if (data.success && data.data) {
-        setTrackResult(data.data); // CargoCsclPrgsInfoQryRslt object
+      if (data.success) {
+        setTrackResult(data); // Stores { success, type, data }
       } else {
         setTrackResult({ error: data.error || 'No shipment found in UNIPASS for this B/L number.' });
       }
@@ -426,47 +426,80 @@ export default function Home() {
                         <span style={{ fontSize: '1.5rem' }}>🇰🇷</span> UNIPASS Live Connected
                       </h2>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-                        <div className={styles.marketCard} style={{ background: 'white', border: 'none', boxShadow: 'var(--shadow-soft)', gridColumn: 'span 2' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-                            <strong>Current Status</strong>
-                            <span style={{ background: 'var(--accent-purple)', color: 'white', padding: '4px 12px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 700 }}>
-                              {trackResult.csclPrgsSttsNm || 'Unknown'}
-                            </span>
-                          </div>
-                        </div>
+                        {trackResult.type === 'IMPORT' ? (
+                          <>
+                            <div className={styles.marketCard} style={{ background: 'white', border: 'none', boxShadow: 'var(--shadow-soft)', gridColumn: 'span 2' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                                <strong>Import Status</strong>
+                                <span style={{ background: 'var(--accent-purple)', color: 'white', padding: '4px 12px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 700 }}>
+                                  {trackResult.data.csclPrgsSttsNm || 'Active'}
+                                </span>
+                              </div>
+                            </div>
 
-                        <div className={styles.marketCard} style={{ background: 'white', border: 'none', boxShadow: 'var(--shadow-soft)' }}>
-                          <strong>B/L Number</strong>
-                          <span style={{ fontWeight: 600, fontSize: '0.85rem' }}>{trackResult.hblNo || trackResult.mblNo}</span>
-                        </div>
-                        <div className={styles.marketCard} style={{ background: 'white', border: 'none', boxShadow: 'var(--shadow-soft)' }}>
-                          <strong>Vessel / Voyage</strong>
-                          <span style={{ fontSize: '0.85rem' }}>{trackResult.shipNm || 'N/A'} {trackResult.vydf}</span>
-                        </div>
+                            <div className={styles.marketCard} style={{ background: 'white', border: 'none', boxShadow: 'var(--shadow-soft)' }}>
+                              <strong>B/L (Import)</strong>
+                              <span style={{ fontWeight: 600, fontSize: '0.85rem' }}>{trackResult.data.hblNo || trackResult.data.mblNo}</span>
+                            </div>
+                            <div className={styles.marketCard} style={{ background: 'white', border: 'none', boxShadow: 'var(--shadow-soft)' }}>
+                              <strong>Vessel</strong>
+                              <span style={{ fontSize: '0.85rem' }}>{trackResult.data.shipNm || 'N/A'}</span>
+                            </div>
 
-                        <div className={styles.marketCard} style={{ background: 'white', border: 'none', boxShadow: 'var(--shadow-soft)' }}>
-                          <strong>Loading Port</strong>
-                          <span style={{ fontSize: '0.85rem' }}>{trackResult.ldngPrtNm || 'N/A'}</span>
-                        </div>
-                        <div className={styles.marketCard} style={{ background: 'white', border: 'none', boxShadow: 'var(--shadow-soft)' }}>
-                          <strong>Discharge Port</strong>
-                          <span style={{ fontSize: '0.85rem' }}>{trackResult.dschPrtNm || 'N/A'}</span>
-                        </div>
+                            <div className={styles.marketCard} style={{ background: 'white', border: 'none', boxShadow: 'var(--shadow-soft)' }}>
+                              <strong>Loading Port</strong>
+                              <span style={{ fontSize: '0.85rem' }}>{trackResult.data.ldngPrtNm || 'N/A'}</span>
+                            </div>
+                            <div className={styles.marketCard} style={{ background: 'white', border: 'none', boxShadow: 'var(--shadow-soft)' }}>
+                              <strong>Discharge Port</strong>
+                              <span style={{ fontSize: '0.85rem' }}>{trackResult.data.dschPrtNm || 'N/A'}</span>
+                            </div>
 
-                        <div className={styles.marketCard} style={{ background: 'white', border: 'none', boxShadow: 'var(--shadow-soft)' }}>
-                          <strong>Packages / Weight</strong>
-                          <span style={{ fontSize: '0.85rem' }}>{trackResult.pckGcnt} {trackResult.pckUt} / {trackResult.ttwg} {trackResult.wgUt}</span>
-                        </div>
-                        <div className={styles.marketCard} style={{ background: 'white', border: 'none', boxShadow: 'var(--shadow-soft)' }}>
-                          <strong>Customs Office</strong>
-                          <span style={{ fontSize: '0.85rem' }}>{trackResult.etprCstmNm || 'N/A'}</span>
-                        </div>
+                            <div className={styles.marketCard} style={{ background: 'white', border: 'none', boxShadow: 'var(--shadow-soft)' }}>
+                              <strong>Weight</strong>
+                              <span style={{ fontSize: '0.85rem' }}>{trackResult.data.ttwg} {trackResult.data.wgUt}</span>
+                            </div>
+                            <div className={styles.marketCard} style={{ background: 'white', border: 'none', boxShadow: 'var(--shadow-soft)' }}>
+                              <strong>Customs</strong>
+                              <span style={{ fontSize: '0.85rem' }}>{trackResult.data.etprCstmNm || 'N/A'}</span>
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <div className={styles.marketCard} style={{ background: 'white', border: 'none', boxShadow: 'var(--shadow-soft)', gridColumn: 'span 2' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                                <strong>Export Status</strong>
+                                <span style={{ background: '#10b981', color: 'white', padding: '4px 12px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 700 }}>
+                                  {trackResult.data.shpmcmplYn === 'Y' ? 'SHIPPED' : 'IN PROGRESS'}
+                                </span>
+                              </div>
+                            </div>
 
-                        <div className={styles.marketCard} style={{ background: 'white', border: 'none', boxShadow: 'var(--shadow-soft)', gridColumn: 'span 2' }}>
-                          <div style={{ textAlign: 'left', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                            <strong>Consignee:</strong> {trackResult.cneeNm || 'HIDDEN FOR PRIVACY'}
-                          </div>
-                        </div>
+                            <div className={styles.marketCard} style={{ background: 'white', border: 'none', boxShadow: 'var(--shadow-soft)' }}>
+                              <strong>B/L (Export)</strong>
+                              <span style={{ fontWeight: 600, fontSize: '0.85rem' }}>{trackingNo}</span>
+                            </div>
+                            <div className={styles.marketCard} style={{ background: 'white', border: 'none', boxShadow: 'var(--shadow-soft)' }}>
+                              <strong>Declaration No</strong>
+                              <span style={{ fontSize: '0.85rem' }}>{trackResult.data.expDclrNo}</span>
+                            </div>
+
+                            <div className={styles.marketCard} style={{ background: 'white', border: 'none', boxShadow: 'var(--shadow-soft)' }}>
+                              <strong>Loading Place</strong>
+                              <span style={{ fontSize: '0.85rem' }}>{trackResult.data.shpmAirptPortNm || 'N/A'}</span>
+                            </div>
+                            <div className={styles.marketCard} style={{ background: 'white', border: 'none', boxShadow: 'var(--shadow-soft)' }}>
+                              <strong>Departure Date</strong>
+                              <span style={{ fontSize: '0.85rem' }}>{trackResult.data.tkofDt || 'PENDING'}</span>
+                            </div>
+
+                            <div className={styles.marketCard} style={{ background: 'white', border: 'none', boxShadow: 'var(--shadow-soft)', gridColumn: 'span 2' }}>
+                              <div style={{ textAlign: 'left', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                                <strong>Exporter:</strong> {trackResult.data.exppnConm || 'N/A'}
+                              </div>
+                            </div>
+                          </>
+                        )}
                       </div>
                     </div>
                   )
