@@ -94,6 +94,28 @@ export default function Home() {
       }
     }));
 
+    // 3. Mock Port Status
+    setTimeout(() => {
+      setHubs(prev => prev.map(hub => {
+        const r = Math.random();
+        let status = 'Normal';
+        let color = '#ecfdf5'; // green bg
+        let textColor = '#15803d'; // green text
+
+        if (r > 0.7) {
+          status = 'Busy';
+          color = '#ffedd5'; // orange bg
+          textColor = '#c2410c'; // orange text
+        } else if (r > 0.9) {
+          status = 'Congested';
+          color = '#fee2e2'; // red bg
+          textColor = '#b91c1c'; // red text
+        }
+
+        return { ...hub, status, color, textColor };
+      }));
+    }, 1500);
+
     // 2. Fetch Catalog Products form Supabase
     try {
       const products = await getProducts();
