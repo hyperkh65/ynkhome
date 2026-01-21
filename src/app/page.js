@@ -607,27 +607,27 @@ export default function Home() {
               <div className={styles.marketCard}><strong>Cert</strong> {selectedProduct.specs?.cert || 'N/A'}</div>
               <div className={styles.marketCard}><strong>Origin</strong> {selectedProduct.specs?.origin || 'N/A'}</div>
             </div>
-            {selectedProduct.specs?.certificate && (
+            {(selectedProduct.specs?.certificate || selectedProduct.specs?.certLink) && (
               <a
-                href={selectedProduct.specs.certificate.startsWith('http') ? selectedProduct.specs.certificate : `/uploads/${selectedProduct.specs.certificate}`}
+                href={selectedProduct.specs.certificate || selectedProduct.specs.certLink}
                 target="_blank"
                 rel="noopener noreferrer"
                 className={styles.catBtn}
-                style={{ width: '100%', marginTop: '20px', background: '#f0fdf4', color: '#15803d', justifyContent: 'center', border: '1px solid #bbf7d0', textDecoration: 'none' }}
+                style={{ width: '100%', marginTop: '20px', background: '#f0fdf4', color: '#15803d', justifyContent: 'center', border: '1px solid #bbf7d0', textDecoration: 'none', padding: '12px' }}
               >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px' }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
-                Download Certificates ({selectedProduct.specs.certificate.split('/').pop()})
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px' }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
+                Download Certificates (ZIP)
               </a>
             )}
             {selectedProduct.specs?.specSheet && (
               <a
-                href={selectedProduct.specs.specSheet.startsWith('http') ? selectedProduct.specs.specSheet : `/uploads/${selectedProduct.specs.specSheet}`}
+                href={selectedProduct.specs.specSheet}
                 target="_blank"
                 rel="noopener noreferrer"
                 className={styles.catBtn}
-                style={{ width: '100%', marginTop: '8px', background: '#eff6ff', color: '#1d4ed8', justifyContent: 'center', border: '1px solid #bfdbfe', textDecoration: 'none' }}
+                style={{ width: '100%', marginTop: '8px', background: '#eff6ff', color: '#1d4ed8', justifyContent: 'center', border: '1px solid #bfdbfe', textDecoration: 'none', padding: '12px' }}
               >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px' }}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px' }}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
                 View Spec Sheet (PDF)
               </a>
             )}
