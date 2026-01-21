@@ -104,10 +104,14 @@ export default function Home() {
       if (json.success && Array.isArray(json.data) && json.data.length > 0) {
         setHubs(prev => prev.map((hub, idx) => {
           // Find matching data in API response
-          const match = json.data.find(d =>
-            (d.trmnlNm && d.trmnlNm.includes(hub.name.substr(0, 2))) ||
-            (d.trmnlNm && hub.name.includes(d.trmnlNm.substr(0, 2)))
-          ) || json.data[idx % json.data.length]; // Fallback to data by index if match fails
+          const match = json.data.find(d => {
+            const apiNm = (d.trmnlNm || '').toUpperCase();
+            const hubNm = hub.name.toUpperCase();
+            return hubNm.includes(apiNm) || apiNm.includes(hubNm.substr(0, 2)) ||
+              (hubNm.includes('인천') && apiNm.includes('ICT')) ||
+              (hubNm.includes('한진') && apiNm.includes('HJIT')) ||
+              (hubNm.includes('선광') && apiNm.includes('SNCT'));
+          }) || json.data[idx % json.data.length]; // Fallback to index if no match
 
           if (match) {
             const level = match.cgstLevel || 'Normal';
@@ -151,17 +155,24 @@ export default function Home() {
     }
   };
 
-  const handleTrack = () => {
+  const handleTrack = async () => {
+    if (!trackingNo) return;
     setIsTracking(true);
-    // Mock Tracking API
-    setTimeout(() => {
+    setTrackResult(null);
+    try {
+      const res = await fetch(`/api/incheon/tracking?blNo=${trackingNo}`);
+      const data = await res.json();
+      if (data.success) {
+        setTrackResult(data); // Stores { success, type, data, details }
+      } else {
+        setTrackResult({ error: data.error || 'No shipment found in UNIPASS for this B/L number.' });
+      }
+    } catch (err) {
+      console.error(err);
+      setTrackResult({ error: 'Satellite link failed. Please retry.' });
+    } finally {
       setIsTracking(false);
-      setTrackResult({
-        status: 'In Transit',
-        location: 'Busan Port, KR',
-        eta: '2024-10-24'
-      });
-    }, 1500);
+    }
   };
 
   const addProduct = () => {
@@ -691,33 +702,65 @@ export default function Home() {
             </div>
 
             {trackResult ? (
-              <div style={{ background: '#f0fdf4', borderRadius: '20px', padding: '32px', border: '1px solid #bbf7d0' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '24px' }}>
-                  <div>
-                    <div style={{ color: '#166534', fontWeight: 700, fontSize: '1.2rem' }}>Status: {trackResult.status}</div>
-                    <div style={{ color: '#15803d', marginTop: '4px' }}>Current Location: {trackResult.location}</div>
-                  </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ color: '#15803d', fontSize: '0.9rem' }}>Estimated Arrival</div>
-                    <div style={{ fontWeight: 700, fontSize: '1.1rem' }}>{trackResult.eta}</div>
-                  </div>
+              trackResult.error ? (
+                <div style={{ padding: '24px', background: '#fee2e2', borderRadius: '16px', color: '#b91c1c', textAlign: 'center' }}>
+                  {trackResult.error}
                 </div>
-                {/* Timeline Placeholder */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  {[1, 2, 3].map(i => (
-                    <div key={i} style={{ display: 'flex', gap: '20px' }}>
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                        <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: i === 1 ? '#10b981' : '#cbd5e1' }}></div>
-                        {i < 3 && <div style={{ width: '2px', flex: 1, background: '#cbd5e1', margin: '4px 0' }}></div>}
-                      </div>
-                      <div style={{ paddingBottom: '16px' }}>
-                        <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>Node {i} Processing</div>
-                        <div style={{ fontSize: '0.8rem', color: '#64748b' }}>2024-10-{20 + i} 14:00</div>
+              ) : (
+                <div style={{ background: '#f8fafc', borderRadius: '20px', padding: '32px', border: '1px solid #e2e8f0' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                    <h3 style={{ fontSize: '1.2rem', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '1.5rem' }}>{trackResult.type === 'IMPORT' ? '🇰🇷' : '🚢'}</span>
+                      UNIPASS {trackResult.type} Tracking
+                    </h3>
+                    <span style={{ background: trackResult.type === 'IMPORT' ? 'var(--accent-purple)' : '#10b981', color: 'white', padding: '6px 16px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 700 }}>
+                      {trackResult.type === 'IMPORT' ? (trackResult.data.csclPrgsSttsNm || 'Active') : (trackResult.data.shpmcmplYn === 'Y' ? 'SHIPPED' : 'IN PROGRESS')}
+                    </span>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '32px' }}>
+                    {trackResult.type === 'IMPORT' ? (
+                      <>
+                        <div className={styles.marketCard}><strong>B/L No.</strong> <span>{trackResult.data.hblNo || trackResult.data.mblNo}</span></div>
+                        <div className={styles.marketCard}><strong>Vessel</strong> <span>{trackResult.data.shipNm || 'N/A'}</span></div>
+                        <div className={styles.marketCard}><strong>Loading Port</strong> <span>{trackResult.data.ldngPrtNm || 'N/A'}</span></div>
+                        <div className={styles.marketCard}><strong>Discharge Port</strong> <span>{trackResult.data.dschPrtNm || 'N/A'}</span></div>
+                        <div className={styles.marketCard}><strong>Weight</strong> <span>{trackResult.data.ttwg} {trackResult.data.wgUt}</span></div>
+                        <div className={styles.marketCard}><strong>Customs</strong> <span>{trackResult.data.etprCstmNm || 'N/A'}</span></div>
+                      </>
+                    ) : (
+                      <>
+                        <div className={styles.marketCard}><strong>B/L No.</strong> <span>{trackingNo}</span></div>
+                        <div className={styles.marketCard}><strong>Declaration No</strong> <span>{trackResult.data.expDclrNo}</span></div>
+                        <div className={styles.marketCard}><strong>Loading Place</strong> <span>{trackResult.data.shpmAirptPortNm || 'N/A'}</span></div>
+                        <div className={styles.marketCard}><strong>Departure Date</strong> <span>{trackResult.data.tkofDt || 'PENDING'}</span></div>
+                        <div className={styles.marketCard} style={{ gridColumn: 'span 2' }}><strong>Exporter</strong> <span>{trackResult.data.exppnConm || 'N/A'}</span></div>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Timeline for Import */}
+                  {trackResult.type === 'IMPORT' && trackResult.details && (
+                    <div style={{ marginTop: '24px' }}>
+                      <h4 style={{ fontSize: '1rem', marginBottom: '16px', color: '#64748b' }}>Process Timeline</h4>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        {trackResult.details.slice(0, 5).map((detail, i) => (
+                          <div key={i} style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '4px' }}>
+                              <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: i === 0 ? 'var(--accent-purple)' : '#cbd5e1' }}></div>
+                              {i < 4 && <div style={{ width: '2px', height: '30px', background: '#f1f5f9' }}></div>}
+                            </div>
+                            <div>
+                              <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{detail.prgsStts}</div>
+                              <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>{detail.prgsDt} • {detail.prgsLocation || 'Customs Zone'}</div>
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </div>
-                  ))}
+                  )}
                 </div>
-              </div>
+              )
             ) : (
               <div style={{ padding: '60px', textAlign: 'center', color: '#94a3b8' }}>
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '16px', opacity: 0.5 }}><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
