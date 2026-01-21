@@ -95,11 +95,13 @@ export default function Home() {
         // Fetch Incheon Port Data
         const iRes = await fetch('/api/incheon/congestion');
         const iData = await iRes.json();
-        if (iData?.response?.body?.items?.item) {
-          const items = Array.isArray(iData.response.body.items.item)
-            ? iData.response.body.items.item
-            : [iData.response.body.items.item];
-          setIncheonPort(items);
+
+        // Flexible parsing for different public data response formats
+        let items = iData?.response?.body?.items?.item || iData?.items || null;
+        if (items) {
+          setIncheonPort(Array.isArray(items) ? items : [items]);
+        } else {
+          console.warn("No Incheon data found:", iData);
         }
       } catch (err) { console.error(err); }
     };
@@ -162,7 +164,10 @@ export default function Home() {
         </header>
 
         <main>
-          <h1 className={styles.sectionTitle}>{activeTab}</h1>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px' }}>
+            <h1 className={styles.sectionTitle}>{activeTab}</h1>
+            <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', fontWeight: 600 }}>v4.2.0-LIVE</span>
+          </div>
 
           {activeTab === 'Overview' && (
             <div className={styles.dashboardGrid}>
