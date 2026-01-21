@@ -21,7 +21,8 @@ export default function AdminPage() {
         weight: '',
         cert: '',
         origin: '',
-        certificate: ''
+        certificate: '',
+        specSheet: ''
     });
 
     useEffect(() => {
@@ -56,11 +57,10 @@ export default function AdminPage() {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleFileChange = (e) => {
-        // Simulation of file upload - storing just the name
+    const handleFileChange = (e, field) => {
         const file = e.target.files[0];
         if (file) {
-            setFormData(prev => ({ ...prev, certificate: file.name }));
+            setFormData(prev => ({ ...prev, [field]: file.name }));
         }
     };
 
@@ -74,7 +74,8 @@ export default function AdminPage() {
             weight: '',
             cert: '',
             origin: '',
-            certificate: ''
+            certificate: '',
+            specSheet: ''
         });
     };
 
@@ -88,7 +89,8 @@ export default function AdminPage() {
             weight: product.specs?.weight || '',
             cert: product.specs?.cert || '',
             origin: product.specs?.origin || '',
-            certificate: product.specs?.certificate || ''
+            certificate: product.specs?.certificate || '',
+            specSheet: product.specs?.specSheet || ''
         });
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
@@ -103,7 +105,7 @@ export default function AdminPage() {
                 fetchProducts();
                 if (editingId === id) resetForm();
             } else {
-                alert('Failed to delete product');
+                alert('Failed to delete product - ' + (data.error || 'Unknown Error'));
             }
         } catch (err) {
             console.error(err);
@@ -123,7 +125,8 @@ export default function AdminPage() {
                 weight: formData.weight,
                 cert: formData.cert,
                 origin: formData.origin,
-                certificate: formData.certificate
+                certificate: formData.certificate,
+                specSheet: formData.specSheet
             }
         };
 
@@ -226,11 +229,19 @@ export default function AdminPage() {
                                 <label className={styles.label}>Image URL</label>
                                 <input type="text" name="image" className={styles.input} value={formData.image} onChange={handleInputChange} placeholder="https://..." />
                             </div>
-                            <div className={styles.formGroup} style={{ gridColumn: 'span 2' }}>
+
+                            <div className={styles.formGroup}>
                                 <label className={styles.label}>Compliance Certificates (ZIP)</label>
                                 <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                                    <input type="file" className={styles.fileInput} onChange={handleFileChange} accept=".zip,.rar,.7z" />
-                                    {formData.certificate && <span style={{ fontSize: '0.8rem', color: '#10b981' }}>Current: {formData.certificate}</span>}
+                                    <input type="file" className={styles.fileInput} onChange={(e) => handleFileChange(e, 'certificate')} accept=".zip,.rar,.7z" />
+                                    {formData.certificate && <span style={{ fontSize: '0.8rem', color: '#10b981', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '150px' }}>{formData.certificate}</span>}
+                                </div>
+                            </div>
+                            <div className={styles.formGroup}>
+                                <label className={styles.label}>Spec Sheet (PDF)</label>
+                                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                                    <input type="file" className={styles.fileInput} onChange={(e) => handleFileChange(e, 'specSheet')} accept=".pdf" />
+                                    {formData.specSheet && <span style={{ fontSize: '0.8rem', color: '#10b981', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '150px' }}>{formData.specSheet}</span>}
                                 </div>
                             </div>
 
@@ -252,7 +263,7 @@ export default function AdminPage() {
                             {products.map(product => (
                                 <div key={product.id} style={{ display: 'flex', gap: '12px', padding: '12px', background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', alignItems: 'center' }}>
                                     <div style={{ width: '60px', height: '60px', borderRadius: '8px', background: '#f1f5f9', overflow: 'hidden', flexShrink: 0 }}>
-                                        <img src={product.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                        <img src={product.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => e.target.src = 'https://picsum.photos/400/300?blur=5'} />
                                     </div>
                                     <div style={{ flex: 1 }}>
                                         <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{product.name}</div>

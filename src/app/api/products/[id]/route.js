@@ -2,15 +2,36 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 
-const dataFilePath = path.join(process.cwd(), 'products.json');
+// Vercel serverless environment requires writing to /tmp
+const DATA_FILE = 'products.json';
+const TMP_DATA_PATH = path.join('/tmp', DATA_FILE);
+const SEED_DATA_PATH = path.join(process.cwd(), DATA_FILE);
+
+async function getData() {
+    try {
+        const data = await fs.readFile(TMP_DATA_PATH, 'utf8');
+        return JSON.parse(data);
+    } catch (error) {
+        try {
+            const seedData = await fs.readFile(SEED_DATA_PATH, 'utf8');
+            await fs.writeFile(TMP_DATA_PATH, seedData);
+            return JSON.parse(seedData);
+        } catch (seedError) {
+            return [];
+        }
+    }
+}
+
+async function saveData(data) {
+    await fs.writeFile(TMP_DATA_PATH, JSON.stringify(data, null, 2));
+}
 
 export async function PUT(request, { params }) {
     try {
         const id = parseInt(params.id);
         const body = await request.json();
 
-        const fileContent = await fs.readFile(dataFilePath, 'utf8');
-        let products = JSON.parse(fileContent);
+        const products = await getData();
 
         const index = products.findIndex(p => p.id === id);
         if (index === -1) {
@@ -18,7 +39,7 @@ export async function PUT(request, { params }) {
         }
 
         products[index] = { ...products[index], ...body };
-        await fs.writeFile(dataFilePath, JSON.stringify(products, null, 2));
+        await saveData(products);
 
         return Response.json({ success: true, data: products[index] });
     } catch (error) {
@@ -29,12 +50,10 @@ export async function PUT(request, { params }) {
 export async function DELETE(request, { params }) {
     try {
         const id = parseInt(params.id);
-
-        const fileContent = await fs.readFile(dataFilePath, 'utf8');
-        let products = JSON.parse(fileContent);
+        const products = await getData();
 
         const filteredProducts = products.filter(p => p.id !== id);
-        await fs.writeFile(dataFilePath, JSON.stringify(filteredProducts, null, 2));
+        await saveData(filteredProducts);
 
         return Response.json({ success: true, message: 'Deleted successfully' });
     } catch (error) {

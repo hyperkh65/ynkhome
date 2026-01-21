@@ -2,35 +2,52 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 
-const dataFilePath = path.join(process.cwd(), 'products.json');
+// Vercel serverless environment requires writing to /tmp
+const DATA_FILE = 'products.json';
+const TMP_DATA_PATH = path.join('/tmp', DATA_FILE);
+const SEED_DATA_PATH = path.join(process.cwd(), DATA_FILE);
+
+async function getData() {
+    try {
+        // Try reading from /tmp first (persisted during warm lambda)
+        const data = await fs.readFile(TMP_DATA_PATH, 'utf8');
+        return JSON.parse(data);
+    } catch (error) {
+        // If not in /tmp, read from seed file in project
+        try {
+            const seedData = await fs.readFile(SEED_DATA_PATH, 'utf8');
+            // Initialize /tmp with seed data
+            await fs.writeFile(TMP_DATA_PATH, seedData);
+            return JSON.parse(seedData);
+        } catch (seedError) {
+            return []; // Fallback empty
+        }
+    }
+}
+
+async function saveData(data) {
+    await fs.writeFile(TMP_DATA_PATH, JSON.stringify(data, null, 2));
+}
 
 export async function GET() {
-    try {
-        const fileContent = await fs.readFile(dataFilePath, 'utf8');
-        const products = JSON.parse(fileContent);
-        return Response.json({ success: true, data: products });
-    } catch (error) {
-        // If file doesn't exist, return empty array
-        return Response.json({ success: true, data: [] });
-    }
+    const products = await getData();
+    return Response.json({ success: true, data: products });
 }
 
 export async function POST(request) {
     try {
         const body = await request.json();
-        const fileContent = await fs.readFile(dataFilePath, 'utf8');
-        const products = JSON.parse(fileContent);
+        const products = await getData();
 
         const newId = products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1;
         const newProduct = {
             id: newId,
             ...body,
-            // Default image if not provided
             image: body.image || `https://picsum.photos/seed/${newId + 40}/400/300`
         };
 
         products.push(newProduct);
-        await fs.writeFile(dataFilePath, JSON.stringify(products, null, 2));
+        await saveData(products);
 
         return Response.json({ success: true, data: newProduct });
     } catch (error) {
