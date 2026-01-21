@@ -97,7 +97,7 @@ export default function Home() {
         const iData = await iRes.json();
 
         // Flexible parsing for different public data response formats
-        let items = iData?.response?.body?.items?.item || iData?.items || null;
+        const items = iData?.response?.body?.items?.item || iData?.items?.item || iData?.items || iData?.item || null;
         if (items) {
           setIncheonPort(Array.isArray(items) ? items : [items]);
         } else {
@@ -166,7 +166,7 @@ export default function Home() {
         <main>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px' }}>
             <h1 className={styles.sectionTitle}>{activeTab}</h1>
-            <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', fontWeight: 600 }}>v4.2.0-LIVE</span>
+            <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', fontWeight: 600 }}>v4.2.1-FIX</span>
           </div>
 
           {activeTab === 'Overview' && (
