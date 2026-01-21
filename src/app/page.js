@@ -760,7 +760,7 @@ export default function Home() {
                       UNIPASS {trackResult.type} Tracking
                     </h3>
                     <span style={{ background: trackResult.type === 'IMPORT' ? 'var(--accent-purple)' : '#10b981', color: 'white', padding: '6px 16px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 700 }}>
-                      {trackResult.type === 'IMPORT' ? (trackResult.data.csclPrgsSttsNm || 'Active') : (trackResult.data.shpmcmplYn === 'Y' ? 'SHIPPED' : 'IN PROGRESS')}
+                      {trackResult.type === 'IMPORT' ? (trackResult.data.csclPrgsStts || 'Active') : (trackResult.data.shpmcmplYn === 'Y' ? 'SHIPPED' : 'IN PROGRESS')}
                     </span>
                   </div>
 
@@ -769,10 +769,10 @@ export default function Home() {
                       <>
                         <div className={styles.marketCard}><strong>B/L No.</strong> <span>{trackResult.data.hblNo || trackResult.data.mblNo}</span></div>
                         <div className={styles.marketCard}><strong>Vessel</strong> <span>{trackResult.data.shipNm || 'N/A'}</span></div>
-                        <div className={styles.marketCard}><strong>Loading Port</strong> <span>{trackResult.data.ldngPrtNm || 'N/A'}</span></div>
-                        <div className={styles.marketCard}><strong>Discharge Port</strong> <span>{trackResult.data.dschPrtNm || 'N/A'}</span></div>
-                        <div className={styles.marketCard}><strong>Weight</strong> <span>{trackResult.data.ttwg} {trackResult.data.wgUt}</span></div>
-                        <div className={styles.marketCard}><strong>Customs</strong> <span>{trackResult.data.etprCstmNm || 'N/A'}</span></div>
+                        <div className={styles.marketCard}><strong>Loading Port</strong> <span>{trackResult.data.ldprNm || 'N/A'}</span></div>
+                        <div className={styles.marketCard}><strong>Discharge Port</strong> <span>{trackResult.data.dsprNm || 'N/A'}</span></div>
+                        <div className={styles.marketCard}><strong>Weight</strong> <span>{trackResult.data.ttwg} {trackResult.data.wghtUt}</span></div>
+                        <div className={styles.marketCard}><strong>Customs</strong> <span>{trackResult.data.etprCstm || 'N/A'}</span></div>
                       </>
                     ) : (
                       <>
@@ -798,14 +798,18 @@ export default function Home() {
                             </div>
                             {(() => {
                               const getV = (f) => {
-                                const v = detail[f] || detail[f.toUpperCase()] || detail[f.toLowerCase()];
+                                const v = (detail[f] || detail[f.toUpperCase()] || detail[f.toLowerCase()]);
                                 if (!v) return null;
                                 return typeof v === 'object' ? (v['#text'] || v['content'] || JSON.stringify(v)) : String(v);
                               };
 
-                              const status = getV('prgsSttsNm') || getV('prgsStts') || getV('cargPrcsSttsNm') || 'Step Update';
-                              const rawDt = String(getV('prgsDt') || getV('prcsDttm') || getV('prgsDtTm') || '');
-                              const location = getV('shedNm') || getV('location') || 'Customs Zone';
+                              // Manual (API001) compliant fields:
+                              // Status: cargTrcnRelaBsopTpcd (Processing ID Name) or rlbrCn (Content)
+                              const status = getV('cargTrcnRelaBsopTpcd') || getV('rlbrCn') || getV('prgsSttsNm') || '진행상태';
+                              // Date: prcsDttm (Process Date/Time) or rlbrDttm
+                              const rawDt = String(getV('prcsDttm') || getV('rlbrDttm') || getV('prgsDt') || '');
+                              // Location: shedNm (Shed/Warehouse Name)
+                              const location = getV('shedNm') || getV('prgsLocation') || '관세구역';
                               const dclNo = getV('dclNo') || getV('mblNo');
 
                               const formattedDt = rawDt.length >= 12
@@ -822,7 +826,7 @@ export default function Home() {
                                   </div>
                                   {dclNo && (
                                     <div style={{ fontSize: '0.7rem', color: '#94a3b8', marginTop: '2px' }}>
-                                      신고/관리번호: {dclNo}
+                                      신고번호/관리번호: {dclNo}
                                     </div>
                                   )}
                                 </div>
