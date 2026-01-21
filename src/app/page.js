@@ -23,8 +23,10 @@ export default function Home() {
   const [showSettings, setShowSettings] = useState(false);
   const [showMarketModal, setShowMarketModal] = useState(false);
   const [showTrackingModal, setShowTrackingModal] = useState(false);
-  const [showLibraryModal, setShowLibraryModal] = useState(false); // New State
+  const [showLibraryModal, setShowLibraryModal] = useState(false);
 
+  // Tools expansion state
+  const [expandedTool, setExpandedTool] = useState(null);
 
   // News & Notices State
   const [notices, setNotices] = useState([]);
@@ -213,7 +215,7 @@ export default function Home() {
       const res = await fetch(`/api/incheon/tracking?blNo=${trackingNo}`);
       const data = await res.json();
       if (data.success) {
-        setTrackResult(data); // Stores { success, type, data, details }
+        setTrackResult(data);
       } else {
         setTrackResult({ error: data.error || 'No shipment found in UNIPASS for this B/L number.' });
       }
@@ -288,7 +290,20 @@ export default function Home() {
         <header className={styles.header}>
           <div>
             <h1 className={styles.sectionTitle} style={{ margin: 0 }}>YNK Global Intelligence</h1>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Real-time Logistics & Market Terminal</p>
+            <div style={{ display: 'flex', gap: '20px', marginTop: '8px', alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: '#64748b' }}>
+                <span style={{ fontSize: '1.1rem' }}>🇰🇷</span>
+                <span style={{ fontWeight: 600, color: '#10b981' }}>{times.korea}</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: '#64748b' }}>
+                <span style={{ fontSize: '1.1rem' }}>🇨🇳</span>
+                <span style={{ fontWeight: 600, color: '#3b82f6' }}>{times.china}</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: '#64748b' }}>
+                <span style={{ fontSize: '1.1rem' }}>🇻🇳</span>
+                <span style={{ fontWeight: 600, color: '#f97316' }}>{times.vietnam}</span>
+              </div>
+            </div>
           </div>
 
           <div className={styles.headerActions}>
@@ -298,29 +313,85 @@ export default function Home() {
           </div>
         </header>
 
-        <div className={styles.dashboardGrid}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+        <div style={{ flex: 1, overflowY: 'auto', padding: '0 32px 32px' }}>
 
-            {/* 0. Notices & News Row */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' }}>
+          {/* 🌟 HERO: Global Market Trends */}
+          <div className={styles.card} style={{ marginBottom: '24px', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <div>
+                <h2 style={{ fontSize: '1.5rem', fontWeight: 700, margin: 0, marginBottom: '4px' }}>Global Market Trends</h2>
+                <p style={{ opacity: 0.9, fontSize: '0.9rem', margin: 0 }}>Real-time Exchange Rates & Raw Material Prices</p>
+              </div>
+              <button
+                onClick={() => setShowMarketModal(true)}
+                style={{ fontSize: '0.85rem', color: 'white', background: 'rgba(255,255,255,0.2)', border: '1px solid rgba(255,255,255,0.3)', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, backdropFilter: 'blur(10px)' }}>
+                Detailed View →
+              </button>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px' }}>
+              {/* USD/KRW */}
+              <div style={{ padding: '16px', background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(10px)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.2)' }}>
+                <div style={{ fontSize: '0.75rem', opacity: 0.8, marginBottom: '4px' }}>🇺🇸 USD/KRW</div>
+                <div style={{ fontSize: '1.3rem', fontWeight: 700 }}>{marketData.usd.toFixed(2)}</div>
+                <div style={{ fontSize: '0.75rem', marginTop: '4px', opacity: 0.9 }}>{marketData.trends.usd === 'up' ? '▲' : '▼'} 0.4%</div>
+              </div>
+
+              {/* CNY/KRW */}
+              <div style={{ padding: '16px', background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(10px)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.2)' }}>
+                <div style={{ fontSize: '0.75rem', opacity: 0.8, marginBottom: '4px' }}>🇨🇳 CNY/KRW</div>
+                <div style={{ fontSize: '1.3rem', fontWeight: 700 }}>{marketData.cny.toFixed(2)}</div>
+                <div style={{ fontSize: '0.75rem', marginTop: '4px', opacity: 0.9 }}>{marketData.trends.cny === 'up' ? '▲' : '▼'} 0.1%</div>
+              </div>
+
+              {/* Metals */}
+              {marketData.metals && Object.entries(marketData.metals).map(([key, val]) => (
+                <div key={key} style={{ padding: '16px', background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(10px)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.2)' }}>
+                  <div style={{ fontSize: '0.75rem', opacity: 0.8, marginBottom: '4px', textTransform: 'capitalize' }}>🏗️ {key}</div>
+                  <div style={{ fontSize: '1.3rem', fontWeight: 700 }}>${(typeof val === 'object' ? val?.last : val)?.toLocaleString() || '---'}</div>
+                  <div style={{ fontSize: '0.75rem', marginTop: '4px', opacity: 0.9 }}>{marketData.trends[key] === 'up' ? '▲' : '▼'}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Interactive Chart */}
+            <div style={{ marginTop: '20px', padding: '20px', background: 'rgba(255,255,255,0.1)', borderRadius: '12px', backdropFilter: 'blur(10px)' }}>
+              <MarketChart
+                marketData={marketData}
+                historyData={historyData}
+                selectedMetal={selectedMetal}
+                setSelectedMetal={setSelectedMetal}
+                selectedCurrency={selectedCurrency}
+                setSelectedCurrency={setSelectedCurrency}
+              />
+            </div>
+          </div>
+
+          {/* Grid Layout: 2 columns */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
+
+            {/* Left Column */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+
               {/* Notices */}
-              <div className={styles.card} style={{ padding: '24px' }}>
+              <div className={styles.card}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
                   <div style={{ padding: '6px', background: '#ecfdf5', borderRadius: '8px', color: '#10b981' }}>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                    📢
                   </div>
-                  <h2 className={styles.cardTitle} style={{ fontSize: '1.1rem', margin: 0 }}>Notice Board</h2>
+                  <h3 style={{ fontSize: '1.1rem', fontWeight: 600, margin: 0 }}>Notice Board</h3>
+                  <span style={{ marginLeft: 'auto', fontSize: '0.75rem', color: '#94a3b8' }}>Latest 3</span>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   {notices.length === 0 ? (
-                    <div style={{ color: '#94a3b8', fontSize: '0.9rem' }}>No active notices.</div>
+                    <div style={{ color: '#94a3b8', fontSize: '0.9rem', textAlign: 'center', padding: '20px' }}>No active notices.</div>
                   ) : (
-                    notices.map((notice, i) => (
-                      <div key={i} style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', paddingBottom: '12px', borderBottom: i === notices.length - 1 ? 'none' : '1px solid #f1f5f9' }}>
+                    notices.slice(0, 3).map((notice, i) => (
+                      <div key={i} style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', paddingBottom: '12px', borderBottom: i === 2 ? 'none' : '1px solid #f1f5f9' }}>
                         <div style={{ minWidth: '4px', height: '4px', background: '#ef4444', borderRadius: '50%', marginTop: '8px' }}></div>
-                        <div>
+                        <div style={{ flex: 1 }}>
                           <div style={{ fontSize: '0.9rem', lineHeight: '1.5' }}>{notice.content}</div>
-                          <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '4px' }}>{new Date(notice.created_at).toLocaleDateString()}</div>
+                          <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '4px' }}>{new Date(notice.created_at).toLocaleDateString('ko-KR')}</div>
                         </div>
                       </div>
                     ))
@@ -329,204 +400,152 @@ export default function Home() {
               </div>
 
               {/* News (ETNews) */}
-              <div className={styles.card} style={{ padding: '24px' }}>
+              <div className={styles.card}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
                   <div style={{ padding: '6px', background: '#eff6ff', borderRadius: '8px', color: '#3b82f6' }}>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+                    📰
                   </div>
-                  <h2 className={styles.cardTitle} style={{ fontSize: '1.1rem', margin: 0 }}>Electronic Times (ETNews)</h2>
+                  <h3 style={{ fontSize: '1.1rem', fontWeight: 600, margin: 0 }}>Electronic Times (ETNews)</h3>
+                  <span style={{ marginLeft: 'auto', fontSize: '0.75rem', color: '#94a3b8' }}>Latest 3</span>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   {news.length === 0 ? (
-                    <div style={{ color: '#94a3b8', fontSize: '0.9rem' }}>Loading news...</div>
+                    <div style={{ color: '#94a3b8', fontSize: '0.9rem', textAlign: 'center', padding: '20px' }}>Loading news...</div>
                   ) : (
-                    news.map((item, i) => (
-                      <a key={i} href={item.link} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', color: 'inherit', display: 'flex', gap: '12px', alignItems: 'flex-start', paddingBottom: '12px', borderBottom: i === news.length - 1 ? 'none' : '1px solid #f1f5f9', cursor: 'pointer' }}>
+                    news.slice(0, 3).map((item, i) => (
+                      <a key={i} href={item.link} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', color: 'inherit', display: 'flex', gap: '12px', alignItems: 'flex-start', paddingBottom: '12px', borderBottom: i === 2 ? 'none' : '1px solid #f1f5f9', cursor: 'pointer' }}>
                         <div style={{ minWidth: '60px', fontSize: '0.75rem', color: '#94a3b8', marginTop: '2px', textAlign: 'right' }}>{item.date && item.date.substring(5)}</div>
-                        <div style={{ fontSize: '0.9rem', fontWeight: 500, lineHeight: '1.4' }} className={styles.newsTitle}>{item.title}</div>
+                        <div style={{ fontSize: '0.9rem', fontWeight: 500, lineHeight: '1.4', flex: 1 }} className={styles.newsTitle}>{item.title}</div>
                       </a>
                     ))
                   )}
                 </div>
               </div>
+
+              {/* Incheon Port Status */}
+              <div className={styles.card} style={{ background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', color: 'white', border: 'none' }}>
+                <h3 style={{ fontSize: '1.1rem', marginBottom: '16px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  🚢 Incheon Port Live Status
+                  {portLastUpdated && <span style={{ fontSize: '0.75rem', opacity: 0.8, marginLeft: 'auto' }}>Updated: {portLastUpdated}</span>}
+                </h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {hubs.map(hub => (
+                    <div key={hub.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(10px)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.3)' }}>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>{hub.name}</span>
+                      <span style={{ fontSize: '0.75rem', fontWeight: 700, padding: '4px 12px', borderRadius: '6px', background: hub.color, color: hub.textColor }}>{hub.status}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
 
-            {/* 1. World Clock Banner */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
-              <div className={styles.card} style={{ padding: '20px', background: 'linear-gradient(135deg, #10b981, #059669)', color: 'white' }}>
-                <div style={{ fontSize: '0.8rem', opacity: 0.9, marginBottom: '8px' }}>SEOUL (HQ)</div>
-                <div style={{ fontSize: '1.5rem', fontWeight: 700 }}>{times.korea}</div>
-              </div>
-              <div className={styles.card} style={{ padding: '20px', background: 'linear-gradient(135deg, #3b82f6, #2563eb)', color: 'white' }}>
-                <div style={{ fontSize: '0.8rem', opacity: 0.9, marginBottom: '8px' }}>SHANGHAI</div>
-                <div style={{ fontSize: '1.5rem', fontWeight: 700 }}>{times.china}</div>
-              </div>
-              <div className={styles.card} style={{ padding: '20px', background: 'linear-gradient(135deg, #f97316, #ea580c)', color: 'white' }}>
-                <div style={{ fontSize: '0.8rem', opacity: 0.9, marginBottom: '8px' }}>HO CHI MINH</div>
-                <div style={{ fontSize: '1.5rem', fontWeight: 700 }}>{times.vietnam}</div>
-              </div>
-            </div>
+            {/* Right Column */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
 
-            {/* 2. Market Overview */}
-            <div className={styles.card}>
-              <div className={styles.cardHeader}>
-                <h2 className={styles.cardTitle}>Global Market Trends</h2>
-                <button
-                  onClick={() => setShowMarketModal(true)}
-                  style={{ fontSize: '0.8rem', color: 'var(--accent-primary)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>Detailed View →</button>
-              </div>
-
-              <div className={styles.marketGrid}>
-                {/* Exchange Rates */}
-                <div className={styles.marketCard}>
-                  <div className={styles.marketLabel}><span style={{ fontSize: '1.2rem' }}>🇺🇸</span> USD/KRW</div>
-                  <div className={styles.marketVal}>{marketData.usd.toFixed(2)}</div>
-                  <div className={`${styles.trendTag} ${marketData.trends.usd === 'up' ? styles.trendUp : styles.trendDown}`}>
-                    {marketData.trends.usd === 'up' ? '▲' : '▼'} 0.4%
-                  </div>
+              {/* Product Portfolio */}
+              <div className={styles.card}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <h3 style={{ fontSize: '1.1rem', fontWeight: 600, margin: 0 }}>YNK Product Portfolio</h3>
+                  <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>{catalogData.length} Items</span>
                 </div>
-                <div className={styles.marketCard}>
-                  <div className={styles.marketLabel}><span style={{ fontSize: '1.2rem' }}>🇨🇳</span> CNY/KRW</div>
-                  <div className={styles.marketVal}>{marketData.cny.toFixed(2)}</div>
-                  <div className={`${styles.trendTag} ${marketData.trends.cny === 'up' ? styles.trendUp : styles.trendDown}`}>
-                    {marketData.trends.cny === 'up' ? '▲' : '▼'} 0.1%
-                  </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px', maxHeight: '400px', overflowY: 'auto' }}>
+                  {catalogData.length === 0 ? (
+                    <div style={{ gridColumn: 'span 2', textAlign: 'center', padding: '40px', color: '#cbd5e1' }}>
+                      No products registered yet.
+                    </div>
+                  ) : (
+                    catalogData.map(product => (
+                      <div key={product.id} className={styles.catBtn} onClick={() => setSelectedProduct(product)} style={{ padding: '12px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', cursor: 'pointer', transition: 'all 0.2s' }}>
+                        <div style={{ width: '100%', height: '80px', background: '#f1f5f9', borderRadius: '8px', overflow: 'hidden', marginBottom: '8px' }}>
+                          <img src={product.image} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => e.target.src = 'https://picsum.photos/400/300?blur=5'} />
+                        </div>
+                        <div style={{ fontSize: '0.9rem', fontWeight: 600, marginBottom: '2px' }}>{product.name}</div>
+                        <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{product.description}</div>
+                      </div>
+                    ))
+                  )}
                 </div>
+              </div>
 
-                {/* Raw Materials - Now Interactive */}
-                <div className={styles.marketCard} style={{ gridColumn: 'span 2' }}>
-                  <div className={styles.marketLabel}><span style={{ fontSize: '1.2rem' }}>🏗️</span> Raw Materials (LME)</div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '8px', marginTop: '8px' }}>
-                    {marketData.metals && Object.entries(marketData.metals).map(([key, val]) => (
-                      <div key={key} style={{ textAlign: 'center' }}>
-                        <div style={{ fontSize: '0.7rem', color: '#94a3b8', textTransform: 'capitalize' }}>{key}</div>
-                        <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>
-                          ${(typeof val === 'object' ? val?.last : val)?.toLocaleString() || '---'}
+              {/* Tools Box */}
+              <div className={styles.card} style={{ background: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)', border: 'none' }}>
+                <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '16px', color: 'white' }}>🧰 Tool Box</h3>
+
+                {/* Tool: CBM Calculator */}
+                <div style={{ marginBottom: '12px', background: 'rgba(255,255,255,0.9)', borderRadius: '12px', overflow: 'hidden' }}>
+                  <div
+                    onClick={() => setExpandedTool(expandedTool === 'cbm' ? null : 'cbm')}
+                    style={{ padding: '16px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 600 }}>
+                    <span>📦 CBM Calculator</span>
+                    <span>{expandedTool === 'cbm' ? '▲' : '▼'}</span>
+                  </div>
+                  {expandedTool === 'cbm' && (
+                    <div style={{ padding: '16px', borderTop: '1px solid #e2e8f0' }}>
+                      <div style={{ maxHeight: '200px', overflowY: 'auto', marginBottom: '12px' }}>
+                        {products.map(p => (
+                          <div key={p.id} style={{ marginBottom: '12px', paddingBottom: '12px', borderBottom: '1px solid #f1f5f9' }}>
+                            <div style={{ fontSize: '0.8rem', fontWeight: 600, marginBottom: '4px', color: '#64748b' }}>{p.name}</div>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '4px' }}>
+                              <input type="number" placeholder="L (cm)" style={{ width: '100%', padding: '6px', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '0.85rem' }} value={p.length} onChange={(e) => handleInputChange(p.id, 'length', e.target.value)} />
+                              <input type="number" placeholder="W (cm)" style={{ width: '100%', padding: '6px', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '0.85rem' }} value={p.width} onChange={(e) => handleInputChange(p.id, 'width', e.target.value)} />
+                              <input type="number" placeholder="H (cm)" style={{ width: '100%', padding: '6px', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '0.85rem' }} value={p.height} onChange={(e) => handleInputChange(p.id, 'height', e.target.value)} />
+                              <input type="number" placeholder="Qty" style={{ width: '100%', padding: '6px', border: '1px solid #e2e8f0', borderRadius: '6px', fontSize: '0.85rem' }} value={p.qty} onChange={(e) => handleInputChange(p.id, 'qty', e.target.value)} />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <button onClick={addProduct} style={{ width: '100%', padding: '8px', background: '#f8fafc', border: '1px dashed #cbd5e1', borderRadius: '8px', color: '#64748b', cursor: 'pointer', marginBottom: '12px', fontSize: '0.85rem' }}>+ Add Item</button>
+                      <div style={{ background: '#f5f3ff', padding: '16px', borderRadius: '12px', textAlign: 'center' }}>
+                        <div style={{ fontSize: '0.8rem', color: '#7c3aed' }}>Total Volume</div>
+                        <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#7c3aed' }}>{calculateCBM()} <span style={{ fontSize: '0.9rem' }}>m³</span></div>
+                        <div style={{ fontSize: '0.7rem', color: '#8b5cf6', marginTop: '4px' }}>
+                          Est. 20ft Container: {((calculateCBM() / 28) * 100).toFixed(1)}%
                         </div>
                       </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Interactive Chart Section */}
-              <div style={{ marginTop: '20px', borderTop: '1px solid #f1f5f9', paddingTop: '20px' }}>
-                <MarketChart
-                  marketData={marketData}
-                  historyData={historyData}
-                  selectedMetal={selectedMetal}
-                  setSelectedMetal={setSelectedMetal}
-                  selectedCurrency={selectedCurrency}
-                  setSelectedCurrency={setSelectedCurrency}
-                />
-              </div>
-            </div>
-
-            {/* 3. Product Catalog (Portfolio) */}
-            <div className={styles.card}>
-              <div className={styles.cardHeader}>
-                <h2 className={styles.cardTitle}>YNK Product Portfolio</h2>
-                <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>{catalogData.length} Items Indexed</span>
-              </div>
-              <div className={styles.categoryGrid}>
-                {catalogData.length === 0 ? (
-                  <div style={{ gridColumn: 'span 2', textAlign: 'center', padding: '40px', color: '#cbd5e1' }}>
-                    No products registered yet. Check Admin Panel.
-                  </div>
-                ) : (
-                  catalogData.map(product => (
-                    <div key={product.id} className={styles.catBtn} onClick={() => setSelectedProduct(product)}>
-                      <div className={styles.catIcon} style={{ background: '#f1f5f9', overflow: 'hidden' }}>
-                        <img src={product.image} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => e.target.src = 'https://picsum.photos/400/300?blur=5'} />
-                      </div>
-                      <div>
-                        <div style={{ fontSize: '0.95rem', fontWeight: 600 }}>{product.name}</div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{product.description}</div>
-                      </div>
-                      <div style={{ marginLeft: 'auto', color: '#cbd5e1' }}>→</div>
                     </div>
-                  ))
-                )}
+                  )}
+                </div>
+
+                {/* Tool: Quick Tracking */}
+                <div style={{ background: 'rgba(255,255,255,0.9)', borderRadius: '12px', overflow: 'hidden' }}>
+                  <div
+                    onClick={() => setExpandedTool(expandedTool === 'tracking' ? null : 'tracking')}
+                    style={{ padding: '16px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 600 }}>
+                    <span>🔍 Quick Tracking</span>
+                    <span>{expandedTool === 'tracking' ? '▲' : '▼'}</span>
+                  </div>
+                  {expandedTool === 'tracking' && (
+                    <div style={{ padding: '16px', borderTop: '1px solid #e2e8f0' }}>
+                      <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+                        <input
+                          type="text"
+                          placeholder="BL / Container No."
+                          value={trackingNo}
+                          onChange={(e) => setTrackingNo(e.target.value)}
+                          style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#f8fafc' }}
+                        />
+                        <button
+                          onClick={handleTrack}
+                          disabled={isTracking}
+                          style={{ padding: '0 16px', background: '#1a1a1a', color: 'white', borderRadius: '8px', border: 'none', cursor: 'pointer' }}
+                        >
+                          {isTracking ? '...' : 'Go'}
+                        </button>
+                      </div>
+                      {trackResult && (
+                        <div style={{ padding: '12px', background: '#f0fdf4', borderRadius: '8px', border: '1px solid #bbf7d0' }}>
+                          <div style={{ color: '#166534', fontWeight: 600, fontSize: '0.9rem' }}>{trackResult.status}</div>
+                          <div style={{ fontSize: '0.8rem', color: '#15803d', marginTop: '4px' }}>Currently at {trackResult.location}</div>
+                          <div style={{ fontSize: '0.8rem', color: '#15803d' }}>ETA: {trackResult.eta}</div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Right Column */}
-          <div className={styles.rightSidebar} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-
-            {/* CBM Calculator Widget */}
-            <div className={styles.statCard} style={{ border: '2px solid var(--accent-primary)' }}>
-              <h3 style={{ fontSize: '1.1rem', marginBottom: '16px', color: 'var(--accent-primary)' }}>📦 CBM Calculator</h3>
-              <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                {products.map(p => (
-                  <div key={p.id} style={{ marginBottom: '12px', paddingBottom: '12px', borderBottom: '1px solid #f1f5f9' }}>
-                    <div style={{ fontSize: '0.8rem', fontWeight: 600, marginBottom: '4px' }}>{p.name}</div>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '4px' }}>
-                      <input type="number" placeholder="L (cm)" className={styles.input} style={{ width: '100%', padding: '4px', border: '1px solid #e2e8f0', borderRadius: '4px' }} value={p.length} onChange={(e) => handleInputChange(p.id, 'length', e.target.value)} />
-                      <input type="number" placeholder="W (cm)" className={styles.input} style={{ width: '100%', padding: '4px', border: '1px solid #e2e8f0', borderRadius: '4px' }} value={p.width} onChange={(e) => handleInputChange(p.id, 'width', e.target.value)} />
-                      <input type="number" placeholder="H (cm)" className={styles.input} style={{ width: '100%', padding: '4px', border: '1px solid #e2e8f0', borderRadius: '4px' }} value={p.height} onChange={(e) => handleInputChange(p.id, 'height', e.target.value)} />
-                      <input type="number" placeholder="Qty" className={styles.input} style={{ width: '100%', padding: '4px', border: '1px solid #e2e8f0', borderRadius: '4px' }} value={p.qty} onChange={(e) => handleInputChange(p.id, 'qty', e.target.value)} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <button onClick={addProduct} style={{ width: '100%', padding: '8px', background: '#f8fafc', border: '1px dashed #cbd5e1', borderRadius: '8px', color: '#64748b', cursor: 'pointer', marginBottom: '16px' }}>+ Add Item</button>
-
-              <div style={{ background: '#f5f3ff', padding: '16px', borderRadius: '12px', textAlign: 'center' }}>
-                <div style={{ fontSize: '0.8rem', color: '#7c3aed' }}>Total Volume</div>
-                <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#7c3aed' }}>{calculateCBM()} <span style={{ fontSize: '0.9rem' }}>m³</span></div>
-                <div style={{ fontSize: '0.7rem', color: '#8b5cf6', marginTop: '4px' }}>
-                  Est. 20ft Container: {((calculateCBM() / 28) * 100).toFixed(1)}%
-                </div>
-              </div>
-            </div>
-
-            {/* Incheon Port Status Widget */}
-            <div className={styles.statCard} style={{ border: '2px solid var(--accent-blue)' }}>
-              <h3 style={{ fontSize: '1.1rem', marginBottom: '16px', color: 'var(--accent-blue)' }}>🚢 Incheon Port Status</h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {hubs.map(hub => (
-                  <div key={hub.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', background: hub.color, borderRadius: '8px' }}>
-                    <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>{hub.name}</span>
-                    <span style={{ fontSize: '0.75rem', fontWeight: 700, color: hub.textColor }}>{hub.status}</span>
-                  </div>
-                ))}
-              </div>
-              <div style={{ marginTop: '16px', fontSize: '0.75rem', color: '#94a3b8', textAlign: 'center' }}>
-                {portLastUpdated && <div style={{ marginBottom: '4px' }}>Last Update: {portLastUpdated}</div>}
-                Real-time congestion data powered by OPUS
-              </div>
-            </div>
-
-            {/* Tracking Widget */}
-            <div className={styles.statCard}>
-              <h3 style={{ fontSize: '1rem', marginBottom: '16px' }}>Quick Tracking</h3>
-              <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
-                <input
-                  type="text"
-                  placeholder="BL / Container No."
-                  value={trackingNo}
-                  onChange={(e) => setTrackingNo(e.target.value)}
-                  style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#f8fafc' }}
-                />
-                <button
-                  onClick={handleTrack}
-                  disabled={isTracking}
-                  style={{ padding: '0 16px', background: '#1a1a1a', color: 'white', borderRadius: '8px', border: 'none', cursor: 'pointer' }}
-                >
-                  {isTracking ? '...' : 'Go'}
-                </button>
-              </div>
-              {trackResult && (
-                <div style={{ padding: '12px', background: '#f0fdf4', borderRadius: '8px', border: '1px solid #bbf7d0' }}>
-                  <div style={{ color: '#166534', fontWeight: 600, fontSize: '0.9rem' }}>{trackResult.status}</div>
-                  <div style={{ fontSize: '0.8rem', color: '#15803d', marginTop: '4px' }}>Currently at {trackResult.location}</div>
-                  <div style={{ fontSize: '0.8rem', color: '#15803d' }}>ETA: {trackResult.eta}</div>
-                </div>
-              )}
-            </div>
-
-          </div>
         </div>
       </main>
 
@@ -606,296 +625,88 @@ export default function Home() {
                   target="_blank"
                   rel="noopener noreferrer"
                   className={styles.catBtn}
-                  style={{ background: '#eff6ff', color: '#1d4ed8', justifyContent: 'center', border: '1px solid #bfdbfe', textDecoration: 'none', padding: '14px', borderRadius: '12px', fontWeight: 600 }}
+                  style={{ background: '#eff6ff', color: '#1e40af', justifyContent: 'center', border: '1px solid #bfdbfe', textDecoration: 'none', padding: '14px', borderRadius: '12px', fontWeight: 600 }}
                 >
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '8px' }}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
                   Spec Sheet
                 </a>
               )}
             </div>
-
-            <button className={styles.catBtn} style={{ width: '100%', marginTop: '32px', background: '#1a1a1a', color: 'white', justifyContent: 'center', height: '50px', borderRadius: '12px', fontSize: '1rem' }} onClick={() => setSelectedProduct(null)}>Close Terminal View</button>
           </div>
         </div>
       )}
-      {/* Modal for Settings */}
+
+      {/* Settings Modal */}
       {showSettings && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setShowSettings(false)}>
-          <div className={styles.card} style={{ maxWidth: '500px', width: '90%', animation: 'fadeIn 0.2s ease-out' }} onClick={e => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-              <h2 className={styles.cardTitle} style={{ fontSize: '1.5rem', margin: 0 }}>System Options</h2>
-              <button
-                onClick={() => setShowSettings(false)}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px', color: 'var(--text-muted)' }}
-              >
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-              </button>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-              {/* Profile Section */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', paddingBottom: '24px', borderBottom: '1px solid #e2e8f0' }}>
-                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" style={{ width: '60px', height: '60px', borderRadius: '50%', background: '#e4e4e7' }} alt="User" />
-                <div>
-                  <h3 style={{ fontSize: '1.1rem', fontWeight: 600, margin: 0 }}>Administrator</h3>
-                  <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: '4px 0 0 0' }}>admin@ynk-global.com</p>
-                </div>
-                <button style={{ marginLeft: 'auto', padding: '8px 16px', borderRadius: '12px', border: '1px solid #e2e8f0', background: 'white', fontWeight: 600, fontSize: '0.85rem' }}>Edit Profile</button>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setShowSettings(false)}>
+          <div className={styles.card} style={{ maxWidth: '400px', width: '90%' }} onClick={e => e.stopPropagation()}>
+            <h2 className={styles.cardTitle}>Settings</h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span>Dark Mode</span>
+                <button onClick={() => setDarkMode(!darkMode)} style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid #e2e8f0', background: darkMode ? '#1a1a1a' : 'white', color: darkMode ? 'white' : '#1a1a1a', cursor: 'pointer' }}>
+                  {darkMode ? 'ON' : 'OFF'}
+                </button>
               </div>
-
-              {/* Preferences */}
-              <div>
-                <h4 style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '16px', textTransform: 'uppercase' }}>Preferences</h4>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#f5f3ff', color: '#7c3aed', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
-                      </div>
-                      <span style={{ fontWeight: 500 }}>Dark Mode</span>
-                    </div>
-                    <div
-                      style={{ width: '44px', height: '24px', background: darkMode ? '#3b82f6' : '#e2e8f0', borderRadius: '12px', position: 'relative', cursor: 'pointer', transition: 'background 0.2s' }}
-                      onClick={() => setDarkMode(!darkMode)}
-                    >
-                      <div style={{ width: '20px', height: '20px', background: 'white', borderRadius: '50%', position: 'absolute', top: '2px', left: darkMode ? '22px' : '2px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', transition: 'left 0.2s' }}></div>
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#ecfdf5', color: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-                      </div>
-                      <span style={{ fontWeight: 500 }}>Notifications</span>
-                    </div>
-                    <div
-                      style={{ width: '44px', height: '24px', background: notifications ? '#10b981' : '#e2e8f0', borderRadius: '12px', position: 'relative', cursor: 'pointer', transition: 'background 0.2s' }}
-                      onClick={() => setNotifications(!notifications)}
-                    >
-                      <div style={{ width: '20px', height: '20px', background: 'white', borderRadius: '50%', position: 'absolute', top: '2px', left: notifications ? '22px' : '2px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', transition: 'left 0.2s' }}></div>
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#fff7ed', color: '#f97316', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10z"></path></svg>
-                      </div>
-                      <span style={{ fontWeight: 500 }}>Language</span>
-                    </div>
-                    <select style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '4px 8px', fontSize: '0.85rem', background: 'transparent' }}>
-                      <option>English</option>
-                      <option>한국어</option>
-                      <option>中文</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              {/* Data Settings */}
-              <div>
-                <h4 style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '16px', textTransform: 'uppercase' }}>Data Source</h4>
-                <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>Real-time Feed</span>
-                    <span style={{ color: '#10b981', fontWeight: 700, fontSize: '0.8rem' }}>CONNECTED</span>
-                  </div>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                    Latency: 45ms • Server: Asia-Northeast-2a
-                  </div>
-                </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span>Notifications</span>
+                <button onClick={() => setNotifications(!notifications)} style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid #e2e8f0', background: notifications ? '#10b981' : 'white', color: notifications ? 'white' : '#1a1a1a', cursor: 'pointer' }}>
+                  {notifications ? 'ON' : 'OFF'}
+                </button>
               </div>
             </div>
-
-            <button
-              className={styles.catBtn}
-              style={{ width: '100%', marginTop: '30px', background: '#1a1a1a', color: 'white', justifyContent: 'center' }}
-              onClick={() => { alert('Settings Saved'); setShowSettings(false); }}
-            >
-              Save Changes
-            </button>
           </div>
         </div>
       )}
 
-      {/* Modal for Large Market Chart */}
+      {/* Market Modal */}
       {showMarketModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(10px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setShowMarketModal(false)}>
-          <div className={styles.card} style={{ maxWidth: '900px', width: '95%', height: '80vh', display: 'flex', flexDirection: 'column', animation: 'fadeIn 0.3s ease-out' }} onClick={e => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-              <div>
-                <h2 className={styles.cardTitle} style={{ fontSize: '1.8rem', margin: 0 }}>Market Intelligence</h2>
-                <p style={{ color: 'var(--text-muted)', margin: '4px 0 0 0' }}>Detailed historical data and real-time trends</p>
-              </div>
-              <button
-                onClick={() => setShowMarketModal(false)}
-                style={{ background: '#f1f5f9', border: 'none', cursor: 'pointer', padding: '12px', borderRadius: '50%', color: 'var(--text-muted)' }}
-              >
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setShowMarketModal(false)}>
+          <div className={styles.card} style={{ maxWidth: '800px', width: '90%', maxHeight: '90vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h2 className={styles.cardTitle}>Market Data Analysis</h2>
+              <button onClick={() => setShowMarketModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
               </button>
             </div>
-
-            <div style={{ flex: 1, minHeight: 0 }}>
-              <MarketChart
-                marketData={marketData}
-                historyData={historyData}
-                selectedMetal={selectedMetal}
-                setSelectedMetal={setSelectedMetal}
-                selectedCurrency={selectedCurrency}
-                setSelectedCurrency={setSelectedCurrency}
-              />
-            </div>
-
-            <div style={{ marginTop: '24px', padding: '20px', background: '#f8fafc', borderRadius: '16px', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
-              <div className={styles.marketCard}>
-                <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Volatility (30d)</div>
-                <div style={{ fontWeight: 700 }}>Low (±0.4%)</div>
-              </div>
-              <div className={styles.marketCard}>
-                <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Latest Update</div>
-                <div style={{ fontWeight: 700 }}>Real-time</div>
-              </div>
-              <div className={styles.marketCard}>
-                <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Source</div>
-                <div style={{ fontWeight: 700 }}>LME / KRX</div>
-              </div>
-              <div className={styles.marketCard}>
-                <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Signal</div>
-                <div style={{ fontWeight: 700, color: '#10b981' }}>Strong Buy</div>
-              </div>
-            </div>
+            <MarketChart
+              marketData={marketData}
+              historyData={historyData}
+              selectedMetal={selectedMetal}
+              setSelectedMetal={setSelectedMetal}
+              selectedCurrency={selectedCurrency}
+              setSelectedCurrency={setSelectedCurrency}
+            />
           </div>
         </div>
       )}
 
-      {/* Modal for Global Tracking */}
+      {/* Tracking Modal */}
       {showTrackingModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(10px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setShowTrackingModal(false)}>
-          <div className={styles.card} style={{ maxWidth: '800px', width: '95%', maxHeight: '90vh', overflowY: 'auto', animation: 'fadeIn 0.3s ease-out' }} onClick={e => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-              <h2 className={styles.cardTitle} style={{ fontSize: '1.8rem', margin: 0 }}>Global Logistics Tracking</h2>
-              <button
-                onClick={() => setShowTrackingModal(false)}
-                style={{ background: '#f1f5f9', border: 'none', cursor: 'pointer', padding: '12px', borderRadius: '50%', color: 'var(--text-muted)' }}
-              >
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-              </button>
-            </div>
-
-            <div style={{ display: 'flex', gap: '12px', marginBottom: '24px' }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setShowTrackingModal(false)}>
+          <div className={styles.card} style={{ maxWidth: '600px', width: '90%' }} onClick={e => e.stopPropagation()}>
+            <h2 className={styles.cardTitle}>Global Logistics Tracking</h2>
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
               <input
                 type="text"
                 placeholder="Enter MBL or HBL Number..."
                 value={trackingNo}
                 onChange={(e) => setTrackingNo(e.target.value)}
-                style={{ flex: 1, padding: '16px', borderRadius: '12px', border: '2px solid #e2e8f0', fontSize: '1rem', outline: 'none' }}
+                style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#f8fafc' }}
               />
               <button
                 onClick={handleTrack}
                 disabled={isTracking}
-                style={{ padding: '0 32px', background: '#1a1a1a', color: 'white', borderRadius: '12px', fontWeight: 600, border: 'none', cursor: 'pointer' }}
+                style={{ padding: '0 24px', background: '#1a1a1a', color: 'white', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 600 }}
               >
-                {isTracking ? 'Searching...' : 'Track'}
+                {isTracking ? 'Tracking...' : 'Track'}
               </button>
             </div>
-
-            {trackResult ? (
-              trackResult.error ? (
-                <div style={{ padding: '24px', background: '#fee2e2', borderRadius: '16px', color: '#b91c1c', textAlign: 'center' }}>
-                  {trackResult.error}
-                </div>
-              ) : (
-                <div style={{ background: '#f8fafc', borderRadius: '20px', padding: '32px', border: '1px solid #e2e8f0' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                    <h3 style={{ fontSize: '1.2rem', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontSize: '1.5rem' }}>{trackResult.type === 'IMPORT' ? '🇰🇷' : '🚢'}</span>
-                      UNIPASS {trackResult.type} Tracking
-                    </h3>
-                    <span style={{ background: trackResult.type === 'IMPORT' ? 'var(--accent-purple)' : '#10b981', color: 'white', padding: '6px 16px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 700 }}>
-                      {trackResult.type === 'IMPORT' ? (trackResult.data.csclPrgsStts || 'Active') : (trackResult.data.shpmcmplYn === 'Y' ? 'SHIPPED' : 'IN PROGRESS')}
-                    </span>
-                  </div>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '32px' }}>
-                    {trackResult.type === 'IMPORT' ? (
-                      <>
-                        <div className={styles.marketCard}><strong>B/L No.</strong> <span>{trackResult.data.hblNo || trackResult.data.mblNo}</span></div>
-                        <div className={styles.marketCard}><strong>Vessel</strong> <span>{trackResult.data.shipNm || 'N/A'}</span></div>
-                        <div className={styles.marketCard}><strong>Loading Port</strong> <span>{trackResult.data.ldprNm || 'N/A'}</span></div>
-                        <div className={styles.marketCard}><strong>Discharge Port</strong> <span>{trackResult.data.dsprNm || 'N/A'}</span></div>
-                        <div className={styles.marketCard}><strong>Weight</strong> <span>{trackResult.data.ttwg} {trackResult.data.wghtUt}</span></div>
-                        <div className={styles.marketCard}><strong>Customs</strong> <span>{trackResult.data.etprCstm || 'N/A'}</span></div>
-                      </>
-                    ) : (
-                      <>
-                        <div className={styles.marketCard}><strong>B/L No.</strong> <span>{trackingNo}</span></div>
-                        <div className={styles.marketCard}><strong>Declaration No</strong> <span>{trackResult.data.expDclrNo}</span></div>
-                        <div className={styles.marketCard}><strong>Loading Place</strong> <span>{trackResult.data.shpmAirptPortNm || 'N/A'}</span></div>
-                        <div className={styles.marketCard}><strong>Departure Date</strong> <span>{trackResult.data.tkofDt || 'PENDING'}</span></div>
-                        <div className={styles.marketCard} style={{ gridColumn: 'span 2' }}><strong>Exporter</strong> <span>{trackResult.data.exppnConm || 'N/A'}</span></div>
-                      </>
-                    )}
-                  </div>
-
-                  {/* Timeline for Import */}
-                  {trackResult.type === 'IMPORT' && trackResult.details && (
-                    <div style={{ marginTop: '24px' }}>
-                      <h4 style={{ fontSize: '1rem', marginBottom: '16px', color: '#64748b' }}>Process Timeline</h4>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                        {trackResult.details.slice(0, 5).map((detail, i) => (
-                          <div key={i} style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
-                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '4px' }}>
-                              <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: i === 0 ? 'var(--accent-purple)' : '#cbd5e1' }}></div>
-                              {i < 4 && <div style={{ width: '2px', height: '30px', background: '#f1f5f9' }}></div>}
-                            </div>
-                            {(() => {
-                              const getV = (f) => {
-                                const v = (detail[f] || detail[f.toUpperCase()] || detail[f.toLowerCase()]);
-                                if (!v) return null;
-                                return typeof v === 'object' ? (v['#text'] || v['content'] || JSON.stringify(v)) : String(v);
-                              };
-
-                              // Manual (API001) compliant fields:
-                              // Status: cargTrcnRelaBsopTpcd (Processing ID Name) or rlbrCn (Content)
-                              const status = getV('cargTrcnRelaBsopTpcd') || getV('rlbrCn') || getV('prgsSttsNm') || '진행상태';
-                              // Date: prcsDttm (Process Date/Time) or rlbrDttm
-                              const rawDt = String(getV('prcsDttm') || getV('rlbrDttm') || getV('prgsDt') || '');
-                              // Location: shedNm (Shed/Warehouse Name)
-                              const location = getV('shedNm') || getV('prgsLocation') || '관세구역';
-                              const dclNo = getV('dclNo') || getV('mblNo');
-
-                              const formattedDt = rawDt.length >= 12
-                                ? `${rawDt.substring(0, 4)}-${rawDt.substring(4, 6)}-${rawDt.substring(6, 8)} ${rawDt.substring(8, 10)}:${rawDt.substring(10, 12)}`
-                                : rawDt || 'Date N/A';
-
-                              return (
-                                <div>
-                                  <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#1e293b' }}>
-                                    {status}
-                                  </div>
-                                  <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '2px' }}>
-                                    {formattedDt} • {location}
-                                  </div>
-                                  {dclNo && (
-                                    <div style={{ fontSize: '0.7rem', color: '#94a3b8', marginTop: '2px' }}>
-                                      신고번호/관리번호: {dclNo}
-                                    </div>
-                                  )}
-                                </div>
-                              );
-                            })()}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )
-            ) : (
-              <div style={{ padding: '60px', textAlign: 'center', color: '#94a3b8' }}>
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '16px', opacity: 0.5 }}><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
-                <p>Waiting for shipment tracking number...</p>
+            {trackResult && (
+              <div style={{ padding: '20px', background: '#f0fdf4', borderRadius: '12px', border: '1px solid #bbf7d0' }}>
+                <div style={{ color: '#166534', fontWeight: 600, fontSize: '1.1rem', marginBottom: '8px' }}>{trackResult.status}</div>
+                <div style={{ fontSize: '0.9rem', color: '#15803d', marginBottom: '4px' }}>Currently at {trackResult.location}</div>
+                <div style={{ fontSize: '0.9rem', color: '#15803d' }}>ETA: {trackResult.eta}</div>
               </div>
             )}
           </div>
