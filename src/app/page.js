@@ -20,6 +20,18 @@ export default function Home() {
   const [activeTool, setActiveTool] = useState('cbm'); // default tool
   const [showSettings, setShowSettings] = useState(false);
 
+  // Settings State
+  const [darkMode, setDarkMode] = useState(false);
+  const [notifications, setNotifications] = useState(true);
+
+  useEffect(() => {
+    if (darkMode) {
+      document.body.classList.add('dark-mode');
+    } else {
+      document.body.classList.remove('dark-mode');
+    }
+  }, [darkMode]);
+
   const [marketData, setMarketData] = useState({
     usd: 1476.80,
     cny: 212.24,
@@ -48,560 +60,313 @@ export default function Home() {
   const [incheonPort, setIncheonPort] = useState([]);
 
   // Handlers
-  const addProduct = () => {
-    const newId = Math.max(...products.map(p => p.id), 0) + 1;
-    setProducts([...products, { id: newId, name: `Product ${newId}`, length: '', width: '', height: '', qty: '' }]);
-  };
-  const removeProduct = (id) => {
-    if (products.length > 1) {
-      setProducts(products.filter(p => p.id !== id));
-    }
-  };
-  const updateProduct = (id, field, value) => {
-    setProducts(products.map(p => p.id === id ? { ...p, [field]: value } : p));
-  };
-  const calculateTotalCBM = () => {
-    return products.reduce((sum, p) => {
-      const vol = (parseFloat(p.length) * parseFloat(p.width) * parseFloat(p.height) * parseFloat(p.qty)) / 1000000;
-      return sum + (vol || 0);
-    }, 0);
-  };
-
   useEffect(() => {
     setIsMounted(true);
-    // Load Catalog Data from Local Storage (moved to async fetchData)
+    // World Clock
+    const timer = setInterval(() => {
+      const now = new Date();
+      setTimes({
+        korea: now.toLocaleTimeString('en-US', { timeZone: 'Asia/Seoul', hour12: false }),
+        china: now.toLocaleTimeString('en-US', { timeZone: 'Asia/Shanghai', hour12: false }),
+        vietnam: now.toLocaleTimeString('en-US', { timeZone: 'Asia/Ho_Chi_Minh', hour12: false })
+      });
+    }, 1000);
 
-    const formatTime = (offset) => {
-      const d = new Date(new Date().getTime() + (offset * 60 * 60 * 1000));
-      return d.getUTCHours().toString().padStart(2, '0') + ':' + d.getUTCMinutes().toString().padStart(2, '0') + ':' + d.getUTCSeconds().toString().padStart(2, '0');
-    };
-    const timeTimer = setInterval(() => setTimes({ korea: formatTime(9), china: formatTime(8), vietnam: formatTime(7) }), 1000);
-
-    const fetchData = async () => {
-      try {
-        // Fetch from Supabase
-        const products = await getProducts();
-        setCatalogData(products);
-
-        const res = await fetch('/api/market');
-        const data = await res.json();
-        if (data.success) {
-          setMarketData(prev => ({
-            ...prev,
-            usd: data.rates.usd,
-            cny: data.rates.cny,
-            metals: {
-              alum: data.metals.aluminum?.last || 0,
-              copper: data.metals.copper?.last || 0,
-              steel: data.metals.steel?.last || 0,
-              nickel: data.metals.nickel?.last || 0,
-              zinc: data.metals.zinc?.last || 0
-            }
-          }));
-        }
-        const hRes = await fetch('/api/market/history');
-        const hData = await hRes.json();
-        if (Array.isArray(hData)) setHistoryData(hData.reverse());
-
-        // Fetch Incheon Port Data (XML-parsed JSON)
-        const iRes = await fetch('/api/incheon/congestion');
-        const iData = await iRes.json();
-        if (iData.success && iData.data && iData.data.length > 0) {
-          // Additional sanitization: ensure item has termName
-          const validItems = iData.data.filter(item => item.termName);
-          if (validItems.length > 0) {
-            setIncheonPort(validItems);
-          }
-        }
-      } catch (err) { console.error(err); }
-    };
-
+    // Initial Data Fetch
     fetchData();
-    return () => clearInterval(timeTimer);
+
+    return () => clearInterval(timer);
   }, []);
 
-  const handleTrack = async () => {
-    if (!trackingNo) return;
-    setIsTracking(true);
-    setTrackResult(null);
-    try {
-      const res = await fetch(`/api/incheon/tracking?blNo=${trackingNo}`);
-      const data = await res.json();
-      if (data.success) {
-        setTrackResult(data); // Stores { success, type, data }
-      } else {
-        setTrackResult({ error: data.error || 'No shipment found in UNIPASS for this B/L number.' });
+  const fetchData = async () => {
+    // 1. Market Data (Mock)
+    // In a real app, fetch from an API like Alpha Vantage or Yahoo Finance
+    setMarketData(prev => ({
+      ...prev,
+      metals: {
+        alum: 2350.50,
+        copper: 9500.20,
+        steel: 680.00,
+        nickel: 16200.00,
+        zinc: 2800.00
       }
-    } catch (err) {
-      console.error(err);
-      setTrackResult({ error: 'Satellite link failed. Please retry.' });
-    } finally {
-      setIsTracking(false);
+    }));
+
+    // 2. Fetch Catalog Products from LocalStorage/Supabase
+    try {
+      const products = await getProducts();
+      setCatalogData(products);
+    } catch (e) {
+      console.error("Failed to load products", e);
     }
+  };
+
+  const handleTrack = () => {
+    setIsTracking(true);
+    // Mock Tracking API
+    setTimeout(() => {
+      setIsTracking(false);
+      setTrackResult({
+        status: 'In Transit',
+        location: 'Busan Port, KR',
+        eta: '2024-10-24'
+      });
+    }, 1500);
+  };
+
+  const addProduct = () => {
+    setProducts([...products, { id: products.length + 1, name: `Product ${products.length + 1}`, length: '', width: '', height: '', qty: '' }]);
+  };
+
+  const handleInputChange = (id, field, value) => {
+    setProducts(products.map(p => p.id === id ? { ...p, [field]: value } : p));
+  };
+
+  const calculateCBM = () => {
+    let totalCBM = 0;
+    products.forEach(p => {
+      const l = parseFloat(p.length) || 0;
+      const w = parseFloat(p.width) || 0;
+      const h = parseFloat(p.height) || 0;
+      const q = parseFloat(p.qty) || 0;
+      totalCBM += (l * w * h * q) / 1000000; // cm to m3
+    });
+    return totalCBM.toFixed(3);
   };
 
   if (!isMounted) return null;
 
   return (
     <div className={styles.layout}>
-      {/* Sidebar - Slim Icons */}
-      <aside className={styles.sidebar}>
+      {/* Sidebar */}
+      <nav className={styles.sidebar}>
         <div className={styles.logoIcon}>Y</div>
-        <nav style={{ marginTop: '20px' }}>
-          <div className={`${styles.navItem} ${activeTab === 'Overview' ? styles.navItemActive : ''}`} onClick={() => setActiveTab('Overview')} title="Home">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>
-          </div>
-          <div className={`${styles.navItem} ${activeTab === 'Tracking' ? styles.navItemActive : ''}`} onClick={() => setActiveTab('Tracking')} title="Logistics">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13" /><polyline points="16 8 20 8 23 11 23 16 16 16 16 8" /><circle cx="5.5" cy="18.5" r="2.5" /><circle cx="18.5" cy="18.5" r="2.5" /></svg>
-          </div>
-          <div className={`${styles.navItem} ${activeTab === 'Analysis' ? styles.navItemActive : ''}`} onClick={() => setActiveTab('Analysis')} title="Market">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="20" x2="12" y2="10" /><line x1="18" y1="20" x2="18" y2="4" /><line x1="6" y1="20" x2="6" y2="16" /></svg>
-          </div>
-          <div className={`${styles.navItem} ${activeTab === 'Catalog' ? styles.navItemActive : ''}`} onClick={() => setActiveTab('Catalog')} title="Products">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M7 8h10" /><path d="M7 12h10" /><path d="M7 16h10" /></svg>
-          </div>
-        </nav>
-        <div className={styles.sidebarBottom}>
-          <div className={styles.navItem} title="Settings" onClick={() => setShowSettings(true)} style={{ cursor: 'pointer' }}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>
-          </div>
-          <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" className={styles.userAvatar} alt="User" />
+        <div className={`${styles.navItem} ${activeTab === 'Overview' && styles.navItemActive}`} onClick={() => setActiveTab('Overview')} title="Overview">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
         </div>
-      </aside>
+        <div className={`${styles.navItem} ${activeTab === 'Analytics' && styles.navItemActive}`} onClick={() => setActiveTab('Analytics')} title="Analytics">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+        </div>
+        <div className={`${styles.navItem} ${activeTab === 'Portfolio' && styles.navItemActive}`} onClick={() => setActiveTab('Portfolio')} title="Portfolio">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+        </div>
+
+        <div className={styles.sidebarBottom}>
+          <div className={styles.navItem} onClick={() => setShowSettings(true)} title="Settings">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+          </div>
+          <a href="/admin" className={styles.userAvatar} style={{ display: 'block' }}>
+            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="User" style={{ width: '100%', height: '100%', borderRadius: '50%' }} />
+          </a>
+        </div>
+      </nav>
 
       {/* Main Content */}
-      <div className={styles.contentWrapper}>
+      <main className={styles.contentWrapper}>
         <header className={styles.header}>
-          <div className={styles.tabs}>
-            <button className={`${styles.tab} ${activeTab === 'Overview' ? styles.tabActive : ''}`} onClick={() => setActiveTab('Overview')}>Overview</button>
-            <button className={`${styles.tab} ${activeTab === 'Tracking' ? styles.tabActive : ''}`} onClick={() => setActiveTab('Tracking')}>Logistics</button>
-            <button className={`${styles.tab} ${activeTab === 'Analysis' ? styles.tabActive : ''}`} onClick={() => setActiveTab('Analysis')}>Market</button>
-            <button className={`${styles.tab} ${activeTab === 'Catalog' ? styles.tabActive : ''}`} onClick={() => setActiveTab('Catalog')}>Portfolio</button>
+          <div>
+            <h1 className={styles.sectionTitle} style={{ margin: 0 }}>YNK Global Intelligence</h1>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Real-time Logistics & Market Terminal</p>
           </div>
+
           <div className={styles.headerActions}>
-            <div className={styles.circleBtn}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg></div>
-            <div className={styles.circleBtn}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12h14" /></svg></div>
+            <div className={styles.tabs}>
+              <button className={`${styles.tab} ${activeTool === 'cbm' && styles.tabActive}`} onClick={() => setActiveTool('cbm')}>CBM Calc</button>
+              <button className={`${styles.tab} ${activeTool === 'port' && styles.tabActive}`} onClick={() => setActiveTool('port')}>Incheon Port</button>
+            </div>
+            <div className={styles.circleBtn} title="Notifications">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+            </div>
           </div>
         </header>
 
-        <main>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px' }}>
-            <h1 className={styles.sectionTitle}>{activeTab}</h1>
-          </div>
-
-          {activeTab === 'Overview' && (
-            <div className={styles.dashboardGrid}>
-              <div className={styles.mainCol}>
-                {/* Market Trends Summary */}
-                <div className={styles.marketGrid}>
-                  <div className={styles.marketCard}>
-                    <div className={styles.marketLabel}><span style={{ color: '#3b82f6' }}>●</span> USD/KRW</div>
-                    <div className={styles.marketVal}>{marketData.usd.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ₩</div>
-                    <div className={`${styles.trendTag} ${marketData.trends.usd === 'up' ? styles.trendUp : styles.trendDown}`}>
-                      {marketData.trends.usd === 'up' ? '▲' : '▼'} {marketData.trends.usd === 'up' ? '+' : ''}0.2%
-                    </div>
-                  </div>
-                  <div className={styles.marketCard}>
-                    <div className={styles.marketLabel}><span style={{ color: '#ef4444' }}>●</span> CNY/KRW</div>
-                    <div className={styles.marketVal}>{marketData.cny.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ₩</div>
-                    <div className={`${styles.trendTag} ${marketData.trends.cny === 'up' ? styles.trendUp : styles.trendDown}`}>
-                      {marketData.trends.cny === 'up' ? '▲' : '▼'} {marketData.trends.cny === 'up' ? '+' : ''}0.1%
-                    </div>
-                  </div>
-                  <div className={styles.marketCard}>
-                    <div className={styles.marketLabel}><span style={{ color: '#f97316' }}>●</span> Aluminum</div>
-                    <div className={styles.marketVal}>{Math.round(marketData.metals.alum).toLocaleString()} ¥</div>
-                    <div className={`${styles.trendTag} ${marketData.trends.alum === 'up' ? styles.trendUp : styles.trendDown}`}>
-                      {marketData.trends.alum === 'up' ? '▲' : '▼'} 1.4%
-                    </div>
-                  </div>
-                  <div className={styles.marketCard}>
-                    <div className={styles.marketLabel}><span style={{ color: '#ea580c' }}>●</span> Copper</div>
-                    <div className={styles.marketVal}>{Math.round(marketData.metals.copper).toLocaleString()} ¥</div>
-                    <div className={`${styles.trendTag} ${marketData.trends.copper === 'up' ? styles.trendUp : styles.trendDown}`}>
-                      {marketData.trends.copper === 'up' ? '▲' : '▼'} 0.5%
-                    </div>
-                  </div>
-                  <div className={styles.marketCard}>
-                    <div className={styles.marketLabel}><span style={{ color: '#10b981' }}>●</span> Steel Rebar</div>
-                    <div className={styles.marketVal}>{Math.round(marketData.metals.steel).toLocaleString()} ¥</div>
-                    <div className={`${styles.trendTag} ${marketData.trends.steel === 'up' ? styles.trendUp : styles.trendDown}`}>
-                      {marketData.trends.steel === 'up' ? '▲' : '▼'} 0.8%
-                    </div>
-                  </div>
-                  <div className={styles.marketCard}>
-                    <div className={styles.marketLabel}><span style={{ color: '#8b5cf6' }}>●</span> Nickel</div>
-                    <div className={styles.marketVal}>{Math.round(marketData.metals.nickel).toLocaleString()} ¥</div>
-                    <div className={`${styles.trendTag} ${marketData.trends.nickel === 'up' ? styles.trendUp : styles.trendDown}`}>
-                      {marketData.trends.nickel === 'up' ? '▲' : '▼'} 1.1%
-                    </div>
-                  </div>
-                  <div className={styles.marketCard}>
-                    <div className={styles.marketLabel}><span style={{ color: '#3b82f6' }}>●</span> Zinc</div>
-                    <div className={styles.marketVal}>{Math.round(marketData.metals.zinc).toLocaleString()} ¥</div>
-                    <div className={`${styles.trendTag} ${marketData.trends.zinc === 'up' ? styles.trendUp : styles.trendDown}`}>
-                      {marketData.trends.zinc === 'up' ? '▲' : '▼'} 0.3%
-                    </div>
-                  </div>
-                </div>
-
-                {/* Main Visual Card */}
-                <div className={styles.card} style={{ marginBottom: '24px' }}>
-                  <div className={styles.cardHeader}>
-                    <div>
-                      <h3 className={styles.cardTitle}>Global Market Intelligence</h3>
-                      <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Real-time price index for industrial commodities</p>
-                    </div>
-                    <div className={styles.circleBtn}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14 21 3" /></svg></div>
-                  </div>
-                  <div style={{ height: '300px' }}>
-                    <MarketChart
-                      data={historyData.map(d => ({ date: d.date, value: d.cny }))}
-                      todayValue={marketData.cny}
-                      title="CNY/KRW Index"
-                      color="#ef4444"
-                      unit=" ₩"
-                    />
-                  </div>
-                </div>
-
-                {/* Recent Shipments / Activity (Image 2 style) */}
-                <div className={styles.card}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                    <h3 className={styles.cardTitle}>Incheon Port Congestion</h3>
-                    {incheonPort.length > 0 && (
-                      <span style={{ background: '#dcfce7', color: '#166534', padding: '4px 8px', borderRadius: '8px', fontSize: '0.7rem', fontWeight: 700 }}>● LIVE API CONNECTED</span>
-                    )}
-                  </div>
-                  <div className={styles.tableWrapper}>
-                    <table className={styles.table}>
-                      <thead>
-                        <tr>
-                          <th>Terminal</th>
-                          <th>Status</th>
-                          <th>Efficiency</th>
-                          <th>Time</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {(incheonPort.length > 0 ? incheonPort : hubs).map((item, idx) => {
-                          const isReal = !!item.termName;
-                          const name = isReal ? item.termName : item.name;
-                          const status = isReal ? (
-                            item.trafficStatus === 'A' ? 'Smooth' :
-                              item.trafficStatus === 'B' ? 'Normal' : 'Congested'
-                          ) : item.status;
-
-                          const color = status === 'Smooth' || status === 'Stable' ? '#dcfce7' :
-                            status === 'Normal' || status === 'Moderate' ? '#fef3c7' : '#fee2e2';
-                          const textColor = status === 'Smooth' || status === 'Stable' ? '#166534' :
-                            status === 'Normal' || status === 'Moderate' ? '#92400e' : '#991b1b';
-                          const fillWidth = status === 'Smooth' || status === 'Stable' ? '90%' :
-                            status === 'Normal' || status === 'Moderate' ? '60%' : '30%';
-
-                          return (
-                            <tr key={isReal ? item.termCd + idx : item.id}>
-                              <td style={{ fontWeight: 600 }}>{name}</td>
-                              <td><span className={styles.trendTag} style={{ background: color, color: textColor }}>{status}</span></td>
-                              <td>
-                                <div style={{ width: '100px', height: '6px', background: '#e2e8f0', borderRadius: '3px', position: 'relative' }}>
-                                  <div style={{ position: 'absolute', left: 0, top: 0, height: '100%', width: fillWidth, background: textColor, borderRadius: '3px', transition: 'width 0.5s' }}></div>
-                                </div>
-                              </td>
-                              <td style={{ fontSize: '0.8rem', color: '#94a3b8' }}>{isReal ? item.trafficTime.split(' ')[1] : times.korea}</td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
+        <div className={styles.dashboardGrid}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+            {/* 1. World Clock Banner */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+              <div className={styles.card} style={{ padding: '20px', background: 'linear-gradient(135deg, #10b981, #059669)', color: 'white' }}>
+                <div style={{ fontSize: '0.8rem', opacity: 0.9, marginBottom: '8px' }}>SEOUL (HQ)</div>
+                <div style={{ fontSize: '1.5rem', fontWeight: 700 }}>{times.korea}</div>
               </div>
-
-              <div className={styles.rightSidebar}>
-                {/* World Clock Cards */}
-                <div className={styles.statCard}>
-                  <h4 style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '16px', textTransform: 'uppercase' }}>Command Center Clocks</h4>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontWeight: 500 }}>Seoul (HQ)</span>
-                      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600 }}>{times.korea}</span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontWeight: 500 }}>Shanghai</span>
-                      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 600 }}>{times.china}</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Quick Tools (Image 4 style) */}
-                <div className={styles.statCard}>
-                  <h4 style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '16px', textTransform: 'uppercase' }}>Operations Toolkit</h4>
-                  <div className={styles.categoryGrid}>
-                    <div className={styles.catBtn} onClick={() => setActiveTab('Tracking')}>
-                      <div className={styles.catIcon} style={{ background: '#f5f3ff', color: '#7c3aed' }}>
-                        <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></svg>
-                      </div>
-                      <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>Tracking</span>
-                    </div>
-                    <div className={styles.catBtn} onClick={() => setActiveTab('Analysis')}>
-                      <div className={styles.catIcon} style={{ background: '#fff7ed', color: '#f97316' }}>
-                        <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg>
-                      </div>
-                      <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>Cost</span>
-                    </div>
-                  </div>
-
-                  <div style={{ background: '#f8fafc', padding: '20px', borderRadius: '24px', border: '1px solid #e2e8f0' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                      <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>CBM Estimator</span>
-                      <span style={{ color: '#7c3aed', fontWeight: 700 }}>{calculateTotalCBM().toFixed(3)} m³</span>
-                    </div>
-
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '16px', maxHeight: '300px', overflowY: 'auto', paddingRight: '4px' }}>
-                      {products.map((product) => (
-                        <div key={product.id} style={{ background: 'white', padding: '12px', borderRadius: '16px', border: '1px solid #f1f5f9' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                            <input
-                              style={{ border: 'none', fontWeight: 600, fontSize: '0.8rem', width: '100px' }}
-                              value={product.name}
-                              onChange={(e) => updateProduct(product.id, 'name', e.target.value)}
-                            />
-                            {products.length > 1 && (
-                              <button onClick={() => removeProduct(product.id)} style={{ border: 'none', background: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '1rem' }}>&times;</button>
-                            )}
-                          </div>
-                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
-                            <input type="number" placeholder="L" style={{ width: '100%', padding: '4px', borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '0.7rem' }} value={product.length} onChange={(e) => updateProduct(product.id, 'length', e.target.value)} />
-                            <input type="number" placeholder="W" style={{ width: '100%', padding: '4px', borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '0.7rem' }} value={product.width} onChange={(e) => updateProduct(product.id, 'width', e.target.value)} />
-                            <input type="number" placeholder="H" style={{ width: '100%', padding: '4px', borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '0.7rem' }} value={product.height} onChange={(e) => updateProduct(product.id, 'height', e.target.value)} />
-                            <input type="number" placeholder="Qty" style={{ width: '100%', padding: '4px', borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '0.7rem' }} value={product.qty} onChange={(e) => updateProduct(product.id, 'qty', e.target.value)} />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-
-                    <button onClick={addProduct} style={{ width: '100%', padding: '8px', borderRadius: '12px', border: '1px dashed #7c3aed', background: '#f5f3ff', color: '#7c3aed', fontWeight: 600, fontSize: '0.8rem', cursor: 'pointer', marginBottom: '16px' }}>
-                      + Add Product
-                    </button>
-
-                    <div style={{ height: '8px', background: '#e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
-                      <div style={{ height: '100%', width: `${Math.min((calculateTotalCBM() / 28) * 100, 100)}%`, background: '#7c3aed', transition: 'width 0.3s ease' }}></div>
-                    </div>
-                    <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '8px', display: 'flex', justifyContent: 'space-between' }}>
-                      <span>20ft Container Fill Rate</span>
-                      <span>{((calculateTotalCBM() / 28) * 100).toFixed(1)}%</span>
-                    </p>
-                  </div>
-                </div>
-
-                <div className={styles.statCard} style={{ background: 'linear-gradient(135deg, #7c3aed, #4f46e5)', color: 'white' }}>
-                  <h4 style={{ marginBottom: '8px' }}>YNK Intelligence</h4>
-                  <p style={{ fontSize: '0.85rem', opacity: 0.9, lineHeight: 1.5 }}>Our AI model predicts a 2.4% decrease in Shanghai steel prices next week. Consider postponing orders.</p>
-                  <button style={{ marginTop: '16px', background: 'white', border: 'none', padding: '8px 16px', borderRadius: '12px', fontWeight: 600, color: '#7c3aed', cursor: 'pointer' }}>View Report</button>
-                </div>
+              <div className={styles.card} style={{ padding: '20px', background: 'linear-gradient(135deg, #3b82f6, #2563eb)', color: 'white' }}>
+                <div style={{ fontSize: '0.8rem', opacity: 0.9, marginBottom: '8px' }}>SHANGHAI</div>
+                <div style={{ fontSize: '1.5rem', fontWeight: 700 }}>{times.china}</div>
+              </div>
+              <div className={styles.card} style={{ padding: '20px', background: 'linear-gradient(135deg, #f97316, #ea580c)', color: 'white' }}>
+                <div style={{ fontSize: '0.8rem', opacity: 0.9, marginBottom: '8px' }}>HO CHI MINH</div>
+                <div style={{ fontSize: '1.5rem', fontWeight: 700 }}>{times.vietnam}</div>
               </div>
             </div>
-          )}
 
-          {activeTab === 'Tracking' && (
+            {/* 2. Market Overview */}
             <div className={styles.card}>
               <div className={styles.cardHeader}>
-                <h3 className={styles.cardTitle}>Live Vessel Tracking</h3>
-              </div>
-              <div style={{ display: 'flex', gap: '12px', marginBottom: '24px' }}>
-                <input
-                  type="text"
-                  className={styles.catBtn}
-                  placeholder="Enter B/L Number..."
-                  style={{ flex: 1, padding: '12px', border: '2px solid #e2e8f0', borderRadius: '16px' }}
-                  value={trackingNo}
-                  onChange={(e) => setTrackingNo(e.target.value)}
-                />
-                <button className={styles.catBtn} style={{ background: '#1a1a1a', color: 'white', border: 'none' }} onClick={handleTrack}>Track</button>
+                <h2 className={styles.cardTitle}>Global Market Trends</h2>
+                <button style={{ fontSize: '0.8rem', color: 'var(--accent-primary)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>Detailed View →</button>
               </div>
 
-              <div style={{ minHeight: '500px', background: '#eef2f6', borderRadius: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1a1a1a', border: '2px dashed #cbd5e1', overflow: 'hidden' }}>
-                {isTracking ? (
-                  <div style={{ textAlign: 'center' }}>
-                    <div className={styles.loadingPulse} style={{ width: '40px', height: '40px', margin: '0 auto 20px', background: 'var(--accent-purple)', borderRadius: '50%' }}></div>
-                    <p style={{ color: '#94a3b8' }}>SCANNING TERMINAL DATA...</p>
+              <div className={styles.marketGrid}>
+                {/* Exchange Rates */}
+                <div className={styles.marketCard}>
+                  <div className={styles.marketLabel}><span style={{ fontSize: '1.2rem' }}>🇺🇸</span> USD/KRW</div>
+                  <div className={styles.marketVal}>{marketData.usd.toFixed(2)}</div>
+                  <div className={`${styles.trendTag} ${marketData.trends.usd === 'up' ? styles.trendUp : styles.trendDown}`}>
+                    {marketData.trends.usd === 'up' ? '▲' : '▼'} 0.4%
                   </div>
-                ) : trackResult ? (
-                  trackResult.error ? (
-                    <p style={{ color: '#ef4444' }}>{trackResult.error}</p>
-                  ) : (
-                    <div style={{ textAlign: 'center', color: '#1a1a1a', padding: '30px', width: '100%', alignSelf: 'start' }}>
-                      <h2 style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
-                        <span style={{ fontSize: '1.5rem' }}>🇰🇷</span> UNIPASS Live Connected
-                      </h2>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                        {trackResult.type === 'IMPORT' ? (
-                          <>
-                            <div className={styles.marketCard} style={{ background: 'white', border: 'none', boxShadow: 'var(--shadow-soft)', gridColumn: 'span 2', padding: '15px' }}>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-                                <strong>Import Status</strong>
-                                <span style={{ background: 'var(--accent-purple)', color: 'white', padding: '4px 12px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 700 }}>
-                                  {trackResult.data.csclPrgsSttsNm || 'Active'}
-                                </span>
-                              </div>
-                            </div>
+                </div>
+                <div className={styles.marketCard}>
+                  <div className={styles.marketLabel}><span style={{ fontSize: '1.2rem' }}>🇨🇳</span> CNY/KRW</div>
+                  <div className={styles.marketVal}>{marketData.cny.toFixed(2)}</div>
+                  <div className={`${styles.trendTag} ${marketData.trends.cny === 'up' ? styles.trendUp : styles.trendDown}`}>
+                    {marketData.trends.cny === 'up' ? '▲' : '▼'} 0.1%
+                  </div>
+                </div>
 
-                            <div className={styles.marketCard} style={{ background: 'white', border: 'none', boxShadow: 'var(--shadow-soft)', padding: '12px' }}>
-                              <strong>B/L (Import)</strong>
-                              <span style={{ fontWeight: 600, fontSize: '0.85rem' }}>{trackResult.data.hblNo || trackResult.data.mblNo}</span>
-                            </div>
-                            <div className={styles.marketCard} style={{ background: 'white', border: 'none', boxShadow: 'var(--shadow-soft)', padding: '12px' }}>
-                              <strong>Vessel</strong>
-                              <span style={{ fontSize: '0.85rem' }}>{trackResult.data.shipNm || 'N/A'}</span>
-                            </div>
-
-                            <div className={styles.marketCard} style={{ background: 'white', border: 'none', boxShadow: 'var(--shadow-soft)', padding: '12px' }}>
-                              <strong>Loading Port</strong>
-                              <span style={{ fontSize: '0.85rem' }}>{trackResult.data.ldngPrtNm || 'N/A'}</span>
-                            </div>
-                            <div className={styles.marketCard} style={{ background: 'white', border: 'none', boxShadow: 'var(--shadow-soft)', padding: '12px' }}>
-                              <strong>Discharge Port</strong>
-                              <span style={{ fontSize: '0.85rem' }}>{trackResult.data.dschPrtNm || 'N/A'}</span>
-                            </div>
-
-                            {/* Timeline / Processing Detail */}
-                            <div className={styles.marketCard} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', gridColumn: 'span 2', textAlign: 'left', marginTop: '10px' }}>
-                              <strong style={{ display: 'block', marginBottom: '10px', fontSize: '0.9rem', color: '#475569' }}>Cargo Timeline</strong>
-                              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '300px', overflowY: 'auto', paddingRight: '5px' }}>
-                                {trackResult.details && trackResult.details.length > 0 ? (
-                                  trackResult.details.map((item, idx) => (
-                                    <div key={idx} style={{ padding: '10px', background: 'white', borderRadius: '12px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderLeft: '4px solid #8b5cf6' }}>
-                                      <div>
-                                        <div style={{ fontWeight: 600, fontSize: '0.85rem' }}>{item.rlbrCn || item.cargTrcnRelaBsopTpcd}</div>
-                                        <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{item.shedNm}</div>
-                                      </div>
-                                      <div style={{ fontSize: '0.75rem', color: '#94a3b8', textAlign: 'right', minWidth: '80px' }}>
-                                        {String(item.prcsDttm).replace(/(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/, '$1-$2-$3 $4:$5')}
-                                      </div>
-                                    </div>
-                                  ))
-                                ) : (
-                                  <div style={{ fontSize: '0.8rem', color: '#94a3b8', padding: '20px', textAlign: 'center' }}>No timeline data available.</div>
-                                )}
-                              </div>
-                            </div>
-                          </>
-                        ) : (
-                          <>
-                            <div className={styles.marketCard} style={{ background: 'white', border: 'none', boxShadow: 'var(--shadow-soft)', gridColumn: 'span 2' }}>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-                                <strong>Export Status</strong>
-                                <span style={{ background: '#10b981', color: 'white', padding: '4px 12px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 700 }}>
-                                  {trackResult.data.shpmcmplYn === 'Y' ? 'SHIPPED' : 'IN PROGRESS'}
-                                </span>
-                              </div>
-                            </div>
-
-                            <div className={styles.marketCard} style={{ background: 'white', border: 'none', boxShadow: 'var(--shadow-soft)' }}>
-                              <strong>B/L (Export)</strong>
-                              <span style={{ fontWeight: 600, fontSize: '0.85rem' }}>{trackingNo}</span>
-                            </div>
-                            <div className={styles.marketCard} style={{ background: 'white', border: 'none', boxShadow: 'var(--shadow-soft)' }}>
-                              <strong>Declaration No</strong>
-                              <span style={{ fontSize: '0.85rem' }}>{trackResult.data.expDclrNo}</span>
-                            </div>
-
-                            <div className={styles.marketCard} style={{ background: 'white', border: 'none', boxShadow: 'var(--shadow-soft)' }}>
-                              <strong>Loading Place</strong>
-                              <span style={{ fontSize: '0.85rem' }}>{trackResult.data.shpmAirptPortNm || 'N/A'}</span>
-                            </div>
-                            <div className={styles.marketCard} style={{ background: 'white', border: 'none', boxShadow: 'var(--shadow-soft)' }}>
-                              <strong>Departure Date</strong>
-                              <span style={{ fontSize: '0.85rem' }}>{trackResult.data.tkofDt || 'PENDING'}</span>
-                            </div>
-
-                            <div className={styles.marketCard} style={{ background: 'white', border: 'none', boxShadow: 'var(--shadow-soft)', gridColumn: 'span 2' }}>
-                              <div style={{ textAlign: 'left', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                                <strong>Exporter:</strong> {trackResult.data.exppnConm || 'N/A'}
-                              </div>
-                            </div>
-                          </>
-                        )}
+                {/* Raw Materials - Now Interactive */}
+                <div className={styles.marketCard} style={{ gridColumn: 'span 2' }}>
+                  <div className={styles.marketLabel}><span style={{ fontSize: '1.2rem' }}>🏗️</span> Raw Materials (LME)</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '8px', marginTop: '8px' }}>
+                    {Object.entries(marketData.metals).map(([key, val]) => (
+                      <div key={key} style={{ textAlign: 'center' }}>
+                        <div style={{ fontSize: '0.7rem', color: '#94a3b8', textTransform: 'capitalize' }}>{key}</div>
+                        <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>${val.toLocaleString()}</div>
                       </div>
-                    </div>
-                  )
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Interactive Chart Section */}
+              <div style={{ marginTop: '20px', borderTop: '1px solid #f1f5f9', paddingTop: '20px' }}>
+                <MarketChart
+                  data={historyData}
+                  selectedMetal={selectedMetal}
+                  setSelectedMetal={setSelectedMetal}
+                  selectedCurrency={selectedCurrency}
+                  setSelectedCurrency={setSelectedCurrency}
+                />
+              </div>
+            </div>
+
+            {/* 3. Product Catalog (Portfolio) */}
+            <div className={styles.card}>
+              <div className={styles.cardHeader}>
+                <h2 className={styles.cardTitle}>YNK Product Portfolio</h2>
+                <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>{catalogData.length} Items Indexed</span>
+              </div>
+              <div className={styles.categoryGrid}>
+                {catalogData.length === 0 ? (
+                  <div style={{ gridColumn: 'span 2', textAlign: 'center', padding: '40px', color: '#cbd5e1' }}>
+                    No products registered yet. Check Admin Panel.
+                  </div>
                 ) : (
-                  <p>SCAN B/L OR CONTAINER FOR LIVE AIS DATA</p>
+                  catalogData.map(product => (
+                    <div key={product.id} className={styles.catBtn} onClick={() => setSelectedProduct(product)}>
+                      <div className={styles.catIcon} style={{ background: '#f1f5f9', overflow: 'hidden' }}>
+                        <img src={product.image} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => e.target.src = 'https://picsum.photos/400/300?blur=5'} />
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '0.95rem', fontWeight: 600 }}>{product.name}</div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{product.description}</div>
+                      </div>
+                      <div style={{ marginLeft: 'auto', color: '#cbd5e1' }}>→</div>
+                    </div>
+                  ))
                 )}
               </div>
             </div>
-          )}
+          </div>
 
-          {activeTab === 'Analysis' && (
-            <div className={styles.dashboardGrid}>
-              <div className={styles.mainCol}>
-                <div className={styles.card}>
-                  <h3 className={styles.cardTitle}>Historical Data Analysis</h3>
-                  <div style={{ display: 'flex', gap: '8px', margin: '20px 0' }}>
-                    {['aluminum', 'copper', 'steel', 'nickel', 'zinc'].map(m => (
-                      <button
-                        key={m}
-                        className={`${styles.tab} ${selectedMetal === m ? styles.tabActive : ''}`}
-                        onClick={() => setSelectedMetal(m)}
-                        style={{ border: '1px solid #e2e8f0' }}
-                      >
-                        {m.toUpperCase()}
-                      </button>
-                    ))}
-                  </div>
-                  <div style={{ height: '400px' }}>
-                    <MarketChart
-                      data={historyData.map(d => ({ date: d.date, value: d.metals?.[selectedMetal]?.last }))}
-                      todayValue={marketData.metals?.[selectedMetal]}
-                      title={`Shanghai ${selectedMetal.toUpperCase()} History`}
-                      color="#f97316"
-                      unit=" ¥"
-                    />
-                  </div>
-                </div>
-              </div>
-              <div className={styles.rightSidebar}>
-                <div className={styles.card}>
-                  <h3 className={styles.cardTitle}>Cost Calculator</h3>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '20px' }}>
-                    <input type="number" className={styles.catBtn} placeholder="Unit Price ($)" style={{ width: '100%' }} />
-                    <input type="number" className={styles.catBtn} placeholder="Quantity" style={{ width: '100%' }} />
-                    <div style={{ padding: '20px', background: '#f8fafc', borderRadius: '16px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <span>Est. Total</span>
-                        <span style={{ fontWeight: 700 }}>$0.00</span>
+          {/* Right Column */}
+          <div className={styles.rightSidebar}>
+
+            {/* Interactive Tool Widget */}
+            {activeTool === 'cbm' ? (
+              <div className={styles.statCard} style={{ border: '2px solid var(--accent-primary)' }}>
+                <h3 style={{ fontSize: '1.1rem', marginBottom: '16px', color: 'var(--accent-primary)' }}>📦 CBM Calculator</h3>
+                <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                  {products.map(p => (
+                    <div key={p.id} style={{ marginBottom: '12px', paddingBottom: '12px', borderBottom: '1px solid #f1f5f9' }}>
+                      <div style={{ fontSize: '0.8rem', fontWeight: 600, marginBottom: '4px' }}>{p.name}</div>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '4px' }}>
+                        <input type="number" placeholder="L (cm)" className={styles.input} style={{ width: '100%', padding: '4px', border: '1px solid #e2e8f0', borderRadius: '4px' }} value={p.length} onChange={(e) => handleInputChange(p.id, 'length', e.target.value)} />
+                        <input type="number" placeholder="W (cm)" className={styles.input} style={{ width: '100%', padding: '4px', border: '1px solid #e2e8f0', borderRadius: '4px' }} value={p.width} onChange={(e) => handleInputChange(p.id, 'width', e.target.value)} />
+                        <input type="number" placeholder="H (cm)" className={styles.input} style={{ width: '100%', padding: '4px', border: '1px solid #e2e8f0', borderRadius: '4px' }} value={p.height} onChange={(e) => handleInputChange(p.id, 'height', e.target.value)} />
+                        <input type="number" placeholder="Qty" className={styles.input} style={{ width: '100%', padding: '4px', border: '1px solid #e2e8f0', borderRadius: '4px' }} value={p.qty} onChange={(e) => handleInputChange(p.id, 'qty', e.target.value)} />
                       </div>
                     </div>
+                  ))}
+                </div>
+                <button onClick={addProduct} style={{ width: '100%', padding: '8px', background: '#f8fafc', border: '1px dashed #cbd5e1', borderRadius: '8px', color: '#64748b', cursor: 'pointer', marginBottom: '16px' }}>+ Add Item</button>
+
+                <div style={{ background: '#f5f3ff', padding: '16px', borderRadius: '12px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '0.8rem', color: '#7c3aed' }}>Total Volume</div>
+                  <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#7c3aed' }}>{calculateCBM()} <span style={{ fontSize: '0.9rem' }}>m³</span></div>
+                  <div style={{ fontSize: '0.7rem', color: '#8b5cf6', marginTop: '4px' }}>
+                    Est. 20ft Container: {((calculateCBM() / 28) * 100).toFixed(1)}%
                   </div>
                 </div>
               </div>
-            </div>
-          )}
-
-          {activeTab === 'Catalog' && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '24px' }}>
-              {catalogData.map(product => (
-                <div key={product.id} className={styles.card} style={{ padding: '20px' }}>
-                  <div style={{ height: '180px', background: '#f1f5f9', borderRadius: '16px', marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-                    <img src={product.image} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  </div>
-                  <h4 style={{ fontSize: '1.1rem', marginBottom: '4px' }}>{product.name}</h4>
-                  <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '16px' }}>{product.description}</p>
-                  <button className={styles.catBtn} style={{ width: '100%', justifyContent: 'center', fontWeight: 700 }} onClick={() => setSelectedProduct(product)}>View Specs</button>
+            ) : (
+              <div className={styles.statCard} style={{ border: '2px solid var(--accent-blue)' }}>
+                <h3 style={{ fontSize: '1.1rem', marginBottom: '16px', color: 'var(--accent-blue)' }}>🚢 Incheon Port Status</h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {hubs.map(hub => (
+                    <div key={hub.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', background: hub.color, borderRadius: '8px' }}>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>{hub.name}</span>
+                      <span style={{ fontSize: '0.75rem', fontWeight: 700, color: hub.textColor }}>{hub.status}</span>
+                    </div>
+                  ))}
                 </div>
-              ))}
+                <div style={{ marginTop: '16px', fontSize: '0.75rem', color: '#94a3b8', textAlign: 'center' }}>
+                  Real-time congestion data powered by OPUS
+                </div>
+              </div>
+            )}
+
+            {/* Tracking Widget */}
+            <div className={styles.statCard}>
+              <h3 style={{ fontSize: '1rem', marginBottom: '16px' }}>Quick Tracking</h3>
+              <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+                <input
+                  type="text"
+                  placeholder="BL / Container No."
+                  value={trackingNo}
+                  onChange={(e) => setTrackingNo(e.target.value)}
+                  style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#f8fafc' }}
+                />
+                <button
+                  onClick={handleTrack}
+                  disabled={isTracking}
+                  style={{ padding: '0 16px', background: '#1a1a1a', color: 'white', borderRadius: '8px', border: 'none', cursor: 'pointer' }}
+                >
+                  {isTracking ? '...' : 'Go'}
+                </button>
+              </div>
+              {trackResult && (
+                <div style={{ padding: '12px', background: '#f0fdf4', borderRadius: '8px', border: '1px solid #bbf7d0' }}>
+                  <div style={{ color: '#166534', fontWeight: 600, fontSize: '0.9rem' }}>{trackResult.status}</div>
+                  <div style={{ fontSize: '0.8rem', color: '#15803d', marginTop: '4px' }}>Currently at {trackResult.location}</div>
+                  <div style={{ fontSize: '0.8rem', color: '#15803d' }}>ETA: {trackResult.eta}</div>
+                </div>
+              )}
             </div>
-          )}
-        </main>
-      </div>
+
+          </div>
+        </div>
+      </main>
 
       {/* Modal for Product Details */}
       {selectedProduct && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(8px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setSelectedProduct(null)}>
-          <div className={styles.card} style={{ maxWidth: '600px', width: '90%' }} onClick={e => e.stopPropagation()}>
-            <h2 style={{ marginBottom: '20px' }}>{selectedProduct.name} Specifications</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setSelectedProduct(null)}>
+          <div className={styles.card} style={{ maxWidth: '400px', width: '90%', animation: 'fadeIn 0.2s ease-out' }} onClick={e => e.stopPropagation()}>
+            <div style={{ width: '100%', height: '200px', background: '#f1f5f9', borderRadius: '12px', marginBottom: '20px', overflow: 'hidden' }}>
+              <img src={selectedProduct.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => e.target.src = 'https://picsum.photos/400/300?blur=5'} />
+            </div>
+            <h2 className={styles.cardTitle} style={{ fontSize: '1.5rem', marginBottom: '8px' }}>{selectedProduct.name}</h2>
+            <p style={{ color: 'var(--text-muted)', lineHeight: '1.6', fontSize: '0.95rem' }}>{selectedProduct.description}</p>
+
+            <div style={{ marginTop: '24px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '0.9rem' }}>
               <div className={styles.marketCard}><strong>Material</strong> {selectedProduct.specs?.material || 'N/A'}</div>
               <div className={styles.marketCard}><strong>Weight</strong> {selectedProduct.specs?.weight || 'N/A'}</div>
               <div className={styles.marketCard}><strong>Cert</strong> {selectedProduct.specs?.cert || 'N/A'}</div>
@@ -671,8 +436,11 @@ export default function Home() {
                       </div>
                       <span style={{ fontWeight: 500 }}>Dark Mode</span>
                     </div>
-                    <div style={{ width: '44px', height: '24px', background: '#e2e8f0', borderRadius: '12px', position: 'relative', cursor: 'pointer' }}>
-                      <div style={{ width: '20px', height: '20px', background: 'white', borderRadius: '50%', position: 'absolute', top: '2px', left: '2px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}></div>
+                    <div
+                      style={{ width: '44px', height: '24px', background: darkMode ? '#3b82f6' : '#e2e8f0', borderRadius: '12px', position: 'relative', cursor: 'pointer', transition: 'background 0.2s' }}
+                      onClick={() => setDarkMode(!darkMode)}
+                    >
+                      <div style={{ width: '20px', height: '20px', background: 'white', borderRadius: '50%', position: 'absolute', top: '2px', left: darkMode ? '22px' : '2px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', transition: 'left 0.2s' }}></div>
                     </div>
                   </div>
 
@@ -683,15 +451,18 @@ export default function Home() {
                       </div>
                       <span style={{ fontWeight: 500 }}>Notifications</span>
                     </div>
-                    <div style={{ width: '44px', height: '24px', background: '#10b981', borderRadius: '12px', position: 'relative', cursor: 'pointer' }}>
-                      <div style={{ width: '20px', height: '20px', background: 'white', borderRadius: '50%', position: 'absolute', top: '2px', right: '2px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}></div>
+                    <div
+                      style={{ width: '44px', height: '24px', background: notifications ? '#10b981' : '#e2e8f0', borderRadius: '12px', position: 'relative', cursor: 'pointer', transition: 'background 0.2s' }}
+                      onClick={() => setNotifications(!notifications)}
+                    >
+                      <div style={{ width: '20px', height: '20px', background: 'white', borderRadius: '50%', position: 'absolute', top: '2px', left: notifications ? '22px' : '2px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', transition: 'left 0.2s' }}></div>
                     </div>
                   </div>
 
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                       <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#fff7ed', color: '#f97316', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                        <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1 4-10z"></path></svg>
                       </div>
                       <span style={{ fontWeight: 500 }}>Language</span>
                     </div>
@@ -722,7 +493,7 @@ export default function Home() {
             <button
               className={styles.catBtn}
               style={{ width: '100%', marginTop: '30px', background: '#1a1a1a', color: 'white', justifyContent: 'center' }}
-              onClick={() => setShowSettings(false)}
+              onClick={() => { alert('Settings Saved'); setShowSettings(false); }}
             >
               Save Changes
             </button>
