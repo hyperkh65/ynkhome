@@ -62,6 +62,7 @@ export default function Home() {
     { id: 'it3', name: '한진인천컨테이너터미널', status: 'Checking...', color: '#f1f5f9', textColor: '#64748b' },
     { id: 'it4', name: '선광신컨테이너터미널', status: 'Checking...', color: '#f1f5f9', textColor: '#64748b' }
   ]);
+  const [portLastUpdated, setPortLastUpdated] = useState('');
   const [incheonPort, setIncheonPort] = useState([]);
 
   // World Clock & Auto Refresh
@@ -97,18 +98,28 @@ export default function Home() {
       const mRes = await fetch('/api/market', { cache: 'no-store' });
       const mData = await mRes.json();
       if (mData.success) {
-        setMarketData(prev => ({
-          ...prev,
-          usd: mData.rates?.usd || prev.usd,
-          cny: mData.rates?.cny || prev.cny,
-          metals: mData.metals || prev.metals,
-          // Calculate simple trends based on prev values if available
-          trends: {
-            ...prev.trends,
-            usd: (mData.rates?.usd > prev.usd) ? 'up' : 'down',
-            cny: (mData.rates?.cny > prev.cny) ? 'up' : 'down'
+        setMarketData(prev => {
+          const newTrends = { ...prev.trends };
+          if (mData.rates?.usd) newTrends.usd = mData.rates.usd >= prev.usd ? 'up' : 'down';
+          if (mData.rates?.cny) newTrends.cny = mData.rates.cny >= prev.cny ? 'up' : 'down';
+
+          // Metal trends based on prevClose from API
+          if (mData.metals) {
+            Object.entries(mData.metals).forEach(([key, val]) => {
+              if (val && val.last && val.prevClose) {
+                newTrends[key] = val.last >= val.prevClose ? 'up' : 'down';
+              }
+            });
           }
-        }));
+
+          return {
+            ...prev,
+            usd: mData.rates?.usd || prev.usd,
+            cny: mData.rates?.cny || prev.cny,
+            metals: mData.metals || prev.metals,
+            trends: newTrends
+          };
+        });
       }
     } catch (err) {
       console.error("Market data fetch failed", err);
@@ -120,6 +131,10 @@ export default function Home() {
       const json = await res.json();
 
       if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+        // Use the time from the first record as overall update time
+        const updateTime = json.data[0].trafficTime || json.data[0].regdate || '';
+        if (updateTime) setPortLastUpdated(updateTime.split(' ')[1] || updateTime);
+
         setHubs(prev => prev.map((hub) => {
           // Find matching data in API response
           const match = json.data.find(d => {
@@ -473,6 +488,7 @@ export default function Home() {
                 ))}
               </div>
               <div style={{ marginTop: '16px', fontSize: '0.75rem', color: '#94a3b8', textAlign: 'center' }}>
+                {portLastUpdated && <div style={{ marginBottom: '4px' }}>Last Update: {portLastUpdated}</div>}
                 Real-time congestion data powered by OPUS
               </div>
             </div>
