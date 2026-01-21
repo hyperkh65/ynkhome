@@ -751,10 +751,23 @@ export default function Home() {
                               {i < 4 && <div style={{ width: '2px', height: '30px', background: '#f1f5f9' }}></div>}
                             </div>
                             <div>
-                              <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{detail.prgsSttsNm}</div>
-                              <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
-                                {detail.prgsDt ? `${detail.prgsDt.substring(0, 4)}-${detail.prgsDt.substring(4, 6)}-${detail.prgsDt.substring(6, 8)} ${detail.prgsDt.substring(8, 10)}:${detail.prgsDt.substring(10, 12)}` : 'N/A'} • {detail.shedNm || 'Customs Zone'}
+                              <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#1e293b' }}>
+                                {detail.prgsSttsNm || detail.prgsStts || detail.csclPrgsSttsNm || 'Status N/A'}
                               </div>
+                              <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '2px' }}>
+                                {(() => {
+                                  const dt = String(detail.prgsDt || '');
+                                  if (dt.length >= 12) {
+                                    return `${dt.substring(0, 4)}-${dt.substring(4, 6)}-${dt.substring(6, 8)} ${dt.substring(8, 10)}:${dt.substring(10, 12)}`;
+                                  }
+                                  return dt || 'Date N/A';
+                                })()} • {detail.shedNm || 'Processing Node'}
+                              </div>
+                              {detail.dclNo && (
+                                <div style={{ fontSize: '0.7rem', color: '#94a3b8', marginTop: '2px' }}>
+                                  신고번호: {detail.dclNo}
+                                </div>
+                              )}
                             </div>
                           </div>
                         ))}
