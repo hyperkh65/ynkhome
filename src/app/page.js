@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import styles from './page.module.css';
 import LibraryModal from '@/components/LibraryModal';
+import MarketChart from '@/components/MarketChart';
 import { getProducts, getNotices } from '@/utils/storage';
 
 export default function Home() {
@@ -388,71 +389,17 @@ export default function Home() {
             {/* Chart */}
             <div style={{ background: 'white', borderRadius: '14px', padding: '18px', border: '1px solid #d2d2d7', display: 'flex', flexDirection: 'column' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                <h3 style={{ fontSize: '0.95rem', fontWeight: 600, margin: 0, color: '#1d1d1f' }}>📈 Market Trends (30 Days)</h3>
-                <div style={{ display: 'flex', gap: '6px' }}>
-                  <select value={selectedCurrency === 'usd' || selectedCurrency === 'cny' ? selectedCurrency : 'metal'} onChange={(e) => e.target.value !== 'metal' && setSelectedCurrency(e.target.value)} style={{ padding: '4px 8px', borderRadius: '6px', border: '1px solid #d2d2d7', fontSize: '0.7rem', background: 'white' }}>
-                    <option value="usd">USD/KRW</option>
-                    <option value="cny">CNY/KRW</option>
-                    <option value="metal">Metals</option>
-                  </select>
-                  {(selectedCurrency !== 'usd' && selectedCurrency !== 'cny') && (
-                    <select value={selectedMetal} onChange={(e) => setSelectedMetal(e.target.value)} style={{ padding: '4px 8px', borderRadius: '6px', border: '1px solid #d2d2d7', fontSize: '0.7rem', background: 'white' }}>
-                      <option value="aluminum">Aluminum</option>
-                      <option value="copper">Copper</option>
-                      <option value="steel">Steel</option>
-                      <option value="nickel">Nickel</option>
-                      <option value="zinc">Zinc</option>
-                    </select>
-                  )}
-                </div>
+                <h3 style={{ fontSize: '0.95rem', fontWeight: 600, margin: 0, color: '#1d1d1f' }}>📈 Market Analysis</h3>
               </div>
-              <div style={{ flex: 1, position: 'relative' }}>
-                <svg width="100%" height="100%" style={{ overflow: 'visible' }}>
-                  {chartData.length > 0 && (() => {
-                    const maxVal = Math.max(...chartData.map(d => d[selectedData] || 0));
-                    const minVal = Math.min(...chartData.map(d => d[selectedData] || 0).filter(v => v > 0));
-                    const range = maxVal - minVal;
-                    const padding = 40;
-                    const width = 100; // percentage
-                    const height = 100; // percentage
-
-                    const points = chartData.map((d, i) => {
-                      const x = padding + (i / (chartData.length - 1)) * (width - 2 * padding);
-                      const y = height - padding - ((d[selectedData] - minVal) / range) * (height - 2 * padding);
-                      return `${x}%,${y}%`;
-                    }).join(' ');
-
-                    return (
-                      <>
-                        <polyline
-                          points={points}
-                          fill="none"
-                          stroke="#007aff"
-                          strokeWidth="2"
-                          style={{ vectorEffect: 'non-scaling-stroke' }}
-                        />
-                        {chartData.map((d, i) => {
-                          const x = padding + (i / (chartData.length - 1)) * (width - 2 * padding);
-                          const y = height - padding - ((d[selectedData] - minVal) / range) * (height - 2 * padding);
-                          return (
-                            <circle
-                              key={i}
-                              cx={`${x}%`}
-                              cy={`${y}%`}
-                              r="3"
-                              fill="#007aff"
-                            />
-                          );
-                        })}
-                      </>
-                    );
-                  })()}
-                </svg>
-                {chartData.length === 0 && (
-                  <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#86868b', fontSize: '0.8rem' }}>
-                    No historical data available
-                  </div>
-                )}
+              <div style={{ flex: 1, minHeight: '300px' }}>
+                <MarketChart
+                  marketData={marketData}
+                  historyData={historyData}
+                  selectedMetal={selectedMetal}
+                  setSelectedMetal={setSelectedMetal}
+                  selectedCurrency={selectedCurrency}
+                  setSelectedCurrency={setSelectedCurrency}
+                />
               </div>
             </div>
 

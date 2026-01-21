@@ -11,7 +11,7 @@ export default function MarketChart({
     setSelectedCurrency,
     historyData = []
 }) {
-    const [viewType, setViewType] = useState('metal'); // 'metal' | 'currency'
+    const [viewType, setViewType] = useState('currency'); // 'metal' | 'currency'
 
     const currentItem = useMemo(() => {
         if (viewType === 'metal') return selectedMetal;
