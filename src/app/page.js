@@ -17,7 +17,6 @@ export default function Home() {
   const [historyData, setHistoryData] = useState([]);
   const [selectedMetal, setSelectedMetal] = useState('aluminum');
   const [selectedCurrency, setSelectedCurrency] = useState('usd');
-  const [activeTool, setActiveTool] = useState('cbm'); // default tool
   const [showSettings, setShowSettings] = useState(false);
 
   // News & Notices State
@@ -182,10 +181,6 @@ export default function Home() {
           </div>
 
           <div className={styles.headerActions}>
-            <div className={styles.tabs}>
-              <button className={`${styles.tab} ${activeTool === 'cbm' && styles.tabActive}`} onClick={() => setActiveTool('cbm')}>CBM Calc</button>
-              <button className={`${styles.tab} ${activeTool === 'port' && styles.tabActive}`} onClick={() => setActiveTool('port')}>Incheon Port</button>
-            </div>
             <div className={styles.circleBtn} title="Notifications">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
             </div>
@@ -302,7 +297,7 @@ export default function Home() {
               {/* Interactive Chart Section */}
               <div style={{ marginTop: '20px', borderTop: '1px solid #f1f5f9', paddingTop: '20px' }}>
                 <MarketChart
-                  data={historyData}
+                  marketData={marketData}
                   selectedMetal={selectedMetal}
                   setSelectedMetal={setSelectedMetal}
                   selectedCurrency={selectedCurrency}
@@ -341,51 +336,50 @@ export default function Home() {
           </div>
 
           {/* Right Column */}
-          <div className={styles.rightSidebar}>
+          <div className={styles.rightSidebar} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
 
-            {/* Interactive Tool Widget */}
-            {activeTool === 'cbm' ? (
-              <div className={styles.statCard} style={{ border: '2px solid var(--accent-primary)' }}>
-                <h3 style={{ fontSize: '1.1rem', marginBottom: '16px', color: 'var(--accent-primary)' }}>📦 CBM Calculator</h3>
-                <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                  {products.map(p => (
-                    <div key={p.id} style={{ marginBottom: '12px', paddingBottom: '12px', borderBottom: '1px solid #f1f5f9' }}>
-                      <div style={{ fontSize: '0.8rem', fontWeight: 600, marginBottom: '4px' }}>{p.name}</div>
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '4px' }}>
-                        <input type="number" placeholder="L (cm)" className={styles.input} style={{ width: '100%', padding: '4px', border: '1px solid #e2e8f0', borderRadius: '4px' }} value={p.length} onChange={(e) => handleInputChange(p.id, 'length', e.target.value)} />
-                        <input type="number" placeholder="W (cm)" className={styles.input} style={{ width: '100%', padding: '4px', border: '1px solid #e2e8f0', borderRadius: '4px' }} value={p.width} onChange={(e) => handleInputChange(p.id, 'width', e.target.value)} />
-                        <input type="number" placeholder="H (cm)" className={styles.input} style={{ width: '100%', padding: '4px', border: '1px solid #e2e8f0', borderRadius: '4px' }} value={p.height} onChange={(e) => handleInputChange(p.id, 'height', e.target.value)} />
-                        <input type="number" placeholder="Qty" className={styles.input} style={{ width: '100%', padding: '4px', border: '1px solid #e2e8f0', borderRadius: '4px' }} value={p.qty} onChange={(e) => handleInputChange(p.id, 'qty', e.target.value)} />
-                      </div>
+            {/* CBM Calculator Widget */}
+            <div className={styles.statCard} style={{ border: '2px solid var(--accent-primary)' }}>
+              <h3 style={{ fontSize: '1.1rem', marginBottom: '16px', color: 'var(--accent-primary)' }}>📦 CBM Calculator</h3>
+              <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                {products.map(p => (
+                  <div key={p.id} style={{ marginBottom: '12px', paddingBottom: '12px', borderBottom: '1px solid #f1f5f9' }}>
+                    <div style={{ fontSize: '0.8rem', fontWeight: 600, marginBottom: '4px' }}>{p.name}</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '4px' }}>
+                      <input type="number" placeholder="L (cm)" className={styles.input} style={{ width: '100%', padding: '4px', border: '1px solid #e2e8f0', borderRadius: '4px' }} value={p.length} onChange={(e) => handleInputChange(p.id, 'length', e.target.value)} />
+                      <input type="number" placeholder="W (cm)" className={styles.input} style={{ width: '100%', padding: '4px', border: '1px solid #e2e8f0', borderRadius: '4px' }} value={p.width} onChange={(e) => handleInputChange(p.id, 'width', e.target.value)} />
+                      <input type="number" placeholder="H (cm)" className={styles.input} style={{ width: '100%', padding: '4px', border: '1px solid #e2e8f0', borderRadius: '4px' }} value={p.height} onChange={(e) => handleInputChange(p.id, 'height', e.target.value)} />
+                      <input type="number" placeholder="Qty" className={styles.input} style={{ width: '100%', padding: '4px', border: '1px solid #e2e8f0', borderRadius: '4px' }} value={p.qty} onChange={(e) => handleInputChange(p.id, 'qty', e.target.value)} />
                     </div>
-                  ))}
-                </div>
-                <button onClick={addProduct} style={{ width: '100%', padding: '8px', background: '#f8fafc', border: '1px dashed #cbd5e1', borderRadius: '8px', color: '#64748b', cursor: 'pointer', marginBottom: '16px' }}>+ Add Item</button>
-
-                <div style={{ background: '#f5f3ff', padding: '16px', borderRadius: '12px', textAlign: 'center' }}>
-                  <div style={{ fontSize: '0.8rem', color: '#7c3aed' }}>Total Volume</div>
-                  <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#7c3aed' }}>{calculateCBM()} <span style={{ fontSize: '0.9rem' }}>m³</span></div>
-                  <div style={{ fontSize: '0.7rem', color: '#8b5cf6', marginTop: '4px' }}>
-                    Est. 20ft Container: {((calculateCBM() / 28) * 100).toFixed(1)}%
                   </div>
+                ))}
+              </div>
+              <button onClick={addProduct} style={{ width: '100%', padding: '8px', background: '#f8fafc', border: '1px dashed #cbd5e1', borderRadius: '8px', color: '#64748b', cursor: 'pointer', marginBottom: '16px' }}>+ Add Item</button>
+
+              <div style={{ background: '#f5f3ff', padding: '16px', borderRadius: '12px', textAlign: 'center' }}>
+                <div style={{ fontSize: '0.8rem', color: '#7c3aed' }}>Total Volume</div>
+                <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#7c3aed' }}>{calculateCBM()} <span style={{ fontSize: '0.9rem' }}>m³</span></div>
+                <div style={{ fontSize: '0.7rem', color: '#8b5cf6', marginTop: '4px' }}>
+                  Est. 20ft Container: {((calculateCBM() / 28) * 100).toFixed(1)}%
                 </div>
               </div>
-            ) : (
-              <div className={styles.statCard} style={{ border: '2px solid var(--accent-blue)' }}>
-                <h3 style={{ fontSize: '1.1rem', marginBottom: '16px', color: 'var(--accent-blue)' }}>🚢 Incheon Port Status</h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  {hubs.map(hub => (
-                    <div key={hub.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', background: hub.color, borderRadius: '8px' }}>
-                      <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>{hub.name}</span>
-                      <span style={{ fontSize: '0.75rem', fontWeight: 700, color: hub.textColor }}>{hub.status}</span>
-                    </div>
-                  ))}
-                </div>
-                <div style={{ marginTop: '16px', fontSize: '0.75rem', color: '#94a3b8', textAlign: 'center' }}>
-                  Real-time congestion data powered by OPUS
-                </div>
+            </div>
+
+            {/* Incheon Port Status Widget */}
+            <div className={styles.statCard} style={{ border: '2px solid var(--accent-blue)' }}>
+              <h3 style={{ fontSize: '1.1rem', marginBottom: '16px', color: 'var(--accent-blue)' }}>🚢 Incheon Port Status</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {hubs.map(hub => (
+                  <div key={hub.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', background: hub.color, borderRadius: '8px' }}>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>{hub.name}</span>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 700, color: hub.textColor }}>{hub.status}</span>
+                  </div>
+                ))}
               </div>
-            )}
+              <div style={{ marginTop: '16px', fontSize: '0.75rem', color: '#94a3b8', textAlign: 'center' }}>
+                Real-time congestion data powered by OPUS
+              </div>
+            </div>
 
             {/* Tracking Widget */}
             <div className={styles.statCard}>
