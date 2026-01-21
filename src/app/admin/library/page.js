@@ -53,15 +53,20 @@ export default function AdminLibrary() {
 
             // 파일 업로드 (새 파일이 있는 경우)
             if (file) {
-                const storagePath = `${Date.now()}_${file.name}`;
-                const { error: upErr } = await supabase.storage
+                // 한글 및 특수문자가 포함된 파일명은 스토리지 키로 부적합할 수 있으므로 안전하게 변환
+                const extension = file.name.split('.').pop();
+                const safeBaseName = file.name.replace(`.${extension}`, '').replace(/[^a-zA-Z0-9]/g, '_');
+                const storagePath = `${Date.now()}_${safeBaseName}.${extension}`;
+
+                // 1️⃣ Storage에 파일 업로드
+                const { error: uploadErr } = await supabase.storage
                     .from('library')
                     .upload(storagePath, file);
 
-                if (upErr) throw upErr;
+                if (uploadErr) throw uploadErr;
 
                 fileUrl = supabase.storage.from('library').getPublicUrl(storagePath).data.publicUrl;
-                fileName = file.name;
+                fileName = file.name; // DB에는 원래 한글 이름을 저장
                 fileSize = file.size;
             }
 
