@@ -41,13 +41,13 @@ export default function Home() {
     usd: 1476.80,
     cny: 212.24,
     metals: {
-      alum: 2350.50,
+      aluminum: 2350.50,
       copper: 9500.20,
       steel: 680.00,
       nickel: 16200.00,
       zinc: 2800.00
     },
-    trends: { usd: 'up', cny: 'up', alum: 'up', copper: 'down', steel: 'up', nickel: 'up', zinc: 'up' }
+    trends: { usd: 'up', cny: 'up', aluminum: 'up', copper: 'down', steel: 'up', nickel: 'up', zinc: 'up' }
   });
   const [catalogData, setCatalogData] = useState([]);
 
@@ -97,48 +97,22 @@ export default function Home() {
       const mRes = await fetch('/api/market', { cache: 'no-store' });
       const mData = await mRes.json();
       if (mData.success) {
-        setMarketData(mData.data);
+        setMarketData(prev => ({
+          ...prev,
+          usd: mData.rates?.usd || prev.usd,
+          cny: mData.rates?.cny || prev.cny,
+          metals: mData.metals || prev.metals,
+          // Calculate simple trends based on prev values if available
+          trends: {
+            ...prev.trends,
+            usd: (mData.rates?.usd > prev.usd) ? 'up' : 'down',
+            cny: (mData.rates?.cny > prev.cny) ? 'up' : 'down'
+          }
+        }));
       }
     } catch (err) {
       console.error("Market data fetch failed", err);
     }
-
-    // --- Market History Merging Logic ---
-    const getMergedHistory = (realHistory, todayValue, keyPath) => {
-      const days = 30;
-      const merged = [];
-      const today = new Date();
-
-      // Get nested value from today's marketData
-      const getVal = (obj, path) => path.split('.').reduce((o, i) => o?.[i], obj);
-      const currentVal = getVal(marketData, keyPath) || todayValue;
-
-      for (let i = days - 1; i >= 0; i--) {
-        const d = new Date(today);
-        d.setDate(today.getDate() - i);
-        const dateStr = d.toISOString().split('T')[0];
-
-        // Find match in real history
-        const match = realHistory.find(h => h.date === dateStr);
-        if (match) {
-          const val = keyPath.split('.').length > 1
-            ? getVal(match, keyPath)
-            : match[keyPath];
-          merged.push({ date: dateStr, value: val });
-        } else {
-          // No real data for this day. Generate mock data based on recent trend or base value
-          // Base it on a slight fluctuation around the todayValue or first available real value
-          const base = currentVal;
-          const noise = (Math.random() - 0.5) * (base * 0.02); // 2% noise
-          merged.push({ date: dateStr, value: base + noise });
-        }
-      }
-
-      // Ensure the very last point is exactly today's real value
-      if (merged.length > 0) merged[merged.length - 1].value = currentVal;
-
-      return merged;
-    };
 
     // 3. Real Incheon Port Status Fetch
     try {
@@ -403,10 +377,12 @@ export default function Home() {
                 <div className={styles.marketCard} style={{ gridColumn: 'span 2' }}>
                   <div className={styles.marketLabel}><span style={{ fontSize: '1.2rem' }}>🏗️</span> Raw Materials (LME)</div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '8px', marginTop: '8px' }}>
-                    {Object.entries(marketData.metals).map(([key, val]) => (
+                    {marketData.metals && Object.entries(marketData.metals).map(([key, val]) => (
                       <div key={key} style={{ textAlign: 'center' }}>
                         <div style={{ fontSize: '0.7rem', color: '#94a3b8', textTransform: 'capitalize' }}>{key}</div>
-                        <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>${val.toLocaleString()}</div>
+                        <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>
+                          ${(typeof val === 'object' ? val?.last : val)?.toLocaleString() || '---'}
+                        </div>
                       </div>
                     ))}
                   </div>
