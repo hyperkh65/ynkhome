@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="ko">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -13,9 +14,10 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
-  
+
   <link rel="stylesheet" href="erp-modern.css">
 </head>
+
 <body class="bg-slate-50">
 
   <!-- Sidebar -->
@@ -24,7 +26,7 @@
       <div class="logo-icon">YNK</div>
       <span>ERP Terminal</span>
     </div>
-    
+
     <nav>
       <div class="nav-item active" data-tab="dashboard">
         <i data-lucide="layout-dashboard"></i> <span>대시보드</span>
@@ -48,7 +50,7 @@
         <i data-lucide="ship"></i> <span>수입 업무</span>
       </div>
     </nav>
-    
+
     <div class="p-4 mt-auto border-t border-slate-700">
       <div class="flex items-center gap-3">
         <div class="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center">
@@ -71,14 +73,14 @@
       </div>
       <div class="flex gap-3">
         <button class="btn-premium btn-outline" onclick="window.location.reload()">
-           <i data-lucide="refresh-cw" class="w-4 h-4"></i> 새로고침
+          <i data-lucide="refresh-cw" class="w-4 h-4"></i> 새로고침
         </button>
       </div>
     </header>
 
     <!-- Tab Contents -->
     <div id="appPanel">
-      
+
       <!-- Dashboard -->
       <section id="tab-dashboard" class="tab-pane space-y-6">
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -132,10 +134,10 @@
       <section id="tab-sales" class="tab-pane hidden space-y-6">
         <div class="card">
           <div class="flex justify-between items-center mb-4">
-             <h3 class="font-bold text-lg">매출 조회</h3>
-             <button id="btnOpenSalesEntry" class="btn-premium btn-primary">
-               <i data-lucide="plus" class="w-4 h-4"></i> 신규 매출 입력
-             </button>
+            <h3 class="font-bold text-lg">매출 조회</h3>
+            <button id="btnOpenSalesEntry" class="btn-premium btn-primary">
+              <i data-lucide="plus" class="w-4 h-4"></i> 신규 매출 입력
+            </button>
           </div>
           <form id="formSalesSearch" class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 p-4 bg-slate-100 rounded-xl">
             <input id="sCustomer" placeholder="거래처명" class="text-sm">
@@ -151,7 +153,15 @@
             <table class="text-sm">
               <thead>
                 <tr>
-                  <th>번호</th><th>날짜</th><th>거래처</th><th>상품</th><th>수량</th><th>단가</th><th>합계</th><th>담당</th><th>조작</th>
+                  <th>번호</th>
+                  <th>날짜</th>
+                  <th>거래처</th>
+                  <th>상품</th>
+                  <th>수량</th>
+                  <th>단가</th>
+                  <th>합계</th>
+                  <th>담당</th>
+                  <th>조작</th>
                 </tr>
               </thead>
               <tbody id="salesTbody"></tbody>
@@ -162,41 +172,49 @@
 
       <!-- Products, Clients, etc. follow same pattern... -->
       <section id="tab-products" class="tab-pane hidden space-y-6">
-         <div class="card">
-            <div class="flex justify-between items-center mb-4">
-               <h3 class="font-bold text-lg">상품 리스트</h3>
-               <button id="btnOpenProductEntry" class="btn-premium btn-primary">상품 등록</button>
-            </div>
-            <div class="table-container">
-              <table>
-                <thead>
-                  <tr>
-                    <th>코드</th><th>제품명</th><th>제조사</th><th>원가</th><th>조작</th>
-                  </tr>
-                </thead>
-                <tbody id="productListBody"></tbody>
-              </table>
-            </div>
-         </div>
+        <div class="card">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="font-bold text-lg">상품 리스트</h3>
+            <button id="btnOpenProductEntry" class="btn-premium btn-primary">상품 등록</button>
+          </div>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>코드</th>
+                  <th>제품명</th>
+                  <th>제조사</th>
+                  <th>원가</th>
+                  <th>조작</th>
+                </tr>
+              </thead>
+              <tbody id="productListBody"></tbody>
+            </table>
+          </div>
+        </div>
       </section>
 
       <section id="tab-clients" class="tab-pane hidden space-y-6">
-         <div class="card">
-            <div class="flex justify-between items-center mb-4">
-               <h3 class="font-bold text-lg">거래처 관리</h3>
-               <button id="btnOpenClientEntry" class="btn-premium btn-primary">거래처 추가</button>
-            </div>
-            <div class="table-container">
-               <table>
-                  <thead>
-                    <tr>
-                      <th>업체명</th><th>대표</th><th>전화</th><th>구분</th><th>조작</th>
-                    </tr>
-                  </thead>
-                  <tbody id="clientPickerBody"></tbody>
-               </table>
-            </div>
-         </div>
+        <div class="card">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="font-bold text-lg">거래처 관리</h3>
+            <button id="btnOpenClientEntry" class="btn-premium btn-primary">거래처 추가</button>
+          </div>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>업체명</th>
+                  <th>대표</th>
+                  <th>전화</th>
+                  <th>구분</th>
+                  <th>조작</th>
+                </tr>
+              </thead>
+              <tbody id="clientPickerBody"></tbody>
+            </table>
+          </div>
+        </div>
       </section>
 
     </div>
@@ -206,13 +224,14 @@
   <div id="authPanel">
     <div class="auth-card">
       <div class="mb-8 flex flex-col items-center">
-        <div class="w-16 h-16 bg-emerald-500 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-emerald-500/30">
+        <div
+          class="w-16 h-16 bg-emerald-500 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-emerald-500/30">
           <i data-lucide="lock" class="w-8 h-8 text-white"></i>
         </div>
         <h2>ERP LOGIN</h2>
         <p>YNK Global ERP 시스템에 오신 것을 환영합니다.</p>
       </div>
-      
+
       <form id="loginForm">
         <div class="auth-input-group">
           <label>이메일 주소</label>
@@ -237,18 +256,21 @@
   <script type="module">
     import { showApp, switchTab } from './js/ui.js';
     import { login } from './js/auth.js';
-    import { loadDashboard } from './js/app.js';
+    import { loadDashboard } from './js/dashboard.js';
     import { loadSales } from './js/sales.js';
     import { loadProducts } from './js/products.js';
     import { loadClients } from './js/clients.js';
-    
+
+    // Set a global for PROXY to ensure all modules use the same one
+    window.PROXY = window.location.origin + '/api/notion';
+
     // Tab switching
     document.querySelectorAll('.nav-item').forEach(item => {
-      item.onclick = () => {
+      item.onclick = async () => {
         const tab = item.dataset.tab;
         switchTab(tab);
         updateHeader(tab);
-        refreshTabData(tab);
+        await refreshTabData(tab);
       };
     });
 
@@ -265,35 +287,56 @@
       const info = titles[tab] || titles.dashboard;
       document.getElementById('currentPageTitle').textContent = info.t;
       document.getElementById('currentPageDesc').textContent = info.d;
+      lucide.createIcons();
     }
 
     async function refreshTabData(tab) {
-      if(tab === 'sales') await loadSales();
-      else if(tab === 'products') await loadProducts();
-      else if(tab === 'clients') await loadClients();
-      else if(tab === 'dashboard') await loadDashboard();
+      try {
+        if (tab === 'sales') await loadSales();
+        else if (tab === 'products') await loadProducts();
+        else if (tab === 'clients') await loadClients();
+        else if (tab === 'dashboard') await loadDashboard();
+      } catch (e) {
+        console.error("Refresh data error:", e);
+      }
     }
 
     // Login logic
     document.getElementById('loginForm').onsubmit = async (e) => {
       e.preventDefault();
-      const ok = await login(loginEmail.value, loginPassword.value);
-      if(ok) {
-        showApp(loginEmail.value);
-        loadDashboard();
+      const email = document.getElementById('loginEmail').value;
+      const pass = document.getElementById('loginPassword').value;
+      const msg = document.getElementById('loginMsg');
+
+      try {
+        const ok = await login(email, pass);
+        if (ok) {
+          localStorage.setItem('ynk_erp_user', email);
+          showApp(email);
+          await loadDashboard();
+        } else {
+          msg.classList.remove('hidden');
+          setTimeout(() => msg.classList.add('hidden'), 2000);
+        }
+      } catch (err) {
+        alert("로그인 중 오류가 발생했습니다: " + err.message);
       }
     };
 
     // Logout
-    document.getElementById('btnLogout').onclick = () => window.location.reload();
+    document.getElementById('btnLogout').onclick = () => {
+      localStorage.removeItem('ynk_erp_user');
+      window.location.reload();
+    };
 
     // Initial check (Simplified session check)
     const saved = localStorage.getItem('ynk_erp_user');
-    if(saved) {
+    if (saved) {
       showApp(saved);
       loadDashboard();
     }
   </script>
 
 </body>
+
 </html>

@@ -2,7 +2,7 @@
  * YNK ERP2 · Core Module (Notion API Proxy + Helpers)
  ************************************************************/
 
-export const PROXY = '/api/notion';
+export const PROXY = window.PROXY || '/api/notion';
 
 export const DB_USERS = '26d1f4ff9a0e800cba14e56be989568b';
 export const DB_SALES = '26e1f4ff9a0e801f807fde6aa13b12a0';

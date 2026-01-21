@@ -3,7 +3,7 @@
 /////////////////////////////
 // Notion Proxy & DB IDs  //
 /////////////////////////////
-const PROXY = '/api/notion';
+const PROXY = window.PROXY || '/api/notion';
 const DB_USERS = '26d1f4ff9a0e800cba14e56be989568b';
 const DB_SALES = '26e1f4ff9a0e801f807fde6aa13b12a0';
 const DB_PRODUCTS = '2a01f4ff9a0e8016aa33c239d64eb482';
