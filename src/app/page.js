@@ -24,15 +24,10 @@ export default function Home() {
   const [showMarketModal, setShowMarketModal] = useState(false);
   const [showTrackingModal, setShowTrackingModal] = useState(false);
   const [showLibraryModal, setShowLibraryModal] = useState(false);
-
-  // Tools expansion state
   const [expandedTool, setExpandedTool] = useState(null);
 
-  // News & Notices State
   const [notices, setNotices] = useState([]);
   const [news, setNews] = useState([]);
-
-  // Settings State
   const [darkMode, setDarkMode] = useState(false);
   const [notifications, setNotifications] = useState(true);
 
@@ -58,7 +53,6 @@ export default function Home() {
   });
   const [catalogData, setCatalogData] = useState([]);
 
-  // CBM Calculator State
   const [products, setProducts] = useState([
     { id: 1, name: 'Product 1', length: '', width: '', height: '', qty: '' }
   ]);
@@ -70,13 +64,9 @@ export default function Home() {
     { id: 'it4', name: '선광신컨테이너터미널', status: 'Checking...', color: '#f1f5f9', textColor: '#64748b' }
   ]);
   const [portLastUpdated, setPortLastUpdated] = useState('');
-  const [incheonPort, setIncheonPort] = useState([]);
 
-  // World Clock & Auto Refresh
   useEffect(() => {
     setIsMounted(true);
-
-    // Initial fetch
     fetchData();
 
     const worldTimer = setInterval(() => {
@@ -88,7 +78,6 @@ export default function Home() {
       });
     }, 1000);
 
-    // Auto refresh all data every 1 minute
     const refreshTimer = setInterval(() => {
       fetchData();
     }, 60000);
@@ -100,7 +89,6 @@ export default function Home() {
   }, []);
 
   const fetchData = async () => {
-    // 1. Fetch Real Market Data
     try {
       const mRes = await fetch('/api/market', { cache: 'no-store' });
       const mData = await mRes.json();
@@ -110,7 +98,6 @@ export default function Home() {
           if (mData.rates?.usd) newTrends.usd = mData.rates.usd >= prev.usd ? 'up' : 'down';
           if (mData.rates?.cny) newTrends.cny = mData.rates.cny >= prev.cny ? 'up' : 'down';
 
-          // Metal trends based on prevClose from API
           if (mData.metals) {
             Object.entries(mData.metals).forEach(([key, val]) => {
               if (val && val.last && val.prevClose) {
@@ -132,7 +119,6 @@ export default function Home() {
       console.error("Market data fetch failed", err);
     }
 
-    // 3. Real Incheon Port Status Fetch
     try {
       const res = await fetch('/api/incheon/congestion');
       const json = await res.json();
@@ -180,7 +166,6 @@ export default function Home() {
       console.error("Port status fetch failed", err);
     }
 
-    // 2. Fetch Catalog Products form Supabase
     try {
       const products = await getProducts();
       setCatalogData(products);
@@ -214,11 +199,11 @@ export default function Home() {
       if (data.success) {
         setTrackResult(data);
       } else {
-        setTrackResult({ error: data.error || 'No shipment found in UNIPASS for this B/L number.' });
+        setTrackResult({ error: data.error || 'No shipment found' });
       }
     } catch (err) {
       console.error(err);
-      setTrackResult({ error: 'Satellite link failed. Please retry.' });
+      setTrackResult({ error: 'Tracking failed' });
     } finally {
       setIsTracking(false);
     }
@@ -247,33 +232,31 @@ export default function Home() {
   if (!isMounted) return null;
 
   return (
-    <div className={styles.layout} style={{ background: '#fafafa' }}>
+    <div className={styles.layout} style={{ background: '#f5f5f7' }}>
       {/* Sidebar */}
-      <nav className={styles.sidebar} style={{ background: 'white', borderRight: '1px solid #e5e7eb' }}>
-        <div className={styles.logoIcon} style={{ background: '#1a1a1a', color: 'white' }}>Y</div>
-        <div className={`${styles.navItem} ${activeTab === 'Overview' && styles.navItemActive}`} onClick={() => setActiveTab('Overview')} title="Overview">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+      <nav className={styles.sidebar} style={{ background: '#1d1d1f', borderRight: 'none' }}>
+        <div className={styles.logoIcon} style={{ background: 'white', color: '#1d1d1f', fontWeight: 700 }}>Y</div>
+        <div className={`${styles.navItem} ${activeTab === 'Overview' && styles.navItemActive}`} onClick={() => setActiveTab('Overview')} title="Overview" style={{ color: activeTab === 'Overview' ? 'white' : '#86868b' }}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
         </div>
-        <div className={`${styles.navItem} ${activeTab === 'Analytics' && styles.navItemActive}`} onClick={() => setActiveTab('Analytics')} title="Analytics">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+        <div className={`${styles.navItem} ${activeTab === 'Analytics' && styles.navItemActive}`} onClick={() => setActiveTab('Analytics')} title="Analytics" style={{ color: activeTab === 'Analytics' ? 'white' : '#86868b' }}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
         </div>
-        <div className={`${styles.navItem} ${activeTab === 'Library' && styles.navItemActive}`} onClick={() => setShowLibraryModal(true)} title="Library">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+        <div className={styles.navItem} onClick={() => setShowLibraryModal(true)} title="Library" style={{ color: '#86868b' }}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
         </div>
-        <div className={styles.navItem} onClick={() => setShowMarketModal(true)} title="Market Charts">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+        <div className={styles.navItem} onClick={() => setShowMarketModal(true)} title="Charts" style={{ color: '#86868b' }}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
         </div>
-        <div className={styles.navItem} onClick={() => setShowTrackingModal(true)} title="Global Tracking">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+        <div className={styles.navItem} onClick={() => setShowTrackingModal(true)} title="Tracking" style={{ color: '#86868b' }}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
         </div>
-
-        <a href="/erp" target="_blank" rel="noopener noreferrer" className={styles.navItem} title="Go to ERP" style={{ textDecoration: 'none', color: 'inherit' }}>
-          <div style={{ fontWeight: 700, fontSize: '0.7rem', border: '2px solid currentColor', borderRadius: '4px', padding: '2px 4px' }}>ERP</div>
+        <a href="/erp" target="_blank" rel="noopener noreferrer" className={styles.navItem} title="ERP" style={{ textDecoration: 'none', color: '#86868b' }}>
+          <div style={{ fontWeight: 700, fontSize: '0.65rem', border: '2px solid currentColor', borderRadius: '4px', padding: '2px 4px' }}>ERP</div>
         </a>
-
         <div className={styles.sidebarBottom}>
-          <div className={styles.navItem} onClick={() => setShowSettings(true)} title="Settings">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+          <div className={styles.navItem} onClick={() => setShowSettings(true)} title="Settings" style={{ color: '#86868b' }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
           </div>
           <a href="/admin" className={styles.userAvatar} style={{ display: 'block' }}>
             <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="User" style={{ width: '100%', height: '100%', borderRadius: '50%' }} />
@@ -281,305 +264,230 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* Main Content */}
-      <main className={styles.contentWrapper} style={{ background: '#fafafa' }}>
-        <header style={{ padding: '20px 32px', background: 'white', borderBottom: '1px solid #e5e7eb' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
-              <h1 style={{ fontSize: '1.75rem', fontWeight: 600, margin: 0, color: '#1a1a1a', letterSpacing: '-0.02em' }}>YNK Global Intelligence</h1>
-              <div style={{ display: 'flex', gap: '24px', marginTop: '8px' }}>
-                <div style={{ fontSize: '0.85rem', color: '#6b7280' }}>
-                  Seoul <span style={{ fontWeight: 600, color: '#1a1a1a', marginLeft: '8px' }}>{times.korea}</span>
-                </div>
-                <div style={{ fontSize: '0.85rem', color: '#6b7280' }}>
-                  Shanghai <span style={{ fontWeight: 600, color: '#1a1a1a', marginLeft: '8px' }}>{times.china}</span>
-                </div>
-                <div style={{ fontSize: '0.85rem', color: '#6b7280' }}>
-                  Ho Chi Minh <span style={{ fontWeight: 600, color: '#1a1a1a', marginLeft: '8px' }}>{times.vietnam}</span>
-                </div>
-              </div>
-            </div>
+      {/* Main Dashboard - Single View */}
+      <main style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#f5f5f7', overflow: 'hidden' }}>
+
+        {/* Top Bar */}
+        <div style={{ padding: '16px 24px', background: 'white', borderBottom: '1px solid #d2d2d7', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <h1 style={{ fontSize: '1.5rem', fontWeight: 600, margin: 0, color: '#1d1d1f', letterSpacing: '-0.02em' }}>YNK Intelligence</h1>
           </div>
-        </header>
+          <div style={{ display: 'flex', gap: '32px', fontSize: '0.8rem', color: '#86868b' }}>
+            <div>🇰🇷 <span style={{ fontWeight: 600, color: '#1d1d1f' }}>{times.korea}</span></div>
+            <div>🇨🇳 <span style={{ fontWeight: 600, color: '#1d1d1f' }}>{times.china}</span></div>
+            <div>🇻🇳 <span style={{ fontWeight: 600, color: '#1d1d1f' }}>{times.vietnam}</span></div>
+          </div>
+        </div>
 
-        <div style={{ flex: 1, overflowY: 'auto', padding: '24px 32px' }}>
+        {/* Single Page Dashboard */}
+        <div style={{ flex: 1, padding: '20px', display: 'grid', gridTemplateRows: 'auto 1fr', gap: '16px', overflow: 'hidden' }}>
 
-          {/* Global Market Trends - Hero */}
-          <div style={{ background: 'white', borderRadius: '16px', padding: '32px', marginBottom: '24px', border: '1px solid #e5e7eb', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-              <div>
-                <h2 style={{ fontSize: '1.5rem', fontWeight: 600, margin: 0, color: '#1a1a1a', letterSpacing: '-0.01em' }}>Global Market Trends</h2>
-                <p style={{ fontSize: '0.875rem', color: '#6b7280', margin: '4px 0 0' }}>Real-time Exchange Rates & Raw Material Prices</p>
+          {/* Row 1: Market Overview - 7 Cards in One Row */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '12px' }}>
+            {/* USD */}
+            <div style={{ background: 'white', borderRadius: '12px', padding: '16px', border: '1px solid #d2d2d7' }}>
+              <div style={{ fontSize: '0.7rem', color: '#86868b', marginBottom: '4px', fontWeight: 500 }}>🇺🇸 USD/KRW</div>
+              <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#1d1d1f' }}>{marketData.usd.toFixed(2)}</div>
+              <div style={{ fontSize: '0.7rem', marginTop: '4px', color: marketData.trends.usd === 'up' ? '#34c759' : '#ff3b30', fontWeight: 600 }}>
+                {marketData.trends.usd === 'up' ? '↑' : '↓'} 0.4%
               </div>
-              <button
-                onClick={() => setShowMarketModal(true)}
-                style={{ fontSize: '0.875rem', color: '#0071e3', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}>
-                View All →
-              </button>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '16px', marginBottom: '24px' }}>
-              {/* USD/KRW */}
-              <div style={{ padding: '20px', background: '#f9fafb', borderRadius: '12px', border: '1px solid #f3f4f6' }}>
-                <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '8px', fontWeight: 500 }}>USD/KRW</div>
-                <div style={{ fontSize: '1.5rem', fontWeight: 600, color: '#1a1a1a' }}>{marketData.usd.toFixed(2)}</div>
-                <div style={{ fontSize: '0.75rem', marginTop: '8px', color: marketData.trends.usd === 'up' ? '#16a34a' : '#dc2626', fontWeight: 500 }}>
-                  {marketData.trends.usd === 'up' ? '↑' : '↓'} 0.4%
-                </div>
+            {/* CNY */}
+            <div style={{ background: 'white', borderRadius: '12px', padding: '16px', border: '1px solid #d2d2d7' }}>
+              <div style={{ fontSize: '0.7rem', color: '#86868b', marginBottom: '4px', fontWeight: 500 }}>🇨🇳 CNY/KRW</div>
+              <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#1d1d1f' }}>{marketData.cny.toFixed(2)}</div>
+              <div style={{ fontSize: '0.7rem', marginTop: '4px', color: marketData.trends.cny === 'up' ? '#34c759' : '#ff3b30', fontWeight: 600 }}>
+                {marketData.trends.cny === 'up' ? '↑' : '↓'} 0.1%
               </div>
-
-              {/* CNY/KRW */}
-              <div style={{ padding: '20px', background: '#f9fafb', borderRadius: '12px', border: '1px solid #f3f4f6' }}>
-                <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '8px', fontWeight: 500 }}>CNY/KRW</div>
-                <div style={{ fontSize: '1.5rem', fontWeight: 600, color: '#1a1a1a' }}>{marketData.cny.toFixed(2)}</div>
-                <div style={{ fontSize: '0.75rem', marginTop: '8px', color: marketData.trends.cny === 'up' ? '#16a34a' : '#dc2626', fontWeight: 500 }}>
-                  {marketData.trends.cny === 'up' ? '↑' : '↓'} 0.1%
-                </div>
-              </div>
-
-              {/* Metals */}
-              {marketData.metals && Object.entries(marketData.metals).map(([key, val]) => (
-                <div key={key} style={{ padding: '20px', background: '#f9fafb', borderRadius: '12px', border: '1px solid #f3f4f6' }}>
-                  <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '8px', textTransform: 'capitalize', fontWeight: 500 }}>{key}</div>
-                  <div style={{ fontSize: '1.5rem', fontWeight: 600, color: '#1a1a1a' }}>${(typeof val === 'object' ? val?.last : val)?.toLocaleString() || '---'}</div>
-                  <div style={{ fontSize: '0.75rem', marginTop: '8px', color: marketData.trends[key] === 'up' ? '#16a34a' : '#dc2626', fontWeight: 500 }}>
-                    {marketData.trends[key] === 'up' ? '↑' : '↓'}
-                  </div>
-                </div>
-              ))}
             </div>
 
-            {/* Chart */}
-            <div style={{ padding: '24px', background: '#f9fafb', borderRadius: '12px' }}>
-              <MarketChart
-                marketData={marketData}
-                historyData={historyData}
-                selectedMetal={selectedMetal}
-                setSelectedMetal={setSelectedMetal}
-                selectedCurrency={selectedCurrency}
-                setSelectedCurrency={setSelectedCurrency}
-              />
-            </div>
+            {/* Metals - 5 cards */}
+            {marketData.metals && Object.entries(marketData.metals).map(([key, val]) => (
+              <div key={key} style={{ background: 'white', borderRadius: '12px', padding: '16px', border: '1px solid #d2d2d7' }}>
+                <div style={{ fontSize: '0.7rem', color: '#86868b', marginBottom: '4px', textTransform: 'uppercase', fontWeight: 500 }}>{key}</div>
+                <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#1d1d1f' }}>${(typeof val === 'object' ? val?.last : val)?.toLocaleString() || '—'}</div>
+                <div style={{ fontSize: '0.7rem', marginTop: '4px', color: marketData.trends[key] === 'up' ? '#34c759' : '#ff3b30', fontWeight: 600 }}>
+                  {marketData.trends[key] === 'up' ? '↑' : '↓'}
+                </div>
+              </div>
+            ))}
           </div>
 
-          {/* 2 Column Grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+          {/* Row 2: Main Grid - 3 Columns */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', overflow: 'hidden' }}>
 
-            {/* Left Column */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            {/* Column 1: Notice + News + Products */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', height: '100%' }}>
 
-              {/* Notices */}
-              <div style={{ background: 'white', borderRadius: '16px', padding: '24px', border: '1px solid #e5e7eb', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                  <h3 style={{ fontSize: '1.125rem', fontWeight: 600, margin: 0, color: '#1a1a1a' }}>Notice Board</h3>
-                  <span style={{ fontSize: '0.75rem', color: '#9ca3af' }}>Latest 3</span>
+              {/* Notice */}
+              <div style={{ background: 'white', borderRadius: '16px', padding: '20px', border: '1px solid #d2d2d7', flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                  <h3 style={{ fontSize: '1rem', fontWeight: 600, margin: 0, color: '#1d1d1f' }}>📢 Notices</h3>
+                  <span style={{ fontSize: '0.7rem', color: '#86868b' }}>3</span>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  {notices.length === 0 ? (
-                    <div style={{ color: '#9ca3af', fontSize: '0.875rem', textAlign: 'center', padding: '20px' }}>No active notices</div>
-                  ) : (
-                    notices.slice(0, 3).map((notice, i) => (
-                      <div key={i} style={{ paddingBottom: '12px', borderBottom: i === 2 ? 'none' : '1px solid #f3f4f6' }}>
-                        <div style={{ fontSize: '0.875rem', lineHeight: '1.5', color: '#374151' }}>{notice.content}</div>
-                        <div style={{ fontSize: '0.75rem', color: '#9ca3af', marginTop: '4px' }}>{new Date(notice.created_at).toLocaleDateString('ko-KR')}</div>
-                      </div>
-                    ))
-                  )}
+                <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {notices.slice(0, 3).map((n, i) => (
+                    <div key={i} style={{ paddingBottom: '8px', borderBottom: i === 2 ? 'none' : '1px solid #f5f5f7' }}>
+                      <div style={{ fontSize: '0.8rem', lineHeight: '1.4', color: '#1d1d1f' }}>{n.content}</div>
+                      <div style={{ fontSize: '0.65rem', color: '#86868b', marginTop: '4px' }}>{new Date(n.created_at).toLocaleDateString('ko-KR')}</div>
+                    </div>
+                  ))}
                 </div>
               </div>
 
               {/* News */}
-              <div style={{ background: 'white', borderRadius: '16px', padding: '24px', border: '1px solid #e5e7eb', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                  <h3 style={{ fontSize: '1.125rem', fontWeight: 600, margin: 0, color: '#1a1a1a' }}>Industry News</h3>
-                  <span style={{ fontSize: '0.75rem', color: '#9ca3af' }}>ETNews</span>
+              <div style={{ background: 'white', borderRadius: '16px', padding: '20px', border: '1px solid #d2d2d7', flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                  <h3 style={{ fontSize: '1rem', fontWeight: 600, margin: 0, color: '#1d1d1f' }}>📰 ETNews</h3>
+                  <span style={{ fontSize: '0.7rem', color: '#86868b' }}>3</span>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  {news.length === 0 ? (
-                    <div style={{ color: '#9ca3af', fontSize: '0.875rem', textAlign: 'center', padding: '20px' }}>Loading...</div>
-                  ) : (
-                    news.slice(0, 3).map((item, i) => (
-                      <a key={i} href={item.link} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', color: 'inherit', paddingBottom: '12px', borderBottom: i === 2 ? 'none' : '1px solid #f3f4f6', display: 'block' }}>
-                        <div style={{ fontSize: '0.875rem', fontWeight: 500, lineHeight: '1.5', color: '#374151', marginBottom: '4px' }}>{item.title}</div>
-                        <div style={{ fontSize: '0.75rem', color: '#9ca3af' }}>{item.date && item.date.substring(5)}</div>
-                      </a>
-                    ))
-                  )}
+                <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {news.slice(0, 3).map((item, i) => (
+                    <a key={i} href={item.link} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', color: 'inherit', paddingBottom: '8px', borderBottom: i === 2 ? 'none' : '1px solid #f5f5f7', display: 'block' }}>
+                      <div style={{ fontSize: '0.8rem', fontWeight: 500, lineHeight: '1.4', color: '#1d1d1f', marginBottom: '2px' }}>{item.title}</div>
+                      <div style={{ fontSize: '0.65rem', color: '#86868b' }}>{item.date?.substring(5)}</div>
+                    </a>
+                  ))}
                 </div>
               </div>
+            </div>
 
-              {/* Incheon Port */}
-              <div style={{ background: 'white', borderRadius: '16px', padding: '24px', border: '1px solid #e5e7eb', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                  <h3 style={{ fontSize: '1.125rem', fontWeight: 600, margin: 0, color: '#1a1a1a' }}>Incheon Port Status</h3>
-                  {portLastUpdated && <span style={{ fontSize: '0.75rem', color: '#9ca3af' }}>{portLastUpdated}</span>}
+            {/* Column 2: Port + Products */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', height: '100%' }}>
+
+              {/* Port */}
+              <div style={{ background: 'white', borderRadius: '16px', padding: '20px', border: '1px solid #d2d2d7', flex: 1 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                  <h3 style={{ fontSize: '1rem', fontWeight: 600, margin: 0, color: '#1d1d1f' }}>🚢 Incheon Port</h3>
+                  {portLastUpdated && <span style={{ fontSize: '0.7rem', color: '#86868b' }}>{portLastUpdated}</span>}
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   {hubs.map(hub => (
-                    <div key={hub.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', background: '#f9fafb', borderRadius: '8px' }}>
-                      <span style={{ fontSize: '0.875rem', fontWeight: 500, color: '#374151' }}>{hub.name}</span>
-                      <span style={{ fontSize: '0.75rem', fontWeight: 600, padding: '4px 12px', borderRadius: '6px', background: hub.color, color: hub.textColor }}>{hub.status}</span>
+                    <div key={hub.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 12px', background: '#f5f5f7', borderRadius: '8px' }}>
+                      <span style={{ fontSize: '0.75rem', fontWeight: 500, color: '#1d1d1f' }}>{hub.name}</span>
+                      <span style={{ fontSize: '0.65rem', fontWeight: 700, padding: '3px 10px', borderRadius: '4px', background: hub.color, color: hub.textColor }}>{hub.status}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Products Grid */}
+              <div style={{ background: 'white', borderRadius: '16px', padding: '20px', border: '1px solid #d2d2d7', flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                  <h3 style={{ fontSize: '1rem', fontWeight: 600, margin: 0, color: '#1d1d1f' }}>📦 Products</h3>
+                  <span style={{ fontSize: '0.7rem', color: '#86868b' }}>{catalogData.length}</span>
+                </div>
+                <div style={{ flex: 1, overflowY: 'auto', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
+                  {catalogData.slice(0, 6).map(p => (
+                    <div key={p.id} onClick={() => setSelectedProduct(p)} style={{ cursor: 'pointer', border: '1px solid #e5e5ea', borderRadius: '8px', overflow: 'hidden' }}>
+                      <div style={{ width: '100%', height: '80px', background: '#f5f5f7' }}>
+                        <img src={p.image} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => e.target.src = 'https://picsum.photos/400/300?blur=5'} />
+                      </div>
+                      <div style={{ padding: '8px' }}>
+                        <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#1d1d1f' }}>{p.name}</div>
+                        <div style={{ fontSize: '0.65rem', color: '#86868b' }}>{p.description}</div>
+                      </div>
                     </div>
                   ))}
                 </div>
               </div>
             </div>
 
-            {/* Right Column */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            {/* Column 3: Tools */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', height: '100%' }}>
 
-              {/* Products */}
-              <div style={{ background: 'white', borderRadius: '16px', padding: '24px', border: '1px solid #e5e7eb', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                  <h3 style={{ fontSize: '1.125rem', fontWeight: 600, margin: 0, color: '#1a1a1a' }}>Product Portfolio</h3>
-                  <span style={{ fontSize: '0.75rem', color: '#9ca3af' }}>{catalogData.length} items</span>
+              {/* CBM Tool */}
+              <div style={{ background: 'white', borderRadius: '16px', padding: '20px', border: '1px solid #d2d2d7', flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                <div onClick={() => setExpandedTool(expandedTool === 'cbm' ? null : 'cbm')} style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                  <h3 style={{ fontSize: '1rem', fontWeight: 600, margin: 0, color: '#1d1d1f' }}>📐 CBM Calculator</h3>
+                  <span style={{ fontSize: '1.2rem', color: '#86868b' }}>{expandedTool === 'cbm' ? '−' : '+'}</span>
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px', maxHeight: '400px', overflowY: 'auto' }}>
-                  {catalogData.length === 0 ? (
-                    <div style={{ gridColumn: 'span 2', textAlign: 'center', padding: '40px', color: '#d1d5db' }}>No products</div>
-                  ) : (
-                    catalogData.map(product => (
-                      <div key={product.id} onClick={() => setSelectedProduct(product)} style={{ cursor: 'pointer', border: '1px solid #f3f4f6', borderRadius: '12px', overflow: 'hidden', transition: 'border-color 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.borderColor = '#d1d5db'} onMouseLeave={(e) => e.currentTarget.style.borderColor = '#f3f4f6'}>
-                        <div style={{ width: '100%', height: '120px', background: '#f9fafb' }}>
-                          <img src={product.image} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => e.target.src = 'https://picsum.photos/400/300?blur=5'} />
-                        </div>
-                        <div style={{ padding: '12px' }}>
-                          <div style={{ fontSize: '0.875rem', fontWeight: 600, color: '#1a1a1a', marginBottom: '2px' }}>{product.name}</div>
-                          <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>{product.description}</div>
+                {expandedTool === 'cbm' && (
+                  <div style={{ flex: 1, overflowY: 'auto' }}>
+                    {products.map(p => (
+                      <div key={p.id} style={{ marginBottom: '8px', paddingBottom: '8px', borderBottom: '1px solid #f5f5f7' }}>
+                        <div style={{ fontSize: '0.7rem', fontWeight: 500, marginBottom: '4px', color: '#86868b' }}>{p.name}</div>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '4px' }}>
+                          <input type="number" placeholder="L" style={{ padding: '6px', border: '1px solid #d2d2d7', borderRadius: '6px', fontSize: '0.75rem' }} value={p.length} onChange={(e) => handleInputChange(p.id, 'length', e.target.value)} />
+                          <input type="number" placeholder="W" style={{ padding: '6px', border: '1px solid #d2d2d7', borderRadius: '6px', fontSize: '0.75rem' }} value={p.width} onChange={(e) => handleInputChange(p.id, 'width', e.target.value)} />
+                          <input type="number" placeholder="H" style={{ padding: '6px', border: '1px solid #d2d2d7', borderRadius: '6px', fontSize: '0.75rem' }} value={p.height} onChange={(e) => handleInputChange(p.id, 'height', e.target.value)} />
+                          <input type="number" placeholder="Q" style={{ padding: '6px', border: '1px solid #d2d2d7', borderRadius: '6px', fontSize: '0.75rem' }} value={p.qty} onChange={(e) => handleInputChange(p.id, 'qty', e.target.value)} />
                         </div>
                       </div>
-                    ))
-                  )}
-                </div>
+                    ))}
+                    <button onClick={addProduct} style={{ width: '100%', padding: '8px', background: '#f5f5f7', border: 'none', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 500, color: '#86868b', cursor: 'pointer', marginBottom: '8px' }}>Add</button>
+                    <div style={{ padding: '12px', background: '#f5f5f7', borderRadius: '8px', textAlign: 'center' }}>
+                      <div style={{ fontSize: '0.7rem', color: '#86868b' }}>Total</div>
+                      <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1d1d1f' }}>{calculateCBM()} m³</div>
+                      <div style={{ fontSize: '0.65rem', color: '#86868b', marginTop: '2px' }}>20ft: {((calculateCBM() / 28) * 100).toFixed(1)}%</div>
+                    </div>
+                  </div>
+                )}
               </div>
 
-              {/* Tools */}
-              <div style={{ background: 'white', borderRadius: '16px', padding: '24px', border: '1px solid #e5e7eb', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
-                <h3 style={{ fontSize: '1.125rem', fontWeight: 600, margin: '0 0 16px', color: '#1a1a1a' }}>Tools</h3>
-
-                {/* CBM Calculator */}
-                <div style={{ marginBottom: '12px', border: '1px solid #e5e7eb', borderRadius: '12px', overflow: 'hidden' }}>
-                  <div
-                    onClick={() => setExpandedTool(expandedTool === 'cbm' ? null : 'cbm')}
-                    style={{ padding: '16px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fafafa', fontWeight: 500, fontSize: '0.875rem' }}>
-                    <span>CBM Calculator</span>
-                    <span style={{ color: '#9ca3af' }}>{expandedTool === 'cbm' ? '−' : '+'}</span>
-                  </div>
-                  {expandedTool === 'cbm' && (
-                    <div style={{ padding: '16px', borderTop: '1px solid #e5e7eb', background: 'white' }}>
-                      <div style={{ maxHeight: '200px', overflowY: 'auto', marginBottom: '12px' }}>
-                        {products.map(p => (
-                          <div key={p.id} style={{ marginBottom: '12px', paddingBottom: '12px', borderBottom: '1px solid #f3f4f6' }}>
-                            <div style={{ fontSize: '0.75rem', fontWeight: 500, marginBottom: '6px', color: '#6b7280' }}>{p.name}</div>
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
-                              <input type="number" placeholder="L" style={{ padding: '8px', border: '1px solid #e5e7eb', borderRadius: '8px', fontSize: '0.875rem' }} value={p.length} onChange={(e) => handleInputChange(p.id, 'length', e.target.value)} />
-                              <input type="number" placeholder="W" style={{ padding: '8px', border: '1px solid #e5e7eb', borderRadius: '8px', fontSize: '0.875rem' }} value={p.width} onChange={(e) => handleInputChange(p.id, 'width', e.target.value)} />
-                              <input type="number" placeholder="H" style={{ padding: '8px', border: '1px solid #e5e7eb', borderRadius: '8px', fontSize: '0.875rem' }} value={p.height} onChange={(e) => handleInputChange(p.id, 'height', e.target.value)} />
-                              <input type="number" placeholder="Qty" style={{ padding: '8px', border: '1px solid #e5e7eb', borderRadius: '8px', fontSize: '0.875rem' }} value={p.qty} onChange={(e) => handleInputChange(p.id, 'qty', e.target.value)} />
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                      <button onClick={addProduct} style={{ width: '100%', padding: '10px', background: '#fafafa', border: '1px solid #e5e7eb', borderRadius: '8px', color: '#6b7280', cursor: 'pointer', marginBottom: '12px', fontSize: '0.875rem', fontWeight: 500 }}>Add Item</button>
-                      <div style={{ padding: '16px', background: '#f9fafb', borderRadius: '12px', textAlign: 'center' }}>
-                        <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '4px' }}>Total Volume</div>
-                        <div style={{ fontSize: '1.75rem', fontWeight: 600, color: '#1a1a1a' }}>{calculateCBM()} m³</div>
-                        <div style={{ fontSize: '0.75rem', color: '#9ca3af', marginTop: '4px' }}>
-                          20ft Container: {((calculateCBM() / 28) * 100).toFixed(1)}%
-                        </div>
-                      </div>
-                    </div>
-                  )}
+              {/* Tracking Tool */}
+              <div style={{ background: 'white', borderRadius: '16px', padding: '20px', border: '1px solid #d2d2d7', flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                <div onClick={() => setExpandedTool(expandedTool === 'track' ? null : 'track')} style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                  <h3 style={{ fontSize: '1rem', fontWeight: 600, margin: 0, color: '#1d1d1f' }}>🔍 Tracking</h3>
+                  <span style={{ fontSize: '1.2rem', color: '#86868b' }}>{expandedTool === 'track' ? '−' : '+'}</span>
                 </div>
-
-                {/* Quick Tracking */}
-                <div style={{ border: '1px solid #e5e7eb', borderRadius: '12px', overflow: 'hidden' }}>
-                  <div
-                    onClick={() => setExpandedTool(expandedTool === 'tracking' ? null : 'tracking')}
-                    style={{ padding: '16px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fafafa', fontWeight: 500, fontSize: '0.875rem' }}>
-                    <span>Shipment Tracking</span>
-                    <span style={{ color: '#9ca3af' }}>{expandedTool === 'tracking' ? '−' : '+'}</span>
-                  </div>
-                  {expandedTool === 'tracking' && (
-                    <div style={{ padding: '16px', borderTop: '1px solid #e5e7eb', background: 'white' }}>
-                      <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
-                        <input
-                          type="text"
-                          placeholder="B/L or Container Number"
-                          value={trackingNo}
-                          onChange={(e) => setTrackingNo(e.target.value)}
-                          style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #e5e7eb', fontSize: '0.875rem' }}
-                        />
-                        <button
-                          onClick={handleTrack}
-                          disabled={isTracking}
-                          style={{ padding: '0 20px', background: '#1a1a1a', color: 'white', borderRadius: '8px', border: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500 }}
-                        >
-                          {isTracking ? '...' : 'Track'}
-                        </button>
-                      </div>
-                      {trackResult && (
-                        <div style={{ padding: '12px', background: '#f0fdf4', borderRadius: '8px', border: '1px solid #d1fae5' }}>
-                          <div style={{ color: '#065f46', fontWeight: 500, fontSize: '0.875rem' }}>{trackResult.status}</div>
-                          <div style={{ fontSize: '0.75rem', color: '#047857', marginTop: '4px' }}>Currently at {trackResult.location}</div>
-                        </div>
-                      )}
+                {expandedTool === 'track' && (
+                  <div>
+                    <div style={{ display: 'flex', gap: '6px', marginBottom: '12px' }}>
+                      <input type="text" placeholder="B/L or Container No." value={trackingNo} onChange={(e) => setTrackingNo(e.target.value)} style={{ flex: 1, padding: '8px', borderRadius: '6px', border: '1px solid #d2d2d7', fontSize: '0.75rem' }} />
+                      <button onClick={handleTrack} disabled={isTracking} style={{ padding: '0 16px', background: '#1d1d1f', color: 'white', borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 500 }}>
+                        {isTracking ? '...' : 'Track'}
+                      </button>
                     </div>
-                  )}
-                </div>
+                    {trackResult && (
+                      <div style={{ padding: '10px', background: '#f0fdf4', borderRadius: '6px', border: '1px solid #d1fae5' }}>
+                        <div style={{ fontSize: '0.75rem', fontWeight: 500, color: '#065f46' }}>{trackResult.status || 'No data'}</div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>
-
         </div>
       </main>
 
-      {/* Modals remain the same structure but with minimal styling */}
+      {/* Modals */}
       {showLibraryModal && <LibraryModal onClose={() => setShowLibraryModal(false)} />}
 
       {selectedProduct && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(8px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setSelectedProduct(null)}>
-          <div style={{ background: 'white', maxWidth: '600px', width: '90%', maxHeight: '90vh', overflowY: 'auto', borderRadius: '20px', border: '1px solid #e5e7eb' }} onClick={e => e.stopPropagation()}>
-            <div style={{ position: 'sticky', top: 0, background: 'white', zIndex: 1, padding: '24px', borderBottom: '1px solid #f3f4f6', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h2 style={{ fontSize: '1.5rem', fontWeight: 600, margin: 0, color: '#1a1a1a' }}>{selectedProduct.name}</h2>
-              <button onClick={() => setSelectedProduct(null)} style={{ background: '#f3f4f6', border: 'none', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-              </button>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(10px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setSelectedProduct(null)}>
+          <div style={{ background: 'white', maxWidth: '600px', width: '90%', maxHeight: '90vh', overflowY: 'auto', borderRadius: '20px', border: '1px solid #d2d2d7' }} onClick={e => e.stopPropagation()}>
+            <div style={{ padding: '24px', borderBottom: '1px solid #f5f5f7', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h2 style={{ fontSize: '1.5rem', fontWeight: 600, margin: 0, color: '#1d1d1f' }}>{selectedProduct.name}</h2>
+              <button onClick={() => setSelectedProduct(null)} style={{ background: '#f5f5f7', border: 'none', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer' }}>×</button>
             </div>
-
             <div style={{ padding: '24px' }}>
-              <div style={{ width: '100%', height: '300px', background: '#f9fafb', borderRadius: '12px', marginBottom: '24px', overflow: 'hidden' }}>
+              <div style={{ width: '100%', height: '300px', background: '#f5f5f7', borderRadius: '12px', marginBottom: '24px', overflow: 'hidden' }}>
                 <img src={selectedProduct.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
               </div>
-
-              <div>
-                <h3 style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '16px', color: '#1a1a1a' }}>Specifications</h3>
-                <div style={{ border: '1px solid #e5e7eb', borderRadius: '12px', overflow: 'hidden' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
-                    <tbody>
-                      {[
-                        { label: 'Part No', key: 'partNo' },
-                        { label: 'Model', key: 'modelName' },
-                        { label: 'Color Temp', key: 'colorTemp', unit: 'K' },
-                        { label: 'Power', key: 'powerConsumption', unit: 'W' },
-                        { label: 'Voltage', key: 'inputVoltage', unit: 'V' },
-                        { label: 'Power Factor', key: 'powerFactor' },
-                        { label: 'Luminous Flux', key: 'luminousFlux', unit: 'lm' },
-                        { label: 'CRI', key: 'criRa', unit: 'Ra' },
-                        { label: 'Dimensions', key: 'dimensions', unit: 'mm' },
-                        { label: 'Weight', key: 'weight', unit: 'g' },
-                        { label: 'Certifications', key: 'cert' }
-                      ].map((row, i) => (
-                        <tr key={row.key} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                          <td style={{ padding: '12px 16px', fontWeight: 500, color: '#6b7280', width: '40%', background: '#fafafa' }}>{row.label}</td>
-                          <td style={{ padding: '12px 16px', color: '#1a1a1a' }}>
-                            {selectedProduct.specs?.[row.key] ? `${selectedProduct.specs[row.key]}${row.unit ? ` ${row.unit}` : ''}` : '—'}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+              <h3 style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '16px', color: '#1d1d1f' }}>Specifications</h3>
+              <div style={{ border: '1px solid #d2d2d7', borderRadius: '12px', overflow: 'hidden' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+                  <tbody>
+                    {[
+                      { label: 'Part No', key: 'partNo' },
+                      { label: 'Model', key: 'modelName' },
+                      { label: 'Color Temp', key: 'colorTemp', unit: 'K' },
+                      { label: 'Power', key: 'powerConsumption', unit: 'W' },
+                      { label: 'Voltage', key: 'inputVoltage', unit: 'V' },
+                      { label: 'CRI', key: 'criRa', unit: 'Ra' }
+                    ].map((row, i) => (
+                      <tr key={row.key} style={{ borderBottom: '1px solid #f5f5f7' }}>
+                        <td style={{ padding: '12px 16px', fontWeight: 500, color: '#86868b', width: '40%', background: '#fafafa' }}>{row.label}</td>
+                        <td style={{ padding: '12px 16px', color: '#1d1d1f' }}>
+                          {selectedProduct.specs?.[row.key] ? `${selectedProduct.specs[row.key]}${row.unit ? ` ${row.unit}` : ''}` : '—'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
@@ -587,21 +495,13 @@ export default function Home() {
       )}
 
       {showSettings && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(8px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setShowSettings(false)}>
-          <div style={{ background: 'white', maxWidth: '400px', width: '90%', borderRadius: '20px', padding: '24px', border: '1px solid #e5e7eb' }} onClick={e => e.stopPropagation()}>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 600, marginBottom: '20px', color: '#1a1a1a' }}>Settings</h2>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(10px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setShowSettings(false)}>
+          <div style={{ background: 'white', maxWidth: '400px', width: '90%', borderRadius: '20px', padding: '24px', border: '1px solid #d2d2d7' }} onClick={e => e.stopPropagation()}>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 600, marginBottom: '20px', color: '#1d1d1f' }}>Settings</h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.875rem', color: '#374151' }}>Dark Mode</span>
-                <button onClick={() => setDarkMode(!darkMode)} style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid #e5e7eb', background: darkMode ? '#1a1a1a' : 'white', color: darkMode ? 'white' : '#1a1a1a', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500 }}>
-                  {darkMode ? 'ON' : 'OFF'}
-                </button>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.875rem', color: '#374151' }}>Notifications</span>
-                <button onClick={() => setNotifications(!notifications)} style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid #e5e7eb', background: notifications ? '#1a1a1a' : 'white', color: notifications ? 'white' : '#1a1a1a', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500 }}>
-                  {notifications ? 'ON' : 'OFF'}
-                </button>
+                <span>Dark Mode</span>
+                <button onClick={() => setDarkMode(!darkMode)} style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid #d2d2d7', background: darkMode ? '#1d1d1f' : 'white', color: darkMode ? 'white' : '#1d1d1f', cursor: 'pointer' }}>{darkMode ? 'ON' : 'OFF'}</button>
               </div>
             </div>
           </div>
@@ -609,51 +509,30 @@ export default function Home() {
       )}
 
       {showMarketModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(8px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setShowMarketModal(false)}>
-          <div style={{ background: 'white', maxWidth: '900px', width: '90%', maxHeight: '90vh', overflowY: 'auto', borderRadius: '20px', padding: '32px', border: '1px solid #e5e7eb' }} onClick={e => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-              <h2 style={{ fontSize: '1.5rem', fontWeight: 600, margin: 0, color: '#1a1a1a' }}>Market Data Analysis</h2>
-              <button onClick={() => setShowMarketModal(false)} style={{ background: '#f3f4f6', border: 'none', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-              </button>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(10px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setShowMarketModal(false)}>
+          <div style={{ background: 'white', maxWidth: '900px', width: '90%', maxHeight: '90vh', overflowY: 'auto', borderRadius: '20px', padding: '32px', border: '1px solid #d2d2d7' }} onClick={e => e.stopPropagation()}>
+            <div style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h2 style={{ fontSize: '1.5rem', fontWeight: 600, margin: 0 }}>Market Analysis</h2>
+              <button onClick={() => setShowMarketModal(false)} style={{ background: '#f5f5f7', border: 'none', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer' }}>×</button>
             </div>
-            <MarketChart
-              marketData={marketData}
-              historyData={historyData}
-              selectedMetal={selectedMetal}
-              setSelectedMetal={setSelectedMetal}
-              selectedCurrency={selectedCurrency}
-              setSelectedCurrency={setSelectedCurrency}
-            />
+            <MarketChart marketData={marketData} historyData={historyData} selectedMetal={selectedMetal} setSelectedMetal={setSelectedMetal} selectedCurrency={selectedCurrency} setSelectedCurrency={setSelectedCurrency} />
           </div>
         </div>
       )}
 
       {showTrackingModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(8px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setShowTrackingModal(false)}>
-          <div style={{ background: 'white', maxWidth: '600px', width: '90%', borderRadius: '20px', padding: '32px', border: '1px solid #e5e7eb' }} onClick={e => e.stopPropagation()}>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 600, marginBottom: '20px', color: '#1a1a1a' }}>Global Logistics Tracking</h2>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(10px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setShowTrackingModal(false)}>
+          <div style={{ background: 'white', maxWidth: '600px', width: '90%', borderRadius: '20px', padding: '32px', border: '1px solid #d2d2d7' }} onClick={e => e.stopPropagation()}>
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 600, marginBottom: '20px' }}>Shipment Tracking</h2>
             <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
-              <input
-                type="text"
-                placeholder="Enter B/L or Container Number"
-                value={trackingNo}
-                onChange={(e) => setTrackingNo(e.target.value)}
-                style={{ flex: 1, padding: '12px', borderRadius: '12px', border: '1px solid #e5e7eb', fontSize: '0.875rem' }}
-              />
-              <button
-                onClick={handleTrack}
-                disabled={isTracking}
-                style={{ padding: '0 24px', background: '#1a1a1a', color: 'white', borderRadius: '12px', border: 'none', cursor: 'pointer', fontWeight: 500 }}
-              >
-                {isTracking ? 'Tracking...' : 'Track'}
+              <input type="text" placeholder="B/L or Container Number" value={trackingNo} onChange={(e) => setTrackingNo(e.target.value)} style={{ flex: 1, padding: '12px', borderRadius: '12px', border: '1px solid #d2d2d7' }} />
+              <button onClick={handleTrack} disabled={isTracking} style={{ padding: '0 24px', background: '#1d1d1f', color: 'white', borderRadius: '12px', border: 'none', cursor: 'pointer', fontWeight: 500 }}>
+                {isTracking ? '...' : 'Track'}
               </button>
             </div>
             {trackResult && (
-              <div style={{ padding: '20px', background: '#f0fdf4', borderRadius: '12px', border: '1px solid #d1fae5' }}>
-                <div style={{ color: '#065f46', fontWeight: 500, fontSize: '1rem', marginBottom: '8px' }}>{trackResult.status}</div>
-                <div style={{ fontSize: '0.875rem', color: '#047857', marginBottom: '4px' }}>Currently at {trackResult.location}</div>
-                <div style={{ fontSize: '0.875rem', color: '#047857' }}>ETA: {trackResult.eta}</div>
+              <div style={{ padding: '20px', background: '#f0fdf4', borderRadius: '12px' }}>
+                <div style={{ fontWeight: 500 }}>{trackResult.status || 'No data'}</div>
               </div>
             )}
           </div>
