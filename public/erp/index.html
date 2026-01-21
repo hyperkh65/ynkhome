@@ -489,12 +489,13 @@
   </div>
 
   <script type="module">
-    import { showApp, switchTab } from './js/ui.js';
-    import { login } from './js/auth.js';
-    import { loadDashboard } from './js/dashboard.js';
-    import { loadSales } from './js/sales.js';
-    import { loadProducts } from './js/products.js';
-    import { loadClients } from './js/clients.js';
+    // Using explicit paths from the root to ensure reliability
+    import { showApp, switchTab } from '/erp/js/ui.js';
+    import { login } from '/erp/js/auth.js';
+    import { loadDashboard } from '/erp/js/dashboard.js';
+    import { loadSales } from '/erp/js/sales.js';
+    import { loadProducts } from '/erp/js/products.js';
+    import { loadClients } from '/erp/js/clients.js';
 
     console.log("[YNK] ERP Modules Loaded.");
 
