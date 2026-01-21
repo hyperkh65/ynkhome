@@ -16,6 +16,7 @@ export default function Home() {
   const [selectedMetal, setSelectedMetal] = useState('aluminum');
   const [selectedCurrency, setSelectedCurrency] = useState('usd');
   const [activeTool, setActiveTool] = useState('cbm'); // default tool
+  const [showSettings, setShowSettings] = useState(false);
 
   const [marketData, setMarketData] = useState({
     usd: 1476.80,
@@ -29,6 +30,7 @@ export default function Home() {
     },
     trends: { usd: 'up', cny: 'up', alum: 'up', copper: 'down', steel: 'up', nickel: 'up', zinc: 'up' }
   });
+  const [catalogData, setCatalogData] = useState([]);
 
   // CBM Calculator State
   const [products, setProducts] = useState([
@@ -103,6 +105,13 @@ export default function Home() {
             setIncheonPort(validItems);
           }
         }
+
+        // Fetch Catalog Data
+        const pRes = await fetch('/api/products');
+        const pData = await pRes.json();
+        if (pData.success) {
+          setCatalogData(pData.data);
+        }
       } catch (err) { console.error(err); }
     };
 
@@ -152,7 +161,7 @@ export default function Home() {
           </div>
         </nav>
         <div className={styles.sidebarBottom}>
-          <div className={styles.navItem} title="Settings">
+          <div className={styles.navItem} title="Settings" onClick={() => setShowSettings(true)} style={{ cursor: 'pointer' }}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>
           </div>
           <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" className={styles.userAvatar} alt="User" />
@@ -571,14 +580,14 @@ export default function Home() {
 
           {activeTab === 'Catalog' && (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '24px' }}>
-              {[1, 2, 3, 4, 5, 6].map(i => (
-                <div key={i} className={styles.card} style={{ padding: '20px' }}>
+              {catalogData.map(product => (
+                <div key={product.id} className={styles.card} style={{ padding: '20px' }}>
                   <div style={{ height: '180px', background: '#f1f5f9', borderRadius: '16px', marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-                    <img src={`https://picsum.photos/seed/${i + 40}/400/300`} alt="Product" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <img src={product.image} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   </div>
-                  <h4 style={{ fontSize: '1.1rem', marginBottom: '4px' }}>YNK-Series V{i} Lite</h4>
-                  <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '16px' }}>Industrial Hardware / Gen 4</p>
-                  <button className={styles.catBtn} style={{ width: '100%', justifyContent: 'center', fontWeight: 700 }} onClick={() => setSelectedProduct({ name: `V${i} Lite` })}>View Specs</button>
+                  <h4 style={{ fontSize: '1.1rem', marginBottom: '4px' }}>{product.name}</h4>
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '16px' }}>{product.description}</p>
+                  <button className={styles.catBtn} style={{ width: '100%', justifyContent: 'center', fontWeight: 700 }} onClick={() => setSelectedProduct(product)}>View Specs</button>
                 </div>
               ))}
             </div>
@@ -592,12 +601,106 @@ export default function Home() {
           <div className={styles.card} style={{ maxWidth: '600px', width: '90%' }} onClick={e => e.stopPropagation()}>
             <h2 style={{ marginBottom: '20px' }}>{selectedProduct.name} Specifications</h2>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-              <div className={styles.marketCard}><strong>Material</strong> High-Grade Alum</div>
-              <div className={styles.marketCard}><strong>Weight</strong> 2.4kg</div>
-              <div className={styles.marketCard}><strong>Cert</strong> CE / RoHS / KC</div>
-              <div className={styles.marketCard}><strong>Origin</strong> Shanghai Hub</div>
+              <div className={styles.marketCard}><strong>Material</strong> {selectedProduct.specs?.material || 'N/A'}</div>
+              <div className={styles.marketCard}><strong>Weight</strong> {selectedProduct.specs?.weight || 'N/A'}</div>
+              <div className={styles.marketCard}><strong>Cert</strong> {selectedProduct.specs?.cert || 'N/A'}</div>
+              <div className={styles.marketCard}><strong>Origin</strong> {selectedProduct.specs?.origin || 'N/A'}</div>
             </div>
             <button className={styles.catBtn} style={{ width: '100%', marginTop: '30px', background: '#1a1a1a', color: 'white', justifyContent: 'center' }} onClick={() => setSelectedProduct(null)}>Close</button>
+          </div>
+        </div>
+      )}
+      {/* Modal for Settings */}
+      {showSettings && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setShowSettings(false)}>
+          <div className={styles.card} style={{ maxWidth: '500px', width: '90%', animation: 'fadeIn 0.2s ease-out' }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+              <h2 className={styles.cardTitle} style={{ fontSize: '1.5rem', margin: 0 }}>System Options</h2>
+              <button
+                onClick={() => setShowSettings(false)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px', color: 'var(--text-muted)' }}
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              {/* Profile Section */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', paddingBottom: '24px', borderBottom: '1px solid #e2e8f0' }}>
+                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" style={{ width: '60px', height: '60px', borderRadius: '50%', background: '#e4e4e7' }} alt="User" />
+                <div>
+                  <h3 style={{ fontSize: '1.1rem', fontWeight: 600, margin: 0 }}>Administrator</h3>
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: '4px 0 0 0' }}>admin@ynk-global.com</p>
+                </div>
+                <button style={{ marginLeft: 'auto', padding: '8px 16px', borderRadius: '12px', border: '1px solid #e2e8f0', background: 'white', fontWeight: 600, fontSize: '0.85rem' }}>Edit Profile</button>
+              </div>
+
+              {/* Preferences */}
+              <div>
+                <h4 style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '16px', textTransform: 'uppercase' }}>Preferences</h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#f5f3ff', color: '#7c3aed', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                      </div>
+                      <span style={{ fontWeight: 500 }}>Dark Mode</span>
+                    </div>
+                    <div style={{ width: '44px', height: '24px', background: '#e2e8f0', borderRadius: '12px', position: 'relative', cursor: 'pointer' }}>
+                      <div style={{ width: '20px', height: '20px', background: 'white', borderRadius: '50%', position: 'absolute', top: '2px', left: '2px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}></div>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#ecfdf5', color: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                      </div>
+                      <span style={{ fontWeight: 500 }}>Notifications</span>
+                    </div>
+                    <div style={{ width: '44px', height: '24px', background: '#10b981', borderRadius: '12px', position: 'relative', cursor: 'pointer' }}>
+                      <div style={{ width: '20px', height: '20px', background: 'white', borderRadius: '50%', position: 'absolute', top: '2px', right: '2px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}></div>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#fff7ed', color: '#f97316', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                      </div>
+                      <span style={{ fontWeight: 500 }}>Language</span>
+                    </div>
+                    <select style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '4px 8px', fontSize: '0.85rem', background: 'transparent' }}>
+                      <option>English</option>
+                      <option>한국어</option>
+                      <option>中文</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Data Settings */}
+              <div>
+                <h4 style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '16px', textTransform: 'uppercase' }}>Data Source</h4>
+                <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <span style={{ fontSize: '0.9rem', fontWeight: 600 }}>Real-time Feed</span>
+                    <span style={{ color: '#10b981', fontWeight: 700, fontSize: '0.8rem' }}>CONNECTED</span>
+                  </div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                    Latency: 45ms • Server: Asia-Northeast-2a
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <button
+              className={styles.catBtn}
+              style={{ width: '100%', marginTop: '30px', background: '#1a1a1a', color: 'white', justifyContent: 'center' }}
+              onClick={() => setShowSettings(false)}
+            >
+              Save Changes
+            </button>
           </div>
         </div>
       )}
