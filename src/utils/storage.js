@@ -1,114 +1,60 @@
+import { supabase } from './supabase';
 
-const STORAGE_KEY = 'ynk_products_v1';
+export const getProducts = async () => {
+    const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .order('id', { ascending: true });
 
-const INITIAL_DATA = [
-    {
-        "id": 1,
-        "name": "YNK-Series V1 Lite",
-        "description": "Industrial Hardware / Gen 4",
-        "image": "https://picsum.photos/seed/41/400/300",
-        "specs": {
-            "material": "High-Grade Alum",
-            "weight": "2.4kg",
-            "cert": "CE / RoHS / KC",
-            "origin": "Shanghai Hub"
-        }
-    },
-    {
-        "id": 2,
-        "name": "YNK-Series V2 Pro",
-        "description": "High Performance Unit",
-        "image": "https://picsum.photos/seed/42/400/300",
-        "specs": {
-            "material": "Stainless Steel",
-            "weight": "3.1kg",
-            "cert": "UL / CE",
-            "origin": "Incheon Port"
-        }
-    },
-    {
-        "id": 3,
-        "name": "YNK-Series V3 Max",
-        "description": "Heavy Duty Industrial",
-        "image": "https://picsum.photos/seed/43/400/300",
-        "specs": {
-            "material": "Titanium Alloy",
-            "weight": "1.8kg",
-            "cert": "ISO 9001",
-            "origin": "Busan"
-        }
-    },
-    {
-        "id": 4,
-        "name": "YNK-Series V4 Eco",
-        "description": "Energy Efficient Model",
-        "image": "https://picsum.photos/seed/44/400/300",
-        "specs": {
-            "material": "Recycled Comp",
-            "weight": "2.0kg",
-            "cert": "EcoLabel",
-            "origin": "Vietnam"
-        }
-    },
-    {
-        "id": 5,
-        "name": "YNK-Series V5 Ultra",
-        "description": "Next Gen Connectivity",
-        "image": "https://picsum.photos/seed/45/400/300",
-        "specs": {
-            "material": "Carbon Fiber",
-            "weight": "1.2kg",
-            "cert": "FCC / KC",
-            "origin": "Shenzhen"
-        }
-    },
-    {
-        "id": 6,
-        "name": "YNK-Series V6 Mini",
-        "description": "Compact Solution",
-        "image": "https://picsum.photos/seed/46/400/300",
-        "specs": {
-            "material": "Polycarbonate",
-            "weight": "0.8kg",
-            "cert": "CE / KS",
-            "origin": "Seoul HQ"
-        }
+    if (error) {
+        console.error('Error fetching products:', error);
+        return [];
     }
-];
-
-export const getProducts = () => {
-    if (typeof window === 'undefined') return [];
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (!stored) {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_DATA));
-        return INITIAL_DATA;
-    }
-    return JSON.parse(stored);
+    return data || [];
 };
 
-export const saveProduct = (product) => {
-    const products = getProducts();
-    if (product.id) {
-        const index = products.findIndex(p => p.id === product.id);
-        if (index !== -1) {
-            products[index] = product;
-        }
-    } else {
-        const newId = products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1;
-        product.id = newId;
-        products.push(product);
+export const saveProduct = async (product) => {
+    // If it's a new product (no ID or ID is null), remove ID from object so Supabase generates it
+    // But since our UI manages IDs or we want to allow editing...
+
+    // Simplification: We will use 'upsert'. 
+    // If product has an ID, it updates. If we want to create, we should omit ID or ensure it's unique.
+
+    const payload = { ...product };
+    // If creating new (id is missing or special), delete the key to let DB handle it
+    if (!payload.id) delete payload.id;
+
+    // Ensure specs is stored as JSONB
+    if (typeof payload.specs !== 'object') {
+        // handle error or default
     }
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
+
+    const { data, error } = await supabase
+        .from('products')
+        .upsert(payload)
+        .select();
+
+    if (error) {
+        console.error('Error saving product:', error);
+        throw error;
+    }
+    return data;
 };
 
-export const deleteProduct = (id) => {
-    const products = getProducts();
-    const filtered = products.filter(p => p.id != id);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
+export const deleteProduct = async (id) => {
+    const { error } = await supabase
+        .from('products')
+        .delete()
+        .eq('id', id);
+
+    if (error) {
+        console.error('Error deleting product:', error);
+        throw error;
+    }
 };
 
-export const resetProducts = () => {
-    if (typeof window !== 'undefined') {
-        localStorage.removeItem(STORAGE_KEY);
-    }
+export const resetProducts = async () => {
+    // Dangerous DANGER zone.
+    // For now, let's just log.
+    console.warn("Reset not fully implemented for DB safety.");
 };

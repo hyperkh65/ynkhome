@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getProducts, saveProduct, deleteProduct, resetProducts } from '@/utils/storage';
+import { getProducts, saveProduct, deleteProduct } from '@/utils/storage';
 import styles from './admin.module.css';
 
 export default function AdminPage() {
@@ -32,8 +32,9 @@ export default function AdminPage() {
         }
     }, [isAuthenticated]);
 
-    const loadProducts = () => {
-        setProducts(getProducts());
+    const loadProducts = async () => {
+        const data = await getProducts();
+        setProducts(data);
     };
 
     const handleLogin = (e) => {
@@ -69,13 +70,6 @@ export default function AdminPage() {
         });
     };
 
-    const handleResetData = () => {
-        if (confirm('WARNING: This will reset all local data to the original defaults. Are you sure?')) {
-            resetProducts();
-            window.location.reload();
-        }
-    };
-
     const handleEdit = (product) => {
         setEditingId(product.id);
         setFormData({
@@ -89,22 +83,16 @@ export default function AdminPage() {
             certificate: product.specs?.certificate || '',
             specSheet: product.specs?.specSheet || ''
         });
-        // Scroll to top of dashboard if needed, but now buttons are sticky so it's fine
-        // window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-    const handleDelete = (id) => {
+    const handleDelete = async (id) => {
         if (!confirm('Are you sure you want to delete this product?')) return;
-        deleteProduct(id);
-
-        // Force refresh state
-        const updated = getProducts();
-        setProducts(updated);
-
+        await deleteProduct(id);
+        await loadProducts();
         if (editingId === id) resetForm();
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
         const payload = {
@@ -122,10 +110,14 @@ export default function AdminPage() {
             }
         };
 
-        saveProduct(payload);
-        alert(editingId ? 'Product Updated' : 'Product Created');
-        loadProducts();
-        resetForm();
+        try {
+            await saveProduct(payload);
+            alert(editingId ? 'Product Updated' : 'Product Created');
+            await loadProducts();
+            resetForm();
+        } catch (error) {
+            alert('Operation failed');
+        }
     };
 
     if (!isAuthenticated) {
@@ -168,9 +160,6 @@ export default function AdminPage() {
                         </p>
                     </div>
                     <div style={{ display: 'flex', gap: '12px' }}>
-                        <button onClick={handleResetData} style={{ background: '#fee2e2', color: '#991b1b', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontSize: '0.8rem' }}>
-                            Reset All Data
-                        </button>
                         <a href="/" className={styles.logoutBtn} style={{ background: 'white', color: '#1a1a1a', border: '1px solid #e2e8f0', textDecoration: 'none' }}>View Site</a>
                         <button onClick={() => setIsAuthenticated(false)} className={styles.logoutBtn}>Sign Out</button>
                     </div>
