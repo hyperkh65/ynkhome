@@ -8,24 +8,39 @@ export async function GET() {
         const response = await fetch(url, {
             method: 'GET',
             headers: { 'Accept': 'application/xml' },
-            next: { revalidate: 30 }
+            cache: 'no-store'
         });
 
         const xmlData = await response.text();
-        const parser = new XMLParser();
+
+        // Detailed Parsing with fast-xml-parser options
+        const parser = new XMLParser({
+            ignoreAttributes: false,
+            trimValues: true,
+            parseTagValue: true,
+            isArray: (name) => {
+                // Force these tags to be arrays even if there's only one
+                return ['GetTrmnlCnfVO', 'item'].indexOf(name) !== -1;
+            }
+        });
+
         const jObj = parser.parse(xmlData);
+        console.log("Parsed JSON:", JSON.stringify(jObj));
 
-        // The structure found via curl: GetTrmnlCnfResponse.body.item.GetTrmnlCnfVO
-        const items = jObj?.GetTrmnlCnfResponse?.body?.item?.GetTrmnlCnfVO;
+        // Try multiple possible paths just in case
+        const items = jObj?.GetTrmnlCnfResponse?.body?.item?.[0]?.GetTrmnlCnfVO ||
+            jObj?.GetTrmnlCnfResponse?.body?.item?.GetTrmnlCnfVO ||
+            [];
 
-        if (items) {
-            return Response.json({
-                success: true,
-                data: Array.isArray(items) ? items : [items]
-            });
-        }
-
-        return Response.json({ success: false, raw: jObj, message: "Structure mismatch" });
+        return Response.json({
+            success: true,
+            data: Array.isArray(items) ? items : [items],
+            _debug: {
+                url: url.replace(serviceKey, 'HIDDEN'),
+                hasData: !!items,
+                rawKeys: Object.keys(jObj || {})
+            }
+        });
     } catch (error) {
         return Response.json({ success: false, error: error.message }, { status: 500 });
     }

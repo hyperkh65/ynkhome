@@ -94,10 +94,12 @@ export default function Home() {
 
         // Fetch Incheon Port Data (XML-parsed JSON)
         const iRes = await fetch('/api/incheon/congestion');
-        if (iRes.ok) {
-          const iData = await iRes.json();
-          if (iData.success && Array.isArray(iData.data)) {
-            setIncheonPort(iData.data);
+        const iData = await iRes.json();
+        if (iData.success && iData.data && iData.data.length > 0) {
+          // Additional sanitization: ensure item has termName
+          const validItems = iData.data.filter(item => item.termName);
+          if (validItems.length > 0) {
+            setIncheonPort(validItems);
           }
         }
       } catch (err) { console.error(err); }
@@ -163,7 +165,7 @@ export default function Home() {
         <main>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px' }}>
             <h1 className={styles.sectionTitle}>{activeTab}</h1>
-            <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', fontWeight: 600 }}>v4.3.0-FINAL</span>
+            <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', fontWeight: 600 }}>v4.3.5-CONNECT</span>
           </div>
 
           {activeTab === 'Overview' && (
@@ -244,7 +246,12 @@ export default function Home() {
 
                 {/* Recent Shipments / Activity (Image 2 style) */}
                 <div className={styles.card}>
-                  <h3 className={styles.cardTitle} style={{ marginBottom: '20px' }}>Incheon Port Congestion (Real-time)</h3>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                    <h3 className={styles.cardTitle}>Incheon Port Congestion</h3>
+                    {incheonPort.length > 0 && (
+                      <span style={{ background: '#dcfce7', color: '#166534', padding: '4px 8px', borderRadius: '8px', fontSize: '0.7rem', fontWeight: 700 }}>● LIVE API CONNECTED</span>
+                    )}
+                  </div>
                   <div className={styles.tableWrapper}>
                     <table className={styles.table}>
                       <thead>
