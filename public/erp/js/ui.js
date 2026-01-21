@@ -1,48 +1,32 @@
-/************************************************************
- * YNK ERP2 · UI 제어 (탭 전환, 패널 전환, 모달)
- ************************************************************/
+export const showApp = (userEmail) => {
+  document.getElementById('authPanel').classList.add('hidden');
+  document.getElementById('appPanel').classList.remove('hidden');
+  document.getElementById('userEmailDisplay').textContent = userEmail;
+};
 
-import { logout } from './auth.js';
+export const switchTab = (tabId) => {
+  document.querySelectorAll('.tab-pane').forEach(el => el.classList.add('hidden'));
+  document.getElementById(`tab-${tabId}`).classList.remove('hidden');
 
-export function initUI(){
-  const authPanel = document.getElementById('authPanel');
-  const appPanel  = document.getElementById('appPanel');
-  const userBadge = document.getElementById('userBadge');
-  const userName  = document.getElementById('userName');
-  const btnLogout = document.getElementById('btnLogout');
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  document.querySelector(`[data-tab="${tabId}"]`)?.classList.add('active');
 
-  /* 로그아웃 */
-  btnLogout.onclick = ()=> logout();
+  // Trigger specific refreshes if needed
+  window.dispatchEvent(new CustomEvent('tab-switched', { detail: { tabId } }));
+};
 
-  /* 탭 전환 */  
-  document.querySelectorAll('.tab-btn').forEach(btn=>{
-    btn.addEventListener('click',()=>{
-      document.querySelectorAll('.tab-btn').forEach(x=>x.classList.remove('bg-emerald-600','text-white'));
-      btn.classList.add('bg-emerald-600','text-white');
-      document.querySelectorAll('.tab').forEach(t=>t.classList.add('hidden'));
-      document.getElementById('tab-'+btn.dataset.tab).classList.remove('hidden');
-    });
-  });
+export const openModal = (id) => {
+  const modal = document.getElementById(id);
+  if (modal) {
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+  }
+};
 
-  /* UI 표시 함수 */
-  return {
-    showApp(userEmail){
-      authPanel.classList.add('hidden');
-      appPanel.classList.remove('hidden');
-      userBadge.classList.remove('hidden');
-      userName.textContent = userEmail;
-    },
-    showLogin(){
-      appPanel.classList.add('hidden');
-      authPanel.classList.remove('hidden');
-    }
-  };
-}
-
-/* ---- 모달 공통 ---- */
-export function openModal(id){
-  document.getElementById(id).classList.remove('hidden');
-}
-export function closeModal(id){
-  document.getElementById(id).classList.add('hidden');
-}
+export const closeModal = (id) => {
+  const modal = document.getElementById(id);
+  if (modal) {
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+  }
+};
