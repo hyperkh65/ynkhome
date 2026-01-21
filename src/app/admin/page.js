@@ -87,9 +87,15 @@ export default function AdminPage() {
 
     const handleDelete = async (id) => {
         if (!confirm('Are you sure you want to delete this product?')) return;
-        await deleteProduct(id);
-        await loadProducts();
-        if (editingId === id) resetForm();
+        try {
+            await deleteProduct(id);
+            await loadProducts();
+            if (editingId === id) resetForm();
+            // Optional: alert('Deleted successfully'); 
+        } catch (error) {
+            console.error(error);
+            alert('Delete failed: ' + (error.message || JSON.stringify(error)));
+        }
     };
 
     const handleSubmit = async (e) => {
