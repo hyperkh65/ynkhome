@@ -13,36 +13,43 @@ export default function LibraryModal({ onClose }) {
     // DB 로드 (게시글 형태)
     useEffect(() => {
         async function loadPosts() {
-            // 1) library_posts 테이블 조회 시도
-            const { data, error } = await supabase
-                .from('library_posts')
-                .select('*')
-                .order('created_at', { ascending: false });
-
-            if (!error && data) {
-                setPosts(data);
-            } else {
-                // 테이블이 없거나 에러 발생 시 fallback (기존 library_files 테이블 조회)
-                // 기존 파일 테이블을 게시글처럼 매핑
-                const { data: fileData, error: fileErr } = await supabase
-                    .from('library_files')
+            setLoading(true);
+            try {
+                // 1) library_posts 테이블 조회 시도
+                const { data, error } = await supabase
+                    .from('library_posts')
                     .select('*')
-                    .order('uploaded_at', { ascending: false });
+                    .order('created_at', { ascending: false });
 
-                if (fileData) {
-                    const mapped = fileData.map(f => ({
-                        id: f.id,
-                        title: f.original_name, // 파일명을 제목으로
-                        content: 'Attached file: ' + f.original_name,
-                        file_name: f.original_name,
-                        file_url: supabase.storage.from('library').getPublicUrl(f.file_name).data.publicUrl,
-                        file_size: f.size_bytes,
-                        created_at: f.uploaded_at
-                    }));
-                    setPosts(mapped);
+                if (!error && data && data.length > 0) {
+                    setPosts(data);
+                } else {
+                    // 테이블이 없거나 데이터가 없는 경우 fallback (기존 library_files 테이블 조회)
+                    const { data: fileData, error: fileErr } = await supabase
+                        .from('library_files')
+                        .select('*')
+                        .order('uploaded_at', { ascending: false });
+
+                    if (fileData && fileData.length > 0) {
+                        const mapped = fileData.map(f => ({
+                            id: f.id,
+                            title: f.original_name || 'Legacy File',
+                            content: 'Historical document stored as file.',
+                            file_name: f.original_name,
+                            file_url: f.file_name ? supabase.storage.from('library').getPublicUrl(f.file_name).data.publicUrl : null,
+                            file_size: f.size_bytes,
+                            created_at: f.uploaded_at
+                        }));
+                        setPosts(mapped);
+                    } else if (data) {
+                        setPosts(data); // 데이터가 정말 0개인 경우
+                    }
                 }
+            } catch (err) {
+                console.error("Library Load Error:", err);
+            } finally {
+                setLoading(false);
             }
-            setLoading(false);
         }
         loadPosts();
     }, []);

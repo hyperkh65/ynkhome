@@ -87,7 +87,8 @@ export default function AdminLibrary() {
                 // Insert
                 const { error: inErr } = await supabase
                     .from('library_posts')
-                    .insert(payload);
+                    .insert([payload])
+                    .select();
                 if (inErr) throw inErr;
             }
 
@@ -96,8 +97,10 @@ export default function AdminLibrary() {
             setFile(null);
             setEditingId(null);
             await loadPosts();
+            alert('게시글이 저장되었습니다.');
 
         } catch (err) {
+            console.error("Save error:", err);
             setError(err.message);
         } finally {
             setUploading(false);
