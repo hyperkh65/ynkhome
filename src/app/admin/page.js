@@ -240,6 +240,7 @@ export default function AdminPage() {
                     </div>
                     <div style={{ display: 'flex', gap: '12px' }}>
                         <a href="/" className={styles.logoutBtn} style={{ background: 'white', color: '#1a1a1a', border: '1px solid #e2e8f0', textDecoration: 'none' }}>View Site</a>
+                        <a href="/admin/library" className={styles.logoutBtn} style={{ background: '#3b82f6', color: 'white', border: 'none', textDecoration: 'none' }}>Manage Library</a>
                         <button onClick={() => setIsAuthenticated(false)} className={styles.logoutBtn}>Sign Out</button>
                     </div>
                 </div>
