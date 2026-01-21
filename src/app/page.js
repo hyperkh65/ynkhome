@@ -155,20 +155,52 @@ export default function Home() {
                 <div className={styles.marketGrid}>
                   <div className={styles.marketCard}>
                     <div className={styles.marketLabel}><span style={{ color: '#3b82f6' }}>●</span> USD/KRW</div>
-                    <div className={styles.marketVal}>{marketData.usd.toLocaleString()} ₩</div>
+                    <div className={styles.marketVal}>{marketData.usd.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ₩</div>
                     <div className={`${styles.trendTag} ${marketData.trends.usd === 'up' ? styles.trendUp : styles.trendDown}`}>
-                      {marketData.trends.usd === 'up' ? '▲' : '▼'} 0.2%
+                      {marketData.trends.usd === 'up' ? '▲' : '▼'} {marketData.trends.usd === 'up' ? '+' : ''}0.2%
+                    </div>
+                  </div>
+                  <div className={styles.marketCard}>
+                    <div className={styles.marketLabel}><span style={{ color: '#ef4444' }}>●</span> CNY/KRW</div>
+                    <div className={styles.marketVal}>{marketData.cny.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ₩</div>
+                    <div className={`${styles.trendTag} ${marketData.trends.cny === 'up' ? styles.trendUp : styles.trendDown}`}>
+                      {marketData.trends.cny === 'up' ? '▲' : '▼'} {marketData.trends.cny === 'up' ? '+' : ''}0.1%
                     </div>
                   </div>
                   <div className={styles.marketCard}>
                     <div className={styles.marketLabel}><span style={{ color: '#f97316' }}>●</span> Aluminum</div>
                     <div className={styles.marketVal}>{Math.round(marketData.metals.alum).toLocaleString()} ¥</div>
-                    <div className={`${styles.trendTag} ${styles.trendUp}`}>▲ 1.4%</div>
+                    <div className={`${styles.trendTag} ${marketData.trends.alum === 'up' ? styles.trendUp : styles.trendDown}`}>
+                      {marketData.trends.alum === 'up' ? '▲' : '▼'} 1.4%
+                    </div>
+                  </div>
+                  <div className={styles.marketCard}>
+                    <div className={styles.marketLabel}><span style={{ color: '#ea580c' }}>●</span> Copper</div>
+                    <div className={styles.marketVal}>{Math.round(marketData.metals.copper).toLocaleString()} ¥</div>
+                    <div className={`${styles.trendTag} ${marketData.trends.copper === 'up' ? styles.trendUp : styles.trendDown}`}>
+                      {marketData.trends.copper === 'up' ? '▲' : '▼'} 0.5%
+                    </div>
                   </div>
                   <div className={styles.marketCard}>
                     <div className={styles.marketLabel}><span style={{ color: '#10b981' }}>●</span> Steel Rebar</div>
                     <div className={styles.marketVal}>{Math.round(marketData.metals.steel).toLocaleString()} ¥</div>
-                    <div className={`${styles.trendTag} ${styles.trendUp}`}>▲ 0.8%</div>
+                    <div className={`${styles.trendTag} ${marketData.trends.steel === 'up' ? styles.trendUp : styles.trendDown}`}>
+                      {marketData.trends.steel === 'up' ? '▲' : '▼'} 0.8%
+                    </div>
+                  </div>
+                  <div className={styles.marketCard}>
+                    <div className={styles.marketLabel}><span style={{ color: '#8b5cf6' }}>●</span> Nickel</div>
+                    <div className={styles.marketVal}>{Math.round(marketData.metals.nickel).toLocaleString()} ¥</div>
+                    <div className={`${styles.trendTag} ${marketData.trends.nickel === 'up' ? styles.trendUp : styles.trendDown}`}>
+                      {marketData.trends.nickel === 'up' ? '▲' : '▼'} 1.1%
+                    </div>
+                  </div>
+                  <div className={styles.marketCard}>
+                    <div className={styles.marketLabel}><span style={{ color: '#3b82f6' }}>●</span> Zinc</div>
+                    <div className={styles.marketVal}>{Math.round(marketData.metals.zinc).toLocaleString()} ¥</div>
+                    <div className={`${styles.trendTag} ${marketData.trends.zinc === 'up' ? styles.trendUp : styles.trendDown}`}>
+                      {marketData.trends.zinc === 'up' ? '▲' : '▼'} 0.3%
+                    </div>
                   </div>
                 </div>
 
