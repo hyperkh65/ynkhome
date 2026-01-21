@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<title>수입서</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<style>
+  :root{
+    --blue-main:#2A69B1;
+    --blue-light:#E9F1FB;
+    --line:#BFCFE3;
+    --text-dark:#1F2A37;
+    --text-light:#4A5568;
+  }
+
+  body {
+    font-family: 'Pretendard', sans-serif;
+    width: 210mm;
+    margin: 0 auto;
+    padding: 0;
+    background: #FFFFFF;
+    color: var(--text-dark);
+  }
+
+  /* 버튼 영역 */
+  #actionButtons {
+    position: fixed;
+    top: 20px;
+    right: 25px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .action-btn {
+    background: var(--blue-main);
+    color: white;
+    border: none;
+    padding: 10px 14px;
+    font-size: 13px;
+    border-radius: 6px;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.25);
+  }
+  .action-btn:hover { opacity: 0.85; }
+
+  .page-frame {
+    width: 210mm;
+    min-height: 297mm;
+    padding: 18mm 16mm;
+    border: 1px solid var(--line);
+    box-sizing: border-box;
+  }
+
+  .logo {
+    max-width: 150px;
+    width: 22%;
+    margin: 0 auto;
+    display: block;
+  }
+
+  h1 {
+    text-align: center;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--blue-main);
+    margin: 12px 0 16px;
+    letter-spacing: 2px;
+  }
+
+  .top-info {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 22px;
+    font-size: 13px;
+    color: var(--text-light);
+  }
+
+  .flex-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 14px;
+  }
+
+  .info-box {
+    width: 50%;
+    padding: 14px 16px;
+    border: 1px solid var(--line);
+    background: #FAFCFF;
+    border-radius: 4px;
+    position: relative;
+  }
+
+  .info-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--blue-main);
+    margin-bottom: 10px;
+  }
+
+  .info-item {
+    font-size: 12.5px;
+    margin-bottom: 4px;
+    color: var(--text-light);
+  }
+
+  .section-title {
+    margin-top: 26px;
+    margin-bottom: 10px;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--blue-main);
+    border-left: 4px solid var(--blue-main);
+    padding-left: 10px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 18px;
+    font-size: 11.6px;
+  }
+  table th, table td {
+    border: 1px solid var(--line);
+    padding: 6px 4px;
+    text-align: center;
+  }
+
+  th {
+    background: var(--blue-light);
+    color: var(--blue-main);
+    font-weight: 700;
+  }
+
+  .total-box {
+    margin-top: 18px;
+    padding: 14px;
+    border-radius: 4px;
+    background: #F4F9FF;
+    border: 1px solid var(--blue-main);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--blue-main);
+  }
+
+  .footer {
+    margin-top: 22px;
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-light);
+  }
+</style>
+</head>
+
+<body>
+
+<!-- 버튼 -->
+<div id="actionButtons">
+  <button class="action-btn" id="btnPdf">PDF 다운로드</button>
+  <button class="action-btn" id="btnPrint">인쇄</button>
+</div>
+
+<!-- 본문 -->
+<div id="importArea" class="page-frame">
+
+  <img src="https://ynk2014.com/erp/templates/logo.png" class="logo" />
+  <h1>수&nbsp;입&nbsp;서</h1>
+
+  <div class="top-info">
+    <div><b>수입번호:</b> <span id="imp-no"></span></div>
+    <div><b>수입일자:</b> <span id="imp-date"></span></div>
+  </div>
+
+  <div class="flex-row">
+    <div class="info-box">
+      <div class="info-title">Exporter</div>
+      <div class="info-item"><b>업체명:</b> <span id="exp-name"></span></div>
+      <div class="info-item"><b>B/L (Master):</b> <span id="bl-master"></span></div>
+      <div class="info-item"><b>B/L (House):</b> <span id="bl-house"></span></div>
+      <div class="info-item"><b>Vessel/Voyage:</b> <span id="vessel"></span></div>
+    </div>
+
+    <div class="info-box">
+      <div class="info-title">Importer</div>
+      <div class="info-item"><b>업체명:</b> <span id="imp-name"></span></div>
+      <div class="info-item"><b>통관일자:</b> <span id="clear-date"></span></div>
+      <div class="info-item"><b>운송방식:</b> <span id="transport"></span></div>
+      <div class="info-item"><b>컨테이너:</b> <span id="container"></span></div>
+    </div>
+  </div>
+
+  <div class="flex-row" style="margin-top:16px;">
+    <div class="info-box">
+      <div class="info-title">출발지 (POL)</div>
+      <div class="info-item"><span id="pol"></span></div>
+    </div>
+    <div class="info-box">
+      <div class="info-title">도착지 (POD)</div>
+      <div class="info-item"><span id="pod"></span></div>
+    </div>
+  </div>
+
+  <div class="section-title">수입 품목 내역</div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>No</th>
+        <th>품명</th>
+        <th>HS Code</th>
+        <th>Origin</th>
+        <th>Unit Price</th>
+        <th>Qty</th>
+        <th>Amount</th>
+        <th>CBM</th>
+        <th>Final Unit</th>
+        <th>Final Amount</th>
+      </tr>
+    </thead>
+    <tbody id="imp-body"></tbody>
+  </table>
+
+  <div class="section-title">비용 Summary</div>
+
+  <div class="total-box">
+    Freight: <span id="sum-freight"></span> /
+    Local: <span id="sum-local"></span> /
+    Duty: <span id="sum-duty"></span> /
+    VAT: <span id="sum-vat"></span> /
+    Total: <span id="sum-total"></span>
+  </div>
+
+  <div class="footer">Page 1 / 1</div>
+
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const params = new URLSearchParams(location.search);
+  const raw = params.get("data") || "{}";
+  const data = JSON.parse(raw);
+
+  const master = data.master || {};
+  const items = data.items || [];
+
+  // =============== 기본 정보 설정 ===============
+  document.getElementById("imp-no").textContent   = master.ImportNo?.rich_text?.[0]?.plain_text || '';
+  document.getElementById("imp-date").textContent = master.Date?.date?.start || '';
+
+  document.getElementById("exp-name").textContent = master.Exporter?.rich_text?.[0]?.plain_text || '';
+  document.getElementById("imp-name").textContent = master.Importer?.rich_text?.[0]?.plain_text || '';
+
+  document.getElementById("bl-master").textContent = master.BLNoMaster?.rich_text?.[0]?.plain_text || '';
+  document.getElementById("bl-house").textContent  = master.BLNoHouse?.rich_text?.[0]?.plain_text || '';
+  document.getElementById("vessel").textContent    = master.VesselVoyage?.rich_text?.[0]?.plain_text || '';
+
+  document.getElementById("clear-date").textContent = master.ClearanceDate?.date?.start || '';
+  document.getElementById("transport").textContent  = master.TransportType?.select?.name || '';
+  document.getElementById("container").textContent  = master.ContainerType?.select?.name || '';
+
+  document.getElementById("pol").textContent = master.POL?.rich_text?.[0]?.plain_text || '';
+  document.getElementById("pod").textContent = master.POD?.rich_text?.[0]?.plain_text || '';
+
+  // =============== 품목 테이블 ===============
+  const body = document.getElementById("imp-body");
+  items.forEach((it, idx) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${idx + 1}</td>
+      <td>${it.Product?.rich_text?.[0]?.plain_text || ''}</td>
+      <td>${it.HSCode?.rich_text?.[0]?.plain_text || ''}</td>
+      <td>${it.Origin?.rich_text?.[0]?.plain_text || ''}</td>
+      <td>${it.UnitPrice?.number || 0}</td>
+      <td>${it.Qty?.number || 0}</td>
+      <td>${it.Amount?.number || 0}</td>
+      <td>${it.CBM?.number || 0}</td>
+      <td>${it.FinalUnitCost?.number || 0}</td>
+      <td>${it.FinalTotalCost?.number || 0}</td>
+    `;
+    body.appendChild(tr);
+  });
+
+  // =============== Summary ===============
+  document.getElementById("sum-freight").textContent = master.Freight?.number || 0;
+  document.getElementById("sum-local").textContent   = master.LocalCharges?.number || 0;
+  document.getElementById("sum-duty").textContent    = master.DutyAmount?.number || 0;
+  document.getElementById("sum-vat").textContent     = master.VatAmount?.number || 0;
+  document.getElementById("sum-total").textContent   = master.TotalCost?.number || 0;
+});
+
+
+// PDF 다운로드
+document.getElementById("btnPdf").onclick = () => {
+  const element = document.getElementById("importArea");
+  html2pdf().set({
+    margin: 5,
+    filename: 'import.pdf',
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2 },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  }).from(element).save();
+};
+
+// 인쇄
+document.getElementById("btnPrint").onclick = () => window.print();
+/* -------------------------------------------------------
+   수입업무 저장 → 출력 연결 전체 스크립트
+   ------------------------------------------------------- */
+
+// 저장된 데이터 보관 (출력 시 사용)
+let savedImportData = null;
+
+/* -----------------------------
+    1) 저장 버튼 기능 확장
+------------------------------ */
+document.getElementById("btnSaveImport").onclick = async () => {
+
+    const master = collectMasterData();
+    const items = collectImportItems();
+
+    // 저장된 데이터 저장 (출력할 때 사용됨)
+    savedImportData = { master, items };
+
+    // 기존 저장 로직이 있다면 여기에 추가
+    // await saveToNotion(master, items) 같은 로직…
+
+    // 저장 완료 표시
+    document.getElementById("importMsg").classList.remove("hidden");
+
+    // “출력 버튼” 노출
+    document.getElementById("btnPrintImport").classList.remove("hidden");
+
+    alert("수입자료가 저장되었습니다.");
+};
+
+
+/* -----------------------------
+    2) 출력 버튼 → import.html로 전달
+------------------------------ */
+document.getElementById("btnPrintImport").onclick = () => {
+
+    if (!savedImportData) {
+        alert("저장된 수입 데이터가 없습니다.");
+        return;
+    }
+
+    const url = "import.html?data=" +
+                encodeURIComponent(JSON.stringify(savedImportData));
+
+    // 새 창으로 출력 페이지 열기
+    window.open(url, "_blank");
+};
+
+
+/* -----------------------------
+    3) 기본 정보 수집 함수
+------------------------------ */
+function collectMasterData() {
+    return {
+        ImportNo:          { rich_text: [{ plain_text: document.getElementById("importNo").textContent }] },
+        Date:              { date: { start: document.getElementById("importDate").value }},
+        Exporter:          { rich_text: [{ plain_text: document.getElementById("importExporter").value }] },
+        Importer:          { rich_text: [{ plain_text: document.getElementById("importImporter").value }] },
+        BLNoMaster:        { rich_text: [{ plain_text: document.getElementById("importBLMaster").value }] },
+        BLNoHouse:         { rich_text: [{ plain_text: document.getElementById("importBLHouse").value }] },
+        VesselVoyage:      { rich_text: [{ plain_text: document.getElementById("importVessel").value }] },
+
+        ClearanceDate:     { date: { start: document.getElementById("importClearanceDate").value }},
+        TransportType:     { select: { name: document.getElementById("importTransport").value }},
+        ContainerType:     { select: { name: document.getElementById("importContainer").value }},
+
+        POL:               { rich_text: [{ plain_text: document.getElementById("importPOL").value }] },
+        POD:               { rich_text: [{ plain_text: document.getElementById("importPOD").value }] },
+
+        Freight:           { number: Number(document.getElementById("importFreight").value) },
+        LocalCharges:      { number: Number(document.getElementById("importLocalCharges").value) },
+        DutyAmount:        { number: Number(document.getElementById("importDutyAmount").value) },
+        VatAmount:         { number: Number(document.getElementById("importVatAmount").value) },
+        TotalCost:         { number: Number(document.getElementById("importTotalCost").value) },
+        VatAmount: { number: Number(document.getElementById("importVatAmount").value) },
+
+    };
+}
+
+
+/* -----------------------------
+    4) 품목 수집 함수
+------------------------------ */
+function collectImportItems() {
+
+    const rate = Number(document.getElementById("importRate").value); // 통관/원가 환율
+
+    const rows = document.querySelectorAll("#importItemsBody tr");
+    const items = [];
+
+    rows.forEach(row => {
+        const inputs = row.querySelectorAll("input");
+
+        const unit = Number(inputs[4]?.value || 0);   // USD 단가
+        const qty = Number(inputs[5]?.value || 0);
+        const amountUSD = unit * qty;                 // USD 총액
+        const cbm = Number(inputs[7]?.value || 0);
+
+        const allocFreight = Number(inputs[10]?.value || 0);   // 원화
+        const allocLocal = Number(inputs[11]?.value || 0);      // 원화
+
+        // 해외매입가(원화)
+        const foreignCostKRW = amountUSD * rate;
+
+        // 최종단가(원화)
+        const finalUnit = (foreignCostKRW / qty) + allocFreight + allocLocal;
+
+        // 최종금액(원화)
+        const finalAmount = finalUnit * qty;
+
+        items.push({
+            Product:         { rich_text: [{ plain_text: inputs[0]?.value || "" }] },
+            HSCode:          { rich_text: [{ plain_text: inputs[2]?.value || "" }] },
+            Origin:          { rich_text: [{ plain_text: inputs[3]?.value || "" }] },
+            UnitPrice:       { number: unit },
+            Qty:             { number: qty },
+            Amount:          { number: amountUSD },
+            CBM:             { number: cbm },
+
+            FinalUnitCost:   { number: finalUnit },
+            FinalTotalCost:  { number: finalAmount }
+        });
+    });
+
+    return items;
+}
+
+</script>
+
+</body>
+</html>

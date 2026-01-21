@@ -1,0 +1,611 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Import Cost Calculator</title>
+<style>
+  body { font-family: 'Arial', sans-serif; background-color: #f5f7fa; margin: 20px; }
+  h2 { color: #2c3e50; }
+  .options-container { background-color: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+  /* Grid layout for the parameter section */
+  .options-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 15px;
+  }
+  .option-field {
+    display: flex;
+    flex-direction: column;
+  }
+  .option-field label {
+    font-weight: bold;
+    margin-bottom: 4px;
+    color: #2c3e50;
+  }
+  .option-field select,
+  .option-field input {
+    padding: 6px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .option-field span {
+    display: block;
+    padding: 6px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #f0f2f5;
+    color: #333;
+  }
+  /* Wrapper around the product table to allow horizontal scrolling */
+  .table-wrapper { overflow-x: auto; margin-top: 20px; }
+  #productTable { width: 100%; border-collapse: collapse; }
+  /* Table styling for better readability and aesthetics */
+  /* Header row uses a deep blue tone for contrast */
+  #productTable th {
+    background-color: #263859;
+    color: white;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    padding: 8px;
+    font-size: 13px;
+    text-align: center;
+  }
+  /* Data cells: adjust padding and border for a neat grid */
+  #productTable td {
+    padding: 6px;
+    border: 1px solid #e0e6ed;
+    font-size: 13px;
+  }
+  /* Alternate row colouring for improved readability */
+  #productTable tr:nth-child(even) { background-color: #f9fcff; }
+  #productTable tr:nth-child(odd) { background-color: #ffffff; }
+  /* Hover effect: gently highlight the row */
+  #productTable tr:hover { background-color: #eef5ff; }
+  /* Ensure inputs fill their cells and remain readable */
+  #productTable input[type='number'],
+  #productTable input[type='text'] { width: 100%; box-sizing: border-box; font-size: 13px; padding: 4px; }
+  #productTable tr:nth-child(even) { background-color: #fafafa; }
+  #productTable tr:hover { background-color: #f1f1f1; }
+  /* Colour distinction for editable vs automatic fields */
+  /* Editable input fields have a pale yellow tint, auto fields use a soft blue tint */
+  #productTable input:not([readonly]) { background-color: #fffbe6; }
+  #productTable input[readonly] { background-color: #ecf3fc; }
+  input[type='number'] { text-align: right; }
+  /* Manual/Explanation section styling */
+  .manual-section { background-color: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-top: 20px; font-size: 14px; }
+  .manual-section h3 { color: #2c3e50; margin-top: 10px; }
+  .manual-section ul { margin-left: 20px; }
+  .manual-section ol { margin-left: 20px; }
+  .manual-section li { margin-bottom: 6px; }
+  .manual-section .version { margin-top: 15px; font-style: italic; color: #555; }
+</style>
+</head>
+<body>
+<h2>Import Cost Calculator (FOB → DDP)</h2>
+<div class="options-container">
+  <div class="options-grid">
+    <div class="option-field">
+      <label for="rateMode">Exchange Rate Mode</label>
+      <select id="rateMode" onchange="recalcAll();">
+        <option value="Manual">Manual</option>
+        <option value="Current">Current</option>
+      </select>
+    </div>
+    <div class="option-field">
+      <label for="manualRate">Manual Rate (KRW/USD)</label>
+      <input type="number" id="manualRate" value="1385.39" oninput="recalcAll();">
+    </div>
+    <div class="option-field">
+      <label>Used Rate (KRW/USD)</label>
+      <span id="usedRate">1385.39</span>
+    </div>
+    <div class="option-field">
+      <label for="containerType">Container Type</label>
+      <select id="containerType" onchange="recalcAll();">
+        <option value="20ft">20ft</option>
+        <option value="40ft" selected>40ft</option>
+      </select>
+    </div>
+    <div class="option-field">
+      <label for="departurePort">Departure Port</label>
+      <select id="departurePort" onchange="recalcAll();">
+        <option value="Ningbo (닝보)">Ningbo (닝보)</option>
+        <option value="Shanghai (상해)" selected>Shanghai (상해)</option>
+        <option value="Shekou (심천)">Shekou (심천)</option>
+        <option value="Xiaman(샤먼)">Xiaman(샤먼)</option>
+      </select>
+    </div>
+    <div class="option-field">
+      <label for="destinationPort">Destination Port</label>
+      <select id="destinationPort" onchange="recalcAll();">
+        <option value="Busan (부산)">Busan (부산)</option>
+        <option value="Incheon (인천)" selected>Incheon (인천)</option>
+        <option value="Pyeongtaek (평택)">Pyeongtaek (평택)</option>
+      </select>
+    </div>
+    <div class="option-field">
+      <label for="domTransport">Domestic Transport (KRW/container)</label>
+      <!-- Initial value will be overridden by JS to the default 800000 when mode is Default -->
+      <input type="number" id="domTransport" value="800000" oninput="recalcAll();">
+    </div>
+    <!-- Domestic transport cost mode: default (80만원) or manual -->
+    <div class="option-field">
+      <label for="domTransportMode">Domestic Transport Mode</label>
+      <select id="domTransportMode" onchange="updateDomesticTransport();">
+        <option value="Default">Default</option>
+        <option value="Manual">Manual</option>
+      </select>
+    </div>
+    <div class="option-field">
+      <label for="portCharge">Port Charge (KRW/container)</label>
+      <input type="number" id="portCharge" value="0" oninput="recalcAll();">
+    </div>
+    <div class="option-field">
+      <label for="envFee">Environment Fee (USD/unit)</label>
+      <input type="number" id="envFee" value="0" oninput="recalcAll();">
+    </div>
+    <div class="option-field">
+      <label for="taxRate">Tax Rate</label>
+      <input type="number" id="taxRate" value="0" step="0.001" oninput="recalcAll();">
+    </div>
+    <div class="option-field">
+      <label for="margin">Margin (%)</label>
+      <input type="number" id="margin" value="0" step="0.01" oninput="recalcAll();">
+    </div>
+    <div class="option-field">
+      <label for="quantityMode">Quantity Mode</label>
+      <select id="quantityMode" onchange="recalcAll();">
+        <option value="Computed">Computed</option>
+        <option value="Manual">Manual</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<div class="table-wrapper">
+<table id="productTable">
+  <tr>
+    <th rowspan="2">Category</th>
+    <th rowspan="2">Product Name</th>
+    <th rowspan="2">FOB (USD)</th>
+    <th colspan="3">Size (mm)</th>
+    <th rowspan="2">Units/Carton</th>
+    <th rowspan="2">Computed Qty</th>
+    <th rowspan="2">Manual Qty</th>
+    <th rowspan="2">Selected Qty</th>
+    <th rowspan="2">FOB Total (USD)</th>
+    <!-- Updated header to reflect total sea freight (only one component used) -->
+    <th colspan="4">Sea&nbsp;Freight&nbsp;(USD)</th>
+    <th rowspan="2">Freight Total</th>
+    <th rowspan="2">Freight/unit</th>
+    <th rowspan="2">CIF (USD)</th>
+    <th rowspan="2">Tax (USD)</th>
+    <th rowspan="2">Domestic/unit</th>
+    <th rowspan="2">Port/unit</th>
+    <th rowspan="2">Env/unit</th>
+    <th rowspan="2">DDP (USD)</th>
+    <th rowspan="2">Sales (USD)</th>
+    <th rowspan="2">Profit (USD)</th>
+    <th rowspan="2">Profit Marg</th>
+    <th rowspan="2">DDP (KRW)</th>
+    <th rowspan="2">Sales (KRW)</th>
+    <th rowspan="2">Profit (KRW)</th>
+    <th rowspan="2">Logistics Share</th>
+  </tr>
+  <tr>
+    <th>Length</th><th>Width</th><th>Height</th>
+    <!-- Only the first sub‑column is used for freight; the others remain blank for potential future breakdowns -->
+    <th>Freight&nbsp;(USD)</th><th></th><th></th><th></th>
+  </tr>
+  <tr>
+  <td><input type='text' id='cat1' value='LED Fixture'></td>
+  <td><input type='text' id='name1'></td>
+  <td><input type='number' step='0.01' id='fob1' oninput='computeRow(1);'></td>
+  <td><input type='number' id='len1' oninput='computeComputedQty(1);'></td>
+  <td><input type='number' id='wid1' oninput='computeComputedQty(1);'></td>
+  <td><input type='number' id='hei1' oninput='computeComputedQty(1);'></td>
+  <td><input type='number' id='units1' oninput='computeComputedQty(1);'></td>
+  <td><input type='text' id='compQty1' readonly></td>
+  <td><input type='number' id='manQty1' oninput='computeSelectedQty(1);'></td>
+  <td><input type='text' id='selQty1' readonly></td>
+  <td><input type='text' id='fobTotal1' readonly></td>
+  <td><input type='text' id='base1' readonly></td>
+  <td><input type='text' id='baf1' readonly></td>
+  <td><input type='text' id='caf1' readonly></td>
+  <td><input type='text' id='crs1' readonly></td>
+  <td><input type='text' id='frtTotal1' readonly></td>
+  <td><input type='text' id='frtUnit1' readonly></td>
+  <td><input type='text' id='cif1' readonly></td>
+  <td><input type='text' id='tax1' readonly></td>
+  <td><input type='text' id='domUnit1' readonly></td>
+  <td><input type='text' id='portUnit1' readonly></td>
+  <td><input type='text' id='envUnit1' readonly></td>
+  <td><input type='text' id='ddp1' readonly></td>
+  <td><input type='text' id='sales1' readonly></td>
+  <td><input type='text' id='profit1' readonly></td>
+  <td><input type='text' id='profitMarg1' readonly></td>
+  <td><input type='text' id='ddpKrw1' readonly></td>
+  <td><input type='text' id='salesKrw1' readonly></td>
+  <td><input type='text' id='profitKrw1' readonly></td>
+  <td><input type='text' id='logistics1' readonly></td>
+</tr>
+<tr>
+  <td><input type='text' id='cat2' value='LED Fixture'></td>
+  <td><input type='text' id='name2'></td>
+  <td><input type='number' step='0.01' id='fob2' oninput='computeRow(2);'></td>
+  <td><input type='number' id='len2' oninput='computeComputedQty(2);'></td>
+  <td><input type='number' id='wid2' oninput='computeComputedQty(2);'></td>
+  <td><input type='number' id='hei2' oninput='computeComputedQty(2);'></td>
+  <td><input type='number' id='units2' oninput='computeComputedQty(2);'></td>
+  <td><input type='text' id='compQty2' readonly></td>
+  <td><input type='number' id='manQty2' oninput='computeSelectedQty(2);'></td>
+  <td><input type='text' id='selQty2' readonly></td>
+  <td><input type='text' id='fobTotal2' readonly></td>
+  <td><input type='text' id='base2' readonly></td>
+  <td><input type='text' id='baf2' readonly></td>
+  <td><input type='text' id='caf2' readonly></td>
+  <td><input type='text' id='crs2' readonly></td>
+  <td><input type='text' id='frtTotal2' readonly></td>
+  <td><input type='text' id='frtUnit2' readonly></td>
+  <td><input type='text' id='cif2' readonly></td>
+  <td><input type='text' id='tax2' readonly></td>
+  <td><input type='text' id='domUnit2' readonly></td>
+  <td><input type='text' id='portUnit2' readonly></td>
+  <td><input type='text' id='envUnit2' readonly></td>
+  <td><input type='text' id='ddp2' readonly></td>
+  <td><input type='text' id='sales2' readonly></td>
+  <td><input type='text' id='profit2' readonly></td>
+  <td><input type='text' id='profitMarg2' readonly></td>
+  <td><input type='text' id='ddpKrw2' readonly></td>
+  <td><input type='text' id='salesKrw2' readonly></td>
+  <td><input type='text' id='profitKrw2' readonly></td>
+  <td><input type='text' id='logistics2' readonly></td>
+</tr>
+<tr>
+  <td><input type='text' id='cat3' value='LED Fixture'></td>
+  <td><input type='text' id='name3'></td>
+  <td><input type='number' step='0.01' id='fob3' oninput='computeRow(3);'></td>
+  <td><input type='number' id='len3' oninput='computeComputedQty(3);'></td>
+  <td><input type='number' id='wid3' oninput='computeComputedQty(3);'></td>
+  <td><input type='number' id='hei3' oninput='computeComputedQty(3);'></td>
+  <td><input type='number' id='units3' oninput='computeComputedQty(3);'></td>
+  <td><input type='text' id='compQty3' readonly></td>
+  <td><input type='number' id='manQty3' oninput='computeSelectedQty(3);'></td>
+  <td><input type='text' id='selQty3' readonly></td>
+  <td><input type='text' id='fobTotal3' readonly></td>
+  <td><input type='text' id='base3' readonly></td>
+  <td><input type='text' id='baf3' readonly></td>
+  <td><input type='text' id='caf3' readonly></td>
+  <td><input type='text' id='crs3' readonly></td>
+  <td><input type='text' id='frtTotal3' readonly></td>
+  <td><input type='text' id='frtUnit3' readonly></td>
+  <td><input type='text' id='cif3' readonly></td>
+  <td><input type='text' id='tax3' readonly></td>
+  <td><input type='text' id='domUnit3' readonly></td>
+  <td><input type='text' id='portUnit3' readonly></td>
+  <td><input type='text' id='envUnit3' readonly></td>
+  <td><input type='text' id='ddp3' readonly></td>
+  <td><input type='text' id='sales3' readonly></td>
+  <td><input type='text' id='profit3' readonly></td>
+  <td><input type='text' id='profitMarg3' readonly></td>
+  <td><input type='text' id='ddpKrw3' readonly></td>
+  <td><input type='text' id='salesKrw3' readonly></td>
+  <td><input type='text' id='profitKrw3' readonly></td>
+  <td><input type='text' id='logistics3' readonly></td>
+</tr>
+<tr>
+  <td><input type='text' id='cat4' value='LED Fixture'></td>
+  <td><input type='text' id='name4'></td>
+  <td><input type='number' step='0.01' id='fob4' oninput='computeRow(4);'></td>
+  <td><input type='number' id='len4' oninput='computeComputedQty(4);'></td>
+  <td><input type='number' id='wid4' oninput='computeComputedQty(4);'></td>
+  <td><input type='number' id='hei4' oninput='computeComputedQty(4);'></td>
+  <td><input type='number' id='units4' oninput='computeComputedQty(4);'></td>
+  <td><input type='text' id='compQty4' readonly></td>
+  <td><input type='number' id='manQty4' oninput='computeSelectedQty(4);'></td>
+  <td><input type='text' id='selQty4' readonly></td>
+  <td><input type='text' id='fobTotal4' readonly></td>
+  <td><input type='text' id='base4' readonly></td>
+  <td><input type='text' id='baf4' readonly></td>
+  <td><input type='text' id='caf4' readonly></td>
+  <td><input type='text' id='crs4' readonly></td>
+  <td><input type='text' id='frtTotal4' readonly></td>
+  <td><input type='text' id='frtUnit4' readonly></td>
+  <td><input type='text' id='cif4' readonly></td>
+  <td><input type='text' id='tax4' readonly></td>
+  <td><input type='text' id='domUnit4' readonly></td>
+  <td><input type='text' id='portUnit4' readonly></td>
+  <td><input type='text' id='envUnit4' readonly></td>
+  <td><input type='text' id='ddp4' readonly></td>
+  <td><input type='text' id='sales4' readonly></td>
+  <td><input type='text' id='profit4' readonly></td>
+  <td><input type='text' id='profitMarg4' readonly></td>
+  <td><input type='text' id='ddpKrw4' readonly></td>
+  <td><input type='text' id='salesKrw4' readonly></td>
+  <td><input type='text' id='profitKrw4' readonly></td>
+  <td><input type='text' id='logistics4' readonly></td>
+</tr>
+<tr>
+  <td><input type='text' id='cat5' value='LED Fixture'></td>
+  <td><input type='text' id='name5'></td>
+  <td><input type='number' step='0.01' id='fob5' oninput='computeRow(5);'></td>
+  <td><input type='number' id='len5' oninput='computeComputedQty(5);'></td>
+  <td><input type='number' id='wid5' oninput='computeComputedQty(5);'></td>
+  <td><input type='number' id='hei5' oninput='computeComputedQty(5);'></td>
+  <td><input type='number' id='units5' oninput='computeComputedQty(5);'></td>
+  <td><input type='text' id='compQty5' readonly></td>
+  <td><input type='number' id='manQty5' oninput='computeSelectedQty(5);'></td>
+  <td><input type='text' id='selQty5' readonly></td>
+  <td><input type='text' id='fobTotal5' readonly></td>
+  <td><input type='text' id='base5' readonly></td>
+  <td><input type='text' id='baf5' readonly></td>
+  <td><input type='text' id='caf5' readonly></td>
+  <td><input type='text' id='crs5' readonly></td>
+  <td><input type='text' id='frtTotal5' readonly></td>
+  <td><input type='text' id='frtUnit5' readonly></td>
+  <td><input type='text' id='cif5' readonly></td>
+  <td><input type='text' id='tax5' readonly></td>
+  <td><input type='text' id='domUnit5' readonly></td>
+  <td><input type='text' id='portUnit5' readonly></td>
+  <td><input type='text' id='envUnit5' readonly></td>
+  <td><input type='text' id='ddp5' readonly></td>
+  <td><input type='text' id='sales5' readonly></td>
+  <td><input type='text' id='profit5' readonly></td>
+  <td><input type='text' id='profitMarg5' readonly></td>
+  <td><input type='text' id='ddpKrw5' readonly></td>
+  <td><input type='text' id='salesKrw5' readonly></td>
+  <td><input type='text' id='profitKrw5' readonly></td>
+  <td><input type='text' id='logistics5' readonly></td>
+</tr>
+
+</table>
+</div>
+
+<!-- Settings and calculation manual section placed below the table -->
+<div class="manual-section">
+  <h3>Settings Manual</h3>
+  <p>To use this calculator, configure the following settings:</p>
+  <ul>
+    <li><strong>Exchange Rate Mode</strong>: Choose <em>Manual</em> to input your own KRW/USD rate or <em>Current</em> to use the latest rate stored in the script.</li>
+    <li><strong>Manual Rate (KRW/USD)</strong>: If Manual mode is selected, type the desired exchange rate here.</li>
+    <li><strong>Container Type</strong>: Select the container size (20ft, 40ft, 40HQ) to determine capacity and freight.</li>
+    <li><strong>Departure Port &amp; Destination Port</strong>: Choose the departure and destination ports; sea freight and port charges are automatically retrieved from the embedded data.</li>
+    <li><strong>Domestic Transport Mode</strong>: <em>Default</em> automatically uses the standard domestic transport cost (₩800,000 per container); <em>Manual</em> allows you to input your own value.</li>
+    <li><strong>Port Charge (KRW/container)</strong>: This field shows the port charge based on the selected destination and container type; it updates automatically.</li>
+    <li><strong>Environment Fee (USD/unit)</strong>: Optional per‑unit fee added to the DDP.</li>
+    <li><strong>Tax Rate</strong>: Applicable duty or import tax rate as a decimal (e.g., 0.10 for 10%).</li>
+    <li><strong>Margin (%)</strong>: Desired profit margin expressed as a decimal (e.g., 0.15 for 15%).</li>
+    <li><strong>Quantity Mode</strong>: Choose <em>Computed</em> to let the calculator determine the maximum quantity per container based on carton dimensions and container volume, or <em>Manual</em> to use your own quantity.</li>
+  </ul>
+  <p><strong>Color Coding:</strong> Fields with a pale yellow background represent values you can edit, while fields shaded in light blue are automatically calculated by the system.</p>
+  <h3>Calculation Explanation</h3>
+  <p>The calculator performs the following steps for each product row:</p>
+  <ol>
+    <li><strong>CBM and Quantity</strong>: The carton volume (length × width × height) is divided by 1,000,000,000 to convert cubic millimeters to cubic meters. The container volume (27 m³ for 20ft, 56 m³ for 40ft, 68 m³ for 40HQ) divided by the carton CBM gives the number of cartons that fit in one container. This is multiplied by <em>Units/Carton</em> to get <em>Computed Qty</em>. If <em>Quantity Mode</em> is Manual, the user‑provided quantity is used instead.</li>
+    <li><strong>FOB Total</strong>: FOB price (USD) × Selected Qty.</li>
+    <li><strong>Sea Freight</strong>: The freight rate (USD) is retrieved based on the container type and port combination; BAF/CAF/CRS are currently zero.</li>
+    <li><strong>Freight/unit</strong>: Freight total divided by the selected quantity.</li>
+    <li><strong>CIF</strong>: FOB price plus freight per unit.</li>
+    <li><strong>Tax</strong>: CIF multiplied by the tax rate.</li>
+    <li><strong>Domestic/unit</strong>: Domestic transport cost (KRW/container) is converted to USD using the exchange rate and divided by the selected quantity.</li>
+    <li><strong>Port/unit</strong>: Port charge (KRW/container) is converted to USD using the exchange rate and divided by the selected quantity.</li>
+    <li><strong>Env/unit</strong>: Environment fee per unit, as entered.</li>
+    <li><strong>DDP (USD)</strong>: CIF + tax + domestic/unit + port/unit + env/unit.</li>
+    <li><strong>Sales (USD)</strong>: DDP × (1 + margin).</li>
+    <li><strong>Profit (USD) &amp; Profit Margin</strong>: Sales − DDP, and profit divided by sales.</li>
+    <li><strong>KRW conversions</strong>: DDP, Sales and Profit are multiplied by the used exchange rate to convert to KRW.</li>
+    <li><strong>Logistics Share</strong>: Freight per unit divided by CIF, expressed as a percentage.</li>
+  </ol>
+  <p class="version">Version V1.0 | Created by Sean, Kim</p>
+</div>
+
+<script>
+
+/*
+ * Freight data derived from the user‐provided YNK1.xlsx.  Each entry holds:
+ * [Container Type, Departure Port, Destination Port, Sea Freight (USD), BAF, CAF, CRS].
+ * Only the first value (freight) is used; the others remain 0 for potential future breakdowns.
+ * TOT values per route:
+ *  - Ningbo/Shanghai→Incheon: 340 (20ft), 650 (40ft)
+ *  - Shekou→Incheon: 310 (20ft), 580 (40ft)
+ *  - Xiaman→Incheon: 240 (20ft), 470 (40ft)
+ *  - Ningbo/Shanghai→Busan: 70 (20ft), 120 (40ft)
+ *  - Shekou→Busan: 250 (20ft), 480 (40ft)
+ *  - Xiaman→Busan: 210 (20ft), 410 (40ft)
+ *  - Pyeongtaek routes are assumed to mirror the Incheon rates due to missing data.
+ */
+const freightData = [
+  // 20ft rates
+  ["20ft", "Shanghai (상해)", "Incheon (인천)", 340, 0, 0, 0],
+  ["20ft", "Ningbo (닝보)",   "Incheon (인천)", 340, 0, 0, 0],
+  ["20ft", "Shekou (심천)",   "Incheon (인천)", 310, 0, 0, 0],
+  ["20ft", "Xiaman(샤먼)",     "Incheon (인천)", 240, 0, 0, 0],
+  ["20ft", "Shanghai (상해)", "Busan (부산)",   70,  0, 0, 0],
+  ["20ft", "Ningbo (닝보)",   "Busan (부산)",   70,  0, 0, 0],
+  ["20ft", "Shekou (심천)",   "Busan (부산)",   250, 0, 0, 0],
+  ["20ft", "Xiaman(샤먼)",     "Busan (부산)",   210, 0, 0, 0],
+  ["20ft", "Shanghai (상해)", "Pyeongtaek (평택)", 340, 0, 0, 0],
+  ["20ft", "Ningbo (닝보)",   "Pyeongtaek (평택)", 340, 0, 0, 0],
+  ["20ft", "Shekou (심천)",   "Pyeongtaek (평택)", 310, 0, 0, 0],
+  ["20ft", "Xiaman(샤먼)",     "Pyeongtaek (평택)", 240, 0, 0, 0],
+  // 40ft rates
+  ["40ft", "Shanghai (상해)", "Incheon (인천)", 650, 0, 0, 0],
+  ["40ft", "Ningbo (닝보)",   "Incheon (인천)", 650, 0, 0, 0],
+  ["40ft", "Shekou (심천)",   "Incheon (인천)", 580, 0, 0, 0],
+  ["40ft", "Xiaman(샤먼)",     "Incheon (인천)", 470, 0, 0, 0],
+  ["40ft", "Shanghai (상해)", "Busan (부산)",   120, 0, 0, 0],
+  ["40ft", "Ningbo (닝보)",   "Busan (부산)",   120, 0, 0, 0],
+  ["40ft", "Shekou (심천)",   "Busan (부산)",   480, 0, 0, 0],
+  ["40ft", "Xiaman(샤먼)",     "Busan (부산)",   410, 0, 0, 0],
+  ["40ft", "Shanghai (상해)", "Pyeongtaek (평택)", 650, 0, 0, 0],
+  ["40ft", "Ningbo (닝보)",   "Pyeongtaek (평택)", 650, 0, 0, 0],
+  ["40ft", "Shekou (심천)",   "Pyeongtaek (평택)", 580, 0, 0, 0],
+  ["40ft", "Xiaman(샤먼)",     "Pyeongtaek (평택)", 470, 0, 0, 0]
+];
+
+/*
+ * Port charge data (KRW per container). Values derived from YNK1.xlsx and assumptions:
+ *  - Incheon: 229,200 (20ft), 308,400 (40ft)
+ *  - Busan:   229,429 (20ft), 308,858 (40ft)
+ *  - Pyeongtaek: assumed same as Incheon due to missing data.
+ */
+const portChargeData = [
+  ["20ft", "Incheon (인천)", 229200],
+  ["40ft", "Incheon (인천)", 308400],
+  ["20ft", "Busan (부산)",   229429],
+  ["40ft", "Busan (부산)",   308858],
+  ["20ft", "Pyeongtaek (평택)", 229200],
+  ["40ft", "Pyeongtaek (평택)", 308400]
+];
+const containerVolumes = {"20ft": 27, "40ft": 56, "40HQ": 68};
+const currentRate = 1385.39;
+const rowsCount = 5;
+
+// Default domestic transport cost (KRW per container). 80만원.
+const defaultDomesticTransport = 800000;
+
+// Find port charge (KRW per container) for the selected container and destination.
+function findPortCharge(containerType, departure, destination) {
+  // Port charges depend only on container type and destination port
+  for (let i = 0; i < portChargeData.length; i++) {
+    const row = portChargeData[i];
+    if (row[0] === containerType && row[1] === destination) {
+      return row[2];
+    }
+  }
+  return 0;
+}
+
+// Update domestic transport input based on selected mode (Default or Manual)
+function updateDomesticTransport() {
+  const mode = document.getElementById('domTransportMode').value;
+  const domInput = document.getElementById('domTransport');
+  if (mode === 'Default') {
+    domInput.value = defaultDomesticTransport;
+    domInput.readOnly = true;
+  } else {
+    domInput.readOnly = false;
+    // leave current value as-is when switching to manual
+  }
+  recalcAll();
+}
+function updateUsedRate() {
+  const mode = document.getElementById('rateMode').value;
+  const manualRate = parseFloat(document.getElementById('manualRate').value) || 0;
+  let rate;
+  if (mode === 'Manual') { rate = manualRate; } else { rate = currentRate; }
+  document.getElementById('usedRate').innerText = rate.toFixed(4);
+}
+function findFreight() {
+  const container = document.getElementById('containerType').value;
+  const departure = document.getElementById('departurePort').value;
+  const destination = document.getElementById('destinationPort').value;
+  for (let i = 0; i < freightData.length; i++) {
+    const row = freightData[i];
+    if (row[0] === container && row[1] === departure && row[2] === destination) {
+      return { base: row[3], baf: row[4], caf: row[5], crs: row[6] };
+    }
+  }
+  return { base: 0, baf: 0, caf: 0, crs: 0 };
+}
+let currentFreight = findFreight();
+function updateShippingData() {
+  // Update current freight based on selected container, departure and destination
+  currentFreight = findFreight();
+  // Also update port charge automatically from dataset
+  const container = document.getElementById('containerType').value;
+  const departure = document.getElementById('departurePort').value;
+  const destination = document.getElementById('destinationPort').value;
+  const pc = findPortCharge(container, departure, destination);
+  document.getElementById('portCharge').value = pc;
+}
+function computeComputedQty(i) {
+  const len = parseFloat(document.getElementById('len' + i).value);
+  const wid = parseFloat(document.getElementById('wid' + i).value);
+  const hei = parseFloat(document.getElementById('hei' + i).value);
+  const units = parseFloat(document.getElementById('units' + i).value);
+  let qty = '';
+  if (len > 0 && wid > 0 && hei > 0 && units > 0) {
+    const containerType = document.getElementById('containerType').value;
+    const containerVol = containerVolumes[containerType] || 0;
+    const cbm = (len * wid * hei) / 1000000000;
+    if (cbm > 0) { qty = (containerVol / cbm) * units; }
+  }
+  if (qty !== '') { document.getElementById('compQty' + i).value = qty.toFixed(2); }
+  else { document.getElementById('compQty' + i).value = ''; }
+  computeSelectedQty(i);
+}
+function computeSelectedQty(i) {
+  const mode = document.getElementById('quantityMode').value;
+  const computedQty = parseFloat(document.getElementById('compQty' + i).value);
+  const manualQty = parseFloat(document.getElementById('manQty' + i).value);
+  let sel;
+  if (mode === 'Computed') { sel = computedQty; } else { sel = manualQty; }
+  if (sel && sel > 0) { document.getElementById('selQty' + i).value = sel.toFixed(2); }
+  else { document.getElementById('selQty' + i).value = ''; }
+  computeRow(i);
+}
+function computeRow(i) {
+  const fob = parseFloat(document.getElementById('fob' + i).value);
+  const selQtyVal = parseFloat(document.getElementById('selQty' + i).value);
+  const usedRate = parseFloat(document.getElementById('usedRate').innerText);
+  const taxRate = parseFloat(document.getElementById('taxRate').value) || 0;
+  const margin = parseFloat(document.getElementById('margin').value) || 0;
+  const domTrans = parseFloat(document.getElementById('domTransport').value) || 0;
+  const portCh = parseFloat(document.getElementById('portCharge').value) || 0;
+  const envFee = parseFloat(document.getElementById('envFee').value) || 0;
+  if (fob && selQtyVal) {
+    const fobTotal = fob * selQtyVal;
+    document.getElementById('fobTotal' + i).value = fobTotal.toFixed(2);
+  } else { document.getElementById('fobTotal' + i).value = ''; }
+  document.getElementById('base' + i).value = currentFreight.base.toFixed(2);
+  document.getElementById('baf' + i).value = currentFreight.baf.toFixed(2);
+  document.getElementById('caf' + i).value = currentFreight.caf.toFixed(2);
+  document.getElementById('crs' + i).value = currentFreight.crs.toFixed(2);
+  const freightTotal = currentFreight.base + currentFreight.baf + currentFreight.caf + currentFreight.crs;
+  document.getElementById('frtTotal' + i).value = freightTotal.toFixed(2);
+  let freightUnit = 0; if (selQtyVal > 0) { freightUnit = freightTotal / selQtyVal; }
+  document.getElementById('frtUnit' + i).value = freightUnit.toFixed(4);
+  let cif = '';
+  if (fob && selQtyVal) { cif = fob + freightUnit; document.getElementById('cif' + i).value = cif.toFixed(4); }
+  else { document.getElementById('cif' + i).value = ''; }
+  let taxVal = 0;
+  if (cif !== '' && selQtyVal) { taxVal = cif * taxRate; document.getElementById('tax' + i).value = taxVal.toFixed(4); }
+  else { document.getElementById('tax' + i).value = ''; }
+  let domUnit = 0; if (selQtyVal > 0) { domUnit = (domTrans / usedRate) / selQtyVal; }
+  document.getElementById('domUnit' + i).value = domUnit.toFixed(4);
+  let portUnit = 0; if (selQtyVal > 0) { portUnit = (portCh / usedRate) / selQtyVal; }
+  document.getElementById('portUnit' + i).value = portUnit.toFixed(4);
+  document.getElementById('envUnit' + i).value = envFee.toFixed(4);
+  let ddp = 0;
+  if (cif !== '' && selQtyVal) { ddp = cif + taxVal + domUnit + portUnit + envFee; document.getElementById('ddp' + i).value = ddp.toFixed(4); }
+  else { document.getElementById('ddp' + i).value = ''; }
+  let sales = 0;
+  if (ddp) { sales = ddp * (1 + margin); document.getElementById('sales' + i).value = sales.toFixed(4); }
+  else { document.getElementById('sales' + i).value = ''; }
+  let profit = 0; let profitMargin = 0;
+  if (sales) { profit = sales - ddp; profitMargin = profit / sales; document.getElementById('profit' + i).value = profit.toFixed(4); document.getElementById('profitMarg' + i).value = (profitMargin * 100).toFixed(2) + '%'; }
+  else { document.getElementById('profit' + i).value = ''; document.getElementById('profitMarg' + i).value = ''; }
+  if (ddp) { document.getElementById('ddpKrw' + i).value = (ddp * usedRate).toFixed(2); document.getElementById('salesKrw' + i).value = (sales * usedRate).toFixed(2); document.getElementById('profitKrw' + i).value = (profit * usedRate).toFixed(2); }
+  else { document.getElementById('ddpKrw' + i).value = ''; document.getElementById('salesKrw' + i).value = ''; document.getElementById('profitKrw' + i).value = ''; }
+  if (cif !== '' && cif > 0) { const share = freightUnit / cif; document.getElementById('logistics' + i).value = (share * 100).toFixed(2) + '%'; }
+  else { document.getElementById('logistics' + i).value = ''; }
+}
+function recalcAll() {
+  updateShippingData();
+  updateUsedRate();
+  for (let i = 1; i <= rowsCount; i++) { computeComputedQty(i); }
+}
+window.addEventListener('DOMContentLoaded', function() {
+  updateUsedRate();
+  updateShippingData();
+  updateDomesticTransport();
+});
+
+</script>
+</body>
+</html>

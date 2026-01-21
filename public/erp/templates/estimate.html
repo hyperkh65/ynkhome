@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<title>견적서</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- PDF 변환 라이브러리 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<style>
+  :root{
+    --blue-main:#2A69B1;
+    --blue-light:#E9F1FB;
+    --line:#BFCFE3;
+    --text-dark:#1F2A37;
+    --text-light:#4A5568;
+  }
+
+  body {
+    font-family: 'Pretendard', sans-serif;
+    width: 210mm;
+    margin: 0 auto;
+    padding: 0;
+    background: #FFFFFF;
+    color: var(--text-dark);
+  }
+
+  /* ===== 버튼 영역 ===== */
+  #actionButtons {
+    position: fixed;
+    top: 20px;
+    right: 25px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .action-btn {
+    background: var(--blue-main);
+    color: white;
+    border: none;
+    padding: 10px 14px;
+    font-size: 13px;
+    border-radius: 6px;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.25);
+  }
+  .action-btn:hover { opacity: 0.85; }
+
+  /* 본문 */
+  .page-frame {
+    width: 210mm;
+    min-height: 297mm;
+    padding: 18mm 16mm;
+    border: 1px solid var(--line);
+    box-sizing: border-box;
+    position: relative;
+  }
+
+  .logo {
+    max-width: 150px;
+    width: 22%;
+    height: auto;
+    display: block;
+    margin: 0 auto 0 auto;
+  }
+
+  h1 {
+    text-align: center;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--blue-main);
+    margin: 10px 0 15px 0;
+    letter-spacing: 2px;
+  }
+
+  .est-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: var(--text-light);
+    margin-bottom: 22px;
+  }
+
+  .flex-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 14px;
+  }
+
+  .info-box {
+    width: 50%;
+    padding: 14px 16px;
+    border: 1px solid var(--line);
+    background: #FAFCFF;
+    border-radius: 4px;
+    position: relative;   /* 도장 배치용 */
+  }
+
+  .info-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--blue-main);
+    margin-bottom: 8px;
+  }
+
+  #cust-name {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .info-item {
+    font-size: 12.5px;
+    margin-bottom: 4px;
+    color: var(--text-light);
+  }
+
+  /* 도장 inside Y&K 박스 */
+  .stamp-inside {
+    width: 210px;       /*  1.5배 확대 적용 */
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    opacity: 0.95;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 26px;
+    font-size: 11.6px;
+  }
+
+  /*  행 정렬 개선 */
+  table th, table td {
+    vertical-align: middle !important;
+    line-height: 1.35;
+    padding-top: 6px;
+    padding-bottom: 6px;
+  }
+
+  th {
+    background: var(--blue-light);
+    border: 1px solid var(--line);
+    padding: 7px 4px;
+    color: var(--blue-main);
+    font-weight: 700;
+    text-align: center;
+  }
+
+  td {
+    border: 1px solid var(--line);
+    padding: 5px 4px;
+    text-align: center;
+    background: #ffffff;
+    color: var(--text-dark);
+  }
+
+  .section-title {
+    margin-top: 26px;
+    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--blue-main);
+    border-left: 4px solid var(--blue-main);
+    padding-left: 10px;
+  }
+
+  .notes-box {
+    border: 1px solid var(--line);
+    background: #FAFCFF;
+    padding: 12px;
+    border-radius: 4px;
+    min-height: 70px;
+    white-space: pre-line;
+    color: var(--text-light);
+  }
+
+  .total-box {
+    margin-top: 20px;
+    border: 1px solid var(--blue-main);
+    padding: 14px;
+    border-radius: 4px;
+    background: #F4F9FF;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--blue-main);
+  }
+
+  .confidential {
+    margin-top: 18px;
+    text-align: center;
+    font-size: 11.5px;
+    color: #CC0000;
+    font-weight: 600;
+  }
+
+  .footer {
+    margin-top: 22px;
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-light);
+  }
+</style>
+</head>
+
+<body>
+
+<!-- PDF / 인쇄 버튼 -->
+<div id="actionButtons">
+  <button class="action-btn" id="btnPdf">PDF 다운로드</button>
+  <button class="action-btn" id="btnPrint">인쇄</button>
+</div>
+
+<div id="estimateArea" class="page-frame">
+
+  <img src="https://ynk2014.com/erp/templates/logo.png" class="logo" />
+  <h1>견&nbsp;적&nbsp;서</h1>
+
+  <div class="est-header">
+    <div><b>견적번호:</b> <span id="est-no"></span></div>
+    <div><b>견적일자:</b> <span id="est-date"></span></div>
+  </div>
+
+  <div class="flex-row">
+
+    <!-- 고객 정보 -->
+    <div class="info-box">
+      <div class="info-title">고객사 정보</div>
+      <div id="cust-name"></div>
+      <div class="info-item"><b>주소:</b> <span id="cust-address"></span></div>
+      <div class="info-item"><b>전화:</b> <span id="cust-tel"></span></div>
+      <div class="info-item"><b>팩스:</b> <span id="cust-fax"></span></div>
+      <div class="info-item"><b>Email:</b> <span id="cust-email"></span></div>
+    </div>
+
+    <!-- YNK 정보 + 도장 -->
+    <div class="info-box">
+      <div class="info-title">(주)와이앤케이</div>
+      <div class="info-item">주소: 인천광역시 미추홀구 석정로 271</div>
+      <div class="info-item">Tel: 032-862-1350</div>
+      <div class="info-item">Fax: 032-863-1351</div>
+      <div class="info-item">Email: <span id="company-email"></span></div>
+
+      <!-- 도장 -->
+      <img src="https://ynk2014.com/erp/templates/stamp.png" class="stamp-inside" />
+    </div>
+
+  </div>
+
+
+  <table>
+    <thead>
+      <tr>
+        <th>ITEM</th>
+        <th>Product</th>
+        <th>Description</th>
+        <th>Volt</th>
+        <th>Watt</th>
+        <th>Eff.</th>
+        <th>Lumen</th>
+        <th>CCT</th>
+        <th>Unit</th>
+        <th>Unit Price</th>
+        <th>Qty</th>
+        <th>Amount</th>
+        <th>Code</th>
+      </tr>
+    </thead>
+    <tbody id="est-body"></tbody>
+  </table>
+
+  <div class="total-box">
+    총 합계: <span id="total-amount">0</span>
+  </div>
+
+  <div class="section-title">Terms / Conditions</div>
+  <div class="notes-box" id="est-terms"></div>
+
+  <div class="section-title">General Information</div>
+  <div class="notes-box" id="est-general"></div>
+
+  <div class="section-title">Special Notes</div>
+  <div class="notes-box" id="est-special"></div>
+
+  <div class="confidential">
+    ※ 본 견적서는 기밀 문서이며 외부 공유 및 무단 복제를 금합니다.
+  </div>
+
+  <div class="footer">
+    Page 1 / 1
+  </div>
+
+</div>
+
+
+<script>
+let estData = null;
+
+function makeSafeFileName(str){
+  if(!str) return '';
+  return String(str)
+    .replace(/[\\\/:*?"<>|]/g,'_')
+    .replace(/\s+/g,' ')
+    .trim();
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  let params={};
+  location.search.substring(1).split('&').forEach(v=>{
+    if(!v) return;
+    let [k,val]=v.split('=');
+    params[k]=decodeURIComponent(val||'');
+  });
+
+  if(!params.data){
+    alert("견적 데이터가 없습니다.");
+    return;
+  }
+
+  try { estData = JSON.parse(params.data); }
+  catch(e){
+    alert("견적 데이터 오류");
+    return;
+  }
+
+  document.getElementById("est-no").textContent   = estData.no || '';
+  document.getElementById("est-date").textContent = estData.date || '';
+
+  document.getElementById("cust-name").textContent    = estData.client || '';
+  document.getElementById("cust-address").textContent = estData.address || '';
+  document.getElementById("cust-tel").textContent     = estData.tel || '';
+  document.getElementById("cust-fax").textContent     = estData.fax || '';
+  document.getElementById("cust-email").textContent   = estData.email || '';
+
+  document.getElementById("company-email").textContent = estData.companyEmail || '';
+
+  document.getElementById("est-terms").textContent   = estData.terms || '';
+  document.getElementById("est-general").textContent = estData.general || '';
+  document.getElementById("est-special").textContent = estData.special || '';
+
+  const rows = estData.rows || [];
+  let total = 0;
+  let currency = "";
+
+  const body = document.getElementById("est-body");
+
+  rows.forEach((r,i)=>{
+    const amt = Number(r.Amount||0);
+    total += amt;
+    if(r.Unit) currency = r.Unit;
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${i+1}</td>
+      <td>${r.Product||""}</td>
+      <td style="text-align:left;padding-left:6px;">${r.Description||""}</td>
+      <td>${r.Voltage||""}</td>
+      <td>${r.Watts||""}</td>
+      <td>${r.Eff||""}</td>
+      <td>${r.Lumen||""}</td>
+      <td>${r.CCT||""}</td>
+      <td>${r.Unit||""}</td>
+      <td>${(r.UnitPrice||0).toLocaleString('ko-KR')}</td>
+      <td>${(r.Qty||0).toLocaleString('ko-KR')}</td>
+      <td>${amt.toLocaleString('ko-KR')}</td>
+      <td>${r.Code||""}</td>
+    `;
+    body.appendChild(tr);
+  });
+
+  document.getElementById("total-amount").textContent =
+    `${total.toLocaleString('ko-KR')} ${currency}`;
+});
+
+/* PDF 다운로드 */
+document.getElementById("btnPdf").onclick = () => {
+  const element = document.getElementById("estimateArea");
+
+  const no = estData?.no || '견적';
+  const client = estData?.client || '';
+  const rows = estData?.rows?.length || 0;
+  const p0 = estData?.rows?.[0]?.Product || '';
+  const pName = rows > 1 ? `${p0} 외 ${rows-1}건` : p0;
+
+  let filename = [no, client, pName].filter(Boolean).join('_');
+  filename = makeSafeFileName(filename);
+
+  html2pdf().set({
+    margin: 5,
+    filename: filename + '.pdf',
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2 },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  }).from(element).save();
+};
+
+/* 인쇄 */
+document.getElementById("btnPrint").onclick = () => window.print();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<title>발주서 (Purchase Order)</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<style>
+:root{
+  --blue-main:#2A69B1;
+  --blue-light:#E9F1FB;
+  --line:#BFCFE3;
+  --text-dark:#1F2A37;
+  --text-light:#4A5568;
+}
+body{
+  font-family:'Pretendard',sans-serif;
+  width:210mm;
+  margin:0 auto;
+  padding:0;
+  background:#fff;
+  color:var(--text-dark);
+}
+#actionButtons{
+  position:fixed;
+  top:20px;
+  right:25px;
+  z-index:9999;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+.action-btn{
+  background:var(--blue-main);
+  color:#fff;
+  border:none;
+  padding:10px 14px;
+  font-size:13px;
+  border-radius:6px;
+  cursor:pointer;
+  box-shadow:0 2px 5px rgba(0,0,0,0.25);
+}
+.page-frame{
+  width:210mm;
+  min-height:297mm;
+  padding:18mm 16mm;
+  border:1px solid var(--line);
+  box-sizing:border-box;
+}
+.logo{
+  max-width:150px;
+  width:22%;
+  margin:0 auto;
+  display:block;
+}
+h1{
+  text-align:center;
+  font-size:26px;
+  font-weight:700;
+  color:var(--blue-main);
+  margin:10px 0 15px 0;
+  letter-spacing:4px;
+}
+.flex-row{
+  display:flex;
+  justify-content:space-between;
+  gap:14px;
+}
+.info-box{
+  width:50%;
+  padding:14px 16px;
+  border:1px solid var(--line);
+  background:#FAFCFF;
+  border-radius:4px;
+  position:relative;
+}
+.info-title{
+  font-size:14px;
+  font-weight:700;
+  color:var(--blue-main);
+  margin-bottom:8px;
+}
+.info-item{
+  font-size:12.5px;
+  margin-bottom:4px;
+  color:var(--text-light);
+}
+.stamp-inside{
+  width:210px;
+  position:absolute;
+  bottom:10px;
+  right:10px;
+  opacity:.95;
+}
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:26px;
+  font-size:11.6px;
+}
+table th,table td{
+  border:1px solid var(--line);
+  text-align:center;
+  padding:6px 4px;
+}
+th{
+  background:var(--blue-light);
+  font-weight:700;
+}
+.section-title{
+  margin-top:26px;
+  margin-bottom:8px;
+  font-size:14px;
+  font-weight:700;
+  color:var(--blue-main);
+  border-left:4px solid var(--blue-main);
+  padding-left:10px;
+}
+.notes-box{
+  border:1px solid var(--line);
+  background:#FAFCFF;
+  padding:12px;
+  border-radius:4px;
+  min-height:70px;
+  white-space:pre-line;
+  color:var(--text-light);
+}
+.total-box{
+  margin-top:20px;
+  border:1px solid var(--blue-main);
+  padding:14px;
+  border-radius:4px;
+  background:#F4F9FF;
+  font-size:15px;
+  font-weight:700;
+  color:var(--blue-main);
+}
+.footer{
+  margin-top:22px;
+  text-align:center;
+  font-size:11px;
+  color:var(--text-light);
+}
+</style>
+</head>
+
+<body>
+
+<div id="actionButtons">
+  <button class="action-btn" id="btnPdf">PDF 다운로드</button>
+  <button class="action-btn" id="btnPrint">인쇄</button>
+</div>
+
+<div id="poArea" class="page-frame">
+
+  <img src="https://ynk2014.com/erp/templates/logo.png" class="logo">
+  <h1 id="title-po">발주서</h1>
+
+  <div style="display:flex;justify-content:space-between;margin-bottom:22px;">
+    <div><b id="lbl-po-no">발주번호:</b> <span id="po-no"></span></div>
+    <div><b id="lbl-po-date">발주일자:</b> <span id="po-date"></span></div>
+  </div>
+
+  <div class="flex-row">
+
+    <div class="info-box">
+      <div class="info-title" id="lbl-supplier-box">공급사 정보</div>
+      <div class="info-item"><b>상호:</b> <span id="sup-name"></span></div>
+      <div class="info-item"><b>주소:</b> <span id="sup-address"></span></div>
+      <div class="info-item"><b>TEL:</b> <span id="sup-tel"></span></div>
+      <div class="info-item"><b>FAX:</b> <span id="sup-fax"></span></div>
+      <div class="info-item"><b>Email:</b> <span id="sup-email"></span></div>
+    </div>
+
+    <div class="info-box">
+      <div class="info-title" id="lbl-ynk-box">발주사: (주)와이앤케이</div>
+      <div class="info-item">주소: 인천광역시 미추홀구 석정로 271</div>
+      <div class="info-item">Tel: 032-862-1350</div>
+      <div class="info-item">Fax: 032-863-1351</div>
+      <div class="info-item">Email: info@ynk2014.com</div>
+      <img src="https://ynk2014.com/erp/templates/stamp.png" class="stamp-inside">
+    </div>
+
+  </div>
+
+  <table>
+    <thead id="po-head"></thead>
+    <tbody id="po-body"></tbody>
+  </table>
+
+  <div class="total-box" id="total-box"></div>
+
+  <div class="section-title">Terms / Conditions</div>
+  <div class="notes-box" id="po-terms"></div>
+
+  <div class="section-title">General</div>
+  <div class="notes-box" id="po-general"></div>
+
+  <div class="section-title">Special</div>
+  <div class="notes-box" id="po-special"></div>
+
+  <div class="section-title">Notes</div>
+  <div class="notes-box" id="po-notes"></div>
+
+  <div class="footer">Page 1 / 1</div>
+
+</div>
+
+<script>
+let poData = null;
+
+function safeName(t){
+  return String(t||"").replace(/[\\\/:*?"<>|]/g,"_").trim();
+}
+
+const HEAD_KO = `
+<tr>
+  <th>No</th><th>제품명</th><th>규격</th><th>전압</th><th>전력</th>
+  <th>효율</th><th>루멘</th><th>CCT</th><th>단위</th><th>단가</th>
+  <th>수량</th><th>금액</th><th>비고</th>
+</tr>`;
+
+const HEAD_EN = `
+<tr>
+  <th>No</th><th>Product</th><th>Description</th><th>Volt</th><th>Watt</th>
+  <th>Eff</th><th>Lumen</th><th>CCT</th><th>Unit</th><th>Unit Price</th>
+  <th>Qty</th><th>Amount</th><th>Remark</th>
+</tr>`;
+
+document.addEventListener("DOMContentLoaded",()=>{
+
+  let params={};
+  location.search.substring(1).split("&").forEach(v=>{
+    if(!v) return;
+    let[k,val]=v.split("=");
+    params[k]=decodeURIComponent(val||"");
+  });
+
+  if(!params.data){ alert("발주 데이터가 없습니다."); return; }
+
+  try{ poData = JSON.parse(params.data); }
+  catch(e){ alert("발주 데이터 오류"); return; }
+
+  const isEN = (poData.index === "외자");
+
+  document.getElementById("title-po").textContent = isEN?"PURCHASE ORDER":"발주서";
+  document.getElementById("lbl-po-no").textContent = isEN?"P.O No:":"발주번호:";
+  document.getElementById("lbl-po-date").textContent = isEN?"Date:":"발주일자:";
+  document.getElementById("lbl-supplier-box").textContent = isEN?"Supplier Information":"공급사 정보";
+  document.getElementById("lbl-ynk-box").textContent = isEN?"Purchaser: YnK Co., Ltd.":"발주사: (주)와이앤케이";
+
+  document.getElementById("sup-name").textContent    = poData.supplier || "";
+  document.getElementById("sup-address").textContent = poData.address  || "";
+  document.getElementById("sup-tel").textContent     = poData.tel      || "";
+  document.getElementById("sup-fax").textContent     = poData.fax      || "";
+  document.getElementById("sup-email").textContent   = poData.email    || "";
+
+  document.getElementById("po-no").textContent       = poData.no || "";
+  document.getElementById("po-date").textContent     = poData.date || "";
+
+  document.getElementById("po-terms").textContent    = poData.terms || "";
+  document.getElementById("po-general").textContent  = poData.general || "";
+  document.getElementById("po-special").textContent  = poData.special || "";
+
+  const noteParts = [];
+  if (poData.notes) noteParts.push(poData.notes);
+  document.getElementById("po-notes").textContent = noteParts.join("\n\n");
+
+  const currencyText = poData.currency ? ` ${poData.currency}` : "";
+  document.getElementById("total-box").textContent =
+    (isEN?"Total Amount: ":"총 합계: ") +
+    (poData.total||0).toLocaleString("ko-KR") +
+    currencyText;
+
+  document.getElementById("po-head").innerHTML = isEN?HEAD_EN:HEAD_KO;
+
+  let html="";
+  (poData.rows||[]).forEach((r,i)=>{
+    html += `
+    <tr>
+      <td>${i+1}</td>
+      <td>${r.Product||""}</td>
+      <td>${r.Description||""}</td>
+      <td>${r.Voltage||""}</td>
+      <td>${r.Watts||""}</td>
+      <td>${r.Eff||""}</td>
+      <td>${r.Lumen||""}</td>
+      <td>${r.CCT||""}</td>
+      <td>${r.Unit||""}</td>
+      <td>${(r.UnitPrice||0).toLocaleString("ko-KR")}</td>
+      <td>${(r.Qty||0).toLocaleString("ko-KR")}</td>
+      <td>${(r.Amount||0).toLocaleString("ko-KR")}</td>
+      <td>${r.Remark||""}</td>
+    </tr>`;
+  });
+
+  document.getElementById("po-body").innerHTML = html;
+
+});
+
+document.getElementById("btnPdf").onclick = ()=>{
+  const fn = safeName(poData.no + "_" + poData.supplier);
+  html2pdf().set({
+    margin:5,
+    filename:fn+".pdf",
+    html2canvas:{scale:2},
+    jsPDF:{unit:"mm",format:"a4"}
+  }).from(document.getElementById("poArea")).save();
+};
+
+document.getElementById("btnPrint").onclick=()=>window.print();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,891 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>YNK Mini ERP (Notion 연동 풀버전)</title>
+
+<!-- Tailwind -->
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- SheetJS for Excel export -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+<style>
+  .btn{padding:.5rem .75rem;border-radius:.75rem;transition:.2s}
+  .btn:hover{opacity:.9}
+  td,th{white-space:nowrap;text-align:center}
+  table{width:100%;border-collapse:collapse}
+  th{background:#f9fafb;font-weight:600}
+  .shadow-card{box-shadow:0 2px 6px rgba(0,0,0,0.05)}
+  .note{font-size:.75rem;color:#6b7280}
+</style>
+</head>
+<body class="bg-gray-50 text-gray-900">
+
+<header class="bg-white border-b border-gray-200 sticky top-0 z-30">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold">ERP</div>
+      <h1 class="text-lg font-semibold">YNK Mini ERP · Notion Full</h1>
+    </div>
+    <div id="userBadge" class="hidden items-center gap-3">
+      <span id="userName" class="text-sm text-gray-700"></span>
+      <button id="btnLogout" class="text-sm text-red-600 hover:underline">로그아웃</button>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+  <!-- 로그인 -->
+  <section id="authPanel" class="max-w-md mx-auto bg-white rounded-2xl shadow p-6">
+    <h2 class="text-xl font-semibold">로그인</h2>
+    <p class="text-sm text-gray-600 mt-1">Notion Users DB 의 Email + Password(평문)로 인증합니다.</p>
+    <form id="loginForm" class="mt-4 grid gap-3">
+      <div>
+        <label class="text-sm">이메일</label>
+        <input id="loginEmail" type="email" required class="mt-1 w-full border rounded-xl px-3 py-2" placeholder="you@company.com" />
+      </div>
+      <div>
+        <label class="text-sm">비밀번호</label>
+        <input id="loginPassword" type="password" required class="mt-1 w-full border rounded-xl px-3 py-2" placeholder="••••••••" />
+      </div>
+      <button class="mt-2 btn bg-emerald-600 text-white">로그인</button>
+      <div id="loginMsg" class="text-sm text-red-600 hidden">이메일 또는 비밀번호가 올바르지 않습니다.</div>
+    </form>
+  </section>
+
+  <!-- 앱 -->
+  <section id="appPanel" class="hidden">
+    <div class="flex flex-wrap gap-2 mb-4">
+      <button data-tab="sales-entry"   class="tab-btn btn bg-emerald-600 text-white">매출 입력</button>
+      <button data-tab="sales-search"  class="tab-btn btn bg-white border">매출 조회</button>
+      <button data-tab="products-entry"class="tab-btn btn bg-white border">상품 입력</button>
+      <button data-tab="clients"       class="tab-btn btn bg-white border">거래처</button>
+      <button data-tab="quotes"        class="tab-btn btn bg-white border">견적</button>
+    </div>
+
+    <!-- 매출 입력 -->
+    <div id="tab-sales-entry" class="tab">
+      <div class="bg-white p-6 rounded-2xl shadow-card space-y-5">
+        <h3 class="font-semibold text-lg">매출 입력</h3>
+        <div class="text-sm text-gray-600">
+          매출번호: <span id="saleCodeEl" class="font-semibold text-emerald-700">자동생성됨</span>
+        </div>
+        <div class="grid md:grid-cols-4 gap-4">
+          <div>
+            <label class="text-sm">거래처명</label>
+            <div class="mt-1 flex gap-2">
+              <input id="saleCustomer" class="w-full border rounded-xl px-3 py-2 bg-gray-50" placeholder="거래처 선택" readonly />
+              <button type="button" id="btnPickClient" class="btn bg-gray-200">선택</button>
+            </div>
+            <p class="note mt-1">※ 거래처 DB와 연동됩니다. 목록에 없으면 먼저 거래처 탭에서 등록하세요.</p>
+          </div>
+          <div>
+            <label class="text-sm">매출유형</label>
+            <select id="saleType" class="mt-1 w-full border rounded-xl px-3 py-2">
+              <option value="내자" selected>내자</option>
+              <option value="외자">외자</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-sm">환율</label>
+            <input type="number" id="saleRate" class="mt-1 w-full border rounded-xl px-3 py-2" value="1" />
+            <p class="text-xs text-gray-500 mt-1" id="rateHint">내자는 환율 1로 고정됩니다.</p>
+          </div>
+          <div>
+            <label class="text-sm">날짜</label>
+            <input type="date" id="saleDate" class="mt-1 w-full border rounded-xl px-3 py-2" />
+          </div>
+        </div>
+        <div class="bg-gray-50 rounded-xl p-4">
+          <div class="flex items-center justify-between mb-2">
+            <h4 class="font-semibold text-sm">상품 항목</h4>
+            <button id="addItem" type="button" class="text-sm text-emerald-600 underline">+ 행 추가</button>
+          </div>
+          <div class="overflow-auto">
+            <table class="text-sm" id="itemsTable">
+              <thead>
+                <tr class="border-b bg-white">
+                  <th class="py-2 px-2">제품코드</th>
+                  <th class="py-2 px-2">상품명</th>
+                  <th class="py-2 px-2">규격</th>
+                  <th class="py-2 px-2">수량</th>
+                  <th class="py-2 px-2">단가</th>
+                  <th class="py-2 px-2">금액</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <div class="text-right mt-3 text-gray-700 font-medium">
+            총액: <span id="saleTotal" class="font-semibold text-emerald-700">₩0</span>
+          </div>
+        </div>
+        <div class="flex justify-end items-center gap-3">
+          <button id="btnSaveSale" class="btn bg-emerald-600 text-white px-5">등록</button>
+          <button id="btnPrintStatement" class="btn bg-blue-600 text-white px-5 hidden">거래명세표 출력</button>
+          <span id="saleMsg" class="text-sm text-green-600 hidden">등록됨</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 매출 조회 -->
+    <div id="tab-sales-search" class="tab hidden">
+      <div class="bg-white p-6 rounded-2xl shadow-card space-y-5">
+        <h3 class="font-semibold text-lg">매출 조회</h3>
+        <form id="formSalesSearch" class="grid md:grid-cols-5 gap-4 items-end">
+          <div>
+            <label class="text-sm">거래처명</label>
+            <div class="mt-1 flex gap-2">
+              <input id="sCustomer" class="w-full border rounded-xl px-3 py-2 bg-gray-50" placeholder="전체" readonly />
+              <button type="button" id="btnPickClientSearch" class="btn bg-gray-200">선택</button>
+              <button type="button" id="btnClearClientSearch" class="btn bg-gray-100">전체</button>
+            </div>
+            <p class="text-xs text-gray-500 mt-1">미선택 또는 ‘전체’ 클릭 시 거래처 제한 없이 조회됩니다.</p>
+          </div>
+          <div>
+            <label class="text-sm">상품명</label>
+            <input id="sItem" class="mt-1 w-full border rounded-xl px-3 py-2" placeholder="부분검색" />
+          </div>
+          <div>
+            <label class="text-sm">매출유형</label>
+            <select id="sType" class="mt-1 w-full border rounded-xl px-3 py-2">
+              <option value="" selected>전체</option>
+              <option value="내자">내자</option>
+              <option value="외자">외자</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-sm">시작일</label>
+            <input type="date" id="sFrom" class="mt-1 w-full border rounded-xl px-3 py-2" />
+          </div>
+          <div>
+            <label class="text-sm">종료일</label>
+            <input type="date" id="sTo" class="mt-1 w-full border rounded-xl px-3 py-2" />
+          </div>
+          <div class="md:col-span-5 flex gap-2">
+            <button class="btn bg-emerald-600 text-white px-5">검색</button>
+            <button type="button" id="btnReloadSales" class="btn bg-gray-200">새로고침</button>
+            <button type="button" id="btnExportExcel" class="btn bg-blue-600 text-white px-5">엑셀 다운로드</button>
+          </div>
+        </form>
+
+        <div class="overflow-auto">
+          <table class="min-w-full text-sm">
+            <thead>
+              <tr class="text-left border-b bg-gray-50">
+                <th class="py-2 px-3">매출번호</th>
+                <th class="py-2 px-3">날짜</th>
+                <th class="py-2 px-3">거래처</th>
+                <th class="py-2 px-3">상품</th>
+                <th class="py-2 px-3">규격</th>
+                <th class="py-2 px-3">유형</th>
+                <th class="py-2 px-3 text-right">수량</th>
+                <th class="py-2 px-3 text-right">단가</th>
+                <th class="py-2 px-3 text-right">합계</th>
+                <th class="py-2 px-3">담당자</th>
+                <th class="py-2 px-3">삭제</th>
+              </tr>
+            </thead>
+            <tbody id="salesTbody"></tbody>
+          </table>
+        </div>
+        <div id="salesSummary" class="text-right text-sm text-gray-700 font-medium mt-3"></div>
+      </div>
+    </div>
+
+    <!-- 상품 입력 -->
+    <div id="tab-products-entry" class="tab hidden">
+      <div class="bg-white p-6 rounded-2xl shadow-card space-y-5">
+        <h3 class="font-semibold text-lg">상품 입력</h3>
+        <form id="productForm" class="space-y-4">
+          <div class="grid md:grid-cols-4 gap-4">
+            <div><label class="text-sm font-medium">제품 구분</label><input id="prodCategory" class="mt-1 w-full border rounded-xl px-3 py-2" /></div>
+            <div><label class="text-sm font-medium">제품명</label><input id="prodName" class="mt-1 w-full border rounded-xl px-3 py-2" /></div>
+            <div><label class="text-sm font-medium">제조사</label><input id="prodMaker" class="mt-1 w-full border rounded-xl px-3 py-2" /></div>
+            <div><label class="text-sm font-medium">판매사</label><input id="prodClient" class="mt-1 w-full border rounded-xl px-3 py-2" /></div>
+          </div>
+          <div class="grid md-grid-cols-4 gap-4">
+            <div><label class="text-sm font-medium">제품 원가</label><input type="number" id="prodCost" class="mt-1 w-full border rounded-xl px-3 py-2 text-right" /></div>
+            <div><label class="text-sm font-medium">입력전류</label><input id="prodInputA" class="mt-1 w-full border rounded-xl px-3 py-2" /></div>
+            <div><label class="text-sm font-medium">출력전압</label><input id="prodOutputV" class="mt-1 w-full border rounded-xl px-3 py-2" /></div>
+            <div><label class="text-sm font-medium">출력전류</label><input id="prodOutputA" class="mt-1 w-full border rounded-xl px-3 py-2" /></div>
+          </div>
+          <div class="grid md-grid-cols-3 gap-4">
+            <div><label class="text-sm font-medium">재질</label><input id="prodMaterial" class="mt-1 w-full border rounded-xl px-3 py-2" /></div>
+            <div><label class="text-sm font-medium">크기</label><input id="prodSize" class="mt-1 w-full border rounded-xl px-3 py-2" /></div>
+            <div><label class="text-sm font-medium">컨버터 포함</label><input id="prodConverter" class="mt-1 w-full border rounded-xl px-3 py-2" /></div>
+          </div>
+          <div><label class="text-sm font-medium">제품 세부 스펙</label><textarea id="prodDetail" rows="5" class="mt-1 w-full border rounded-xl px-3 py-2 text-sm"></textarea></div>
+          <div>
+            <label class="text-sm font-medium">첨부파일</label>
+            <div class="grid md-grid-cols-3 gap-3 mt-2">
+              <div><span class="text-xs text-gray-600">제품 사양서</span><input type="file" id="fileSpec" class="block w-full mt-1 text-sm" /></div>
+              <div><span class="text-xs text-gray-600">KS/KC 인증서</span><input type="file" id="fileKSKC" class="block w-full mt-1 text-sm" /></div>
+              <div><span class="text-xs text-gray-600">전자파 인증서</span><input type="file" id="fileEMI" class="block w-full mt-1 text-sm" /></div>
+              <div><span class="text-xs text-gray-600">효율등급서</span><input type="file" id="fileEfficiency" class="block w-full mt-1 text-sm" /></div>
+              <div class="md-col-span-2"><span class="text-xs text-gray-600">기타 파일 (zip)</span><input type="file" id="fileEtc" class="block w-full mt-1 text-sm" accept=".zip,.rar" /></div>
+            </div>
+          </div>
+          <div class="flex justify-end mt-4 gap-3">
+            <button id="btnSaveProduct" type="button" class="btn bg-emerald-600 text-white px-5">등록</button>
+            <span id="prodMsg" class="text-sm text-green-600 hidden">등록 완료!</span>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- 거래처 등록 -->
+    <div id="tab-clients" class="tab hidden">
+      <div class="bg-white p-6 rounded-2xl shadow-card space-y-5">
+        <h3 class="font-semibold text-lg">거래처 등록</h3>
+        <form id="clientForm" class="space-y-4">
+          <div class="grid md-grid-cols-4 gap-4">
+            <div class="md-col-span-2">
+              <label class="text-sm font-medium">거래처명 *</label>
+              <input id="cName" class="mt-1 w-full border rounded-xl px-3 py-2" required />
+            </div>
+            <div>
+              <label class="text-sm font-medium">거래처 구분</label>
+              <select id="cType" class="mt-1 w-full border rounded-xl px-3 py-2">
+                <option value="고객">고객</option>
+                <option value="공급처">공급처</option>
+                <option value="겸용" selected>겸용</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-sm font-medium">대표자</label>
+              <input id="cCEO" class="mt-1 w-full border rounded-xl px-3 py-2" />
+            </div>
+          </div>
+          <div class="grid md-grid-cols-4 gap-4">
+            <div>
+              <label class="text-sm font-medium">사업자등록번호</label>
+              <input id="cBizNo" class="mt-1 w-full border rounded-xl px-3 py-2" placeholder="10자리" />
+            </div>
+            <div>
+              <label class="text-sm font-medium">업태</label>
+              <input id="cIndustry" class="mt-1 w-full border rounded-xl px-3 py-2" />
+            </div>
+            <div class="md-col-span-2">
+              <label class="text-sm font-medium">주소</label>
+              <input id="cAddress" class="mt-1 w-full border rounded-xl px-3 py-2" />
+            </div>
+          </div>
+          <div class="grid md-grid-cols-4 gap-4">
+            <div><label class="text-sm font-medium">전화</label><input id="cTel" class="mt-1 w-full border rounded-xl px-3 py-2" /></div>
+            <div><label class="text-sm font-medium">팩스</label><input id="cFax" class="mt-1 w-full border rounded-xl px-3 py-2" /></div>
+            <div><label class="text-sm font-medium">이메일</label><input type="email" id="cEmail" class="mt-1 w-full border rounded-xl px-3 py-2" /></div>
+            <div>
+              <label class="text-sm font-medium">통화</label>
+              <select id="cCurrency" class="mt-1 w-full border rounded-xl px-3 py-2">
+                <option value="KRW" selected>KRW</option>
+                <option value="USD">USD</option>
+                <option value="JPY">JPY</option>
+                <option value="RMB">RMB</option>
+              </select>
+            </div>
+          </div>
+          <div class="grid md-grid-cols-4 gap-4">
+            <div><label class="text-sm font-medium">은행명</label><input id="cBank" class="mt-1 w-full border rounded-xl px-3 py-2" /></div>
+            <div><label class="text-sm font-medium">계좌번호</label><input id="cAccountNo" class="mt-1 w-full border rounded-xl px-3 py-2" /></div>
+            <div><label class="text-sm font-medium">예금주</label><input id="cAccountHolder" class="mt-1 w-full border rounded-xl px-3 py-2" /></div>
+            <div>
+              <label class="text-sm font-medium">부가세</label>
+              <select id="cTaxType" class="mt-1 w-full border rounded-xl px-3 py-2">
+                <option value="과세" selected>과세</option>
+                <option value="면세">면세</option>
+              </select>
+            </div>
+          </div>
+          <div class="grid md-grid-cols-4 gap-4">
+            <div>
+              <label class="text-sm font-medium">상태</label>
+              <select id="cStatus" class="mt-1 w-full border rounded-xl px-3 py-2">
+                <option value="정상" selected>정상</option>
+                <option value="거래중단">거래중단</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-sm font-medium">등록일자</label>
+              <input type="date" id="cRegDate" class="mt-1 w-full border rounded-xl px-3 py-2" />
+            </div>
+          </div>
+          <div>
+            <label class="text-sm font-medium">첨부파일</label>
+            <div class="grid md-grid-cols-3 gap-3 mt-2">
+              <div><span class="text-xs text-gray-600">사업자등록증</span><input type="file" id="cBizFile" class="block w-full mt-1 text-sm" /></div>
+              <div><span class="text-xs text-gray-600">통장사본</span><input type="file" id="cBankFile" class="block w-full mt-1 text-sm" /></div>
+              <div class="md-col-span-1"></div>
+            </div>
+          </div>
+          <div class="flex justify-end mt-4 gap-3">
+            <button id="btnSaveClient" type="button" class="btn bg-emerald-600 text-white px-5">등록</button>
+            <span id="clientMsg" class="text-sm text-green-600 hidden">등록 완료!</span>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- 견적 입력 -->
+    <div id="tab-quotes" class="tab hidden">
+      <div class="bg-white p-6 rounded-2xl shadow-card space-y-5">
+        <h3 class="font-semibold text-lg">견적 입력</h3>
+        <div class="text-sm text-gray-600">
+          견적번호: <span id="quoteNo" class="font-semibold text-emerald-700">자동생성됨</span>
+        </div>
+        <div class="grid md-grid-cols-4 gap-4">
+          <div>
+            <label class="text-sm">거래처명</label>
+            <div class="mt-1 flex gap-2">
+              <input id="quoteClient" class="w-full border rounded-xl px-3 py-2 bg-gray-50" placeholder="거래처 선택" readonly />
+              <button type="button" id="btnPickClientQuote" class="btn bg-gray-200">선택</button>
+            </div>
+          </div>
+          <div>
+            <label class="text-sm">날짜</label>
+            <input type="date" id="quoteDate" class="mt-1 w-full border rounded-xl px-3 py-2" />
+          </div>
+          <div class="md-col-span-2">
+            <label class="text-sm">조건(Terms)</label>
+            <input id="quoteTerms" class="mt-1 w-full border rounded-xl px-3 py-2" placeholder="납기, 결제, FOB 등" />
+          </div>
+        </div>
+        <div class="bg-gray-50 rounded-xl p-4">
+          <div class="flex items-center justify-between mb-2">
+            <h4 class="font-semibold text-sm">견적 항목</h4>
+            <button id="btnAddQuoteItem" type="button" class="text-sm text-emerald-600 underline">+ 행 추가</button>
+          </div>
+          <div class="overflow-auto">
+            <table class="min-w-full text-sm">
+              <thead>
+                <tr class="border-b bg-white">
+                  <th class="py-2 px-2">제품선택</th>
+                  <th class="py-2 px-2">제품명</th>
+                  <th class="py-2 px-2">설명</th>
+                  <th class="py-2 px-2">전압</th>
+                  <th class="py-2 px-2">전력</th>
+                  <th class="py-2 px-2">효율</th>
+                  <th class="py-2 px-2">루멘</th>
+                  <th class="py-2 px-2">CCT</th>
+                  <th class="py-2 px-2">통화</th>
+                  <th class="py-2 px-2">단가</th>
+                  <th class="py-2 px-2">수량</th>
+                  <th class="py-2 px-2">금액</th>
+                  <th class="py-2 px-2">비고(제품코드)</th>
+                  <th class="py-2 px-2"></th>
+                </tr>
+              </thead>
+              <tbody id="quoteItems"></tbody>
+            </table>
+          </div>
+          <div id="quoteSummary" class="text-right mt-3 text-gray-700 font-medium">총 수량: 0 / 총 금액: 0</div>
+        </div>
+        <div class="grid md-grid-cols-2 gap-4">
+          <div>
+            <label class="text-sm font-medium">일반사항 (General)</label>
+            <textarea id="quoteGeneral" rows="4" class="mt-1 w-full border rounded-xl px-3 py-2 text-sm" placeholder="납기, 포장, 운송 등"></textarea>
+          </div>
+          <div>
+            <label class="text-sm font-medium">특기사항 (Special)</label>
+            <textarea id="quoteSpecial" rows="4" class="mt-1 w-full border rounded-xl px-3 py-2 text-sm" placeholder="특별 조건, 유의사항 등"></textarea>
+          </div>
+        </div>
+        <div class="flex justify-end items-center gap-3">
+          <button id="btnSaveQuote" class="btn bg-emerald-600 text-white px-5">등록</button>
+          <button id="btnPrintQuote" class="btn bg-blue-600 text-white px-5 hidden">견적서 출력</button>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <footer class="max-w-7xl mx-auto px-4 sm px-6 lg px-8 py-8 text-xs text-gray-500 text-center">
+    <p>© 2025 YNK Mini ERP · Notion 기반 ERP 시스템</p>
+  </footer>
+</main>
+
+<!-- 상품 선택 모달 (매출용) -->
+<div id="productPickerModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center">
+  <div class="bg-white p-4 rounded-lg w-96 max-h-[70vh] overflow-auto">
+    <h3 class="font-bold mb-2">제품 선택</h3>
+    <input type="text" id="productSearch" class="w-full border rounded px-2 py-1 mb-2" placeholder="검색..." />
+    <table class="min-w-full text-sm">
+      <tbody id="productPickerBody"></tbody>
+    </table>
+    <button class="mt-2 btn bg-gray-200 w-full" onclick="document.getElementById('productPickerModal').classList.add('hidden')">닫기</button>
+  </div>
+</div>
+
+<!-- 견적용 제품 모달 -->
+<div id="modalProductsQuote" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center">
+  <div class="bg-white p-4 rounded-lg w-full max-w-xl max-h-[70vh] overflow-auto">
+    <h3 class="font-bold mb-2">제품 선택 (견적)</h3>
+    <input type="text" id="modalProductQuoteSearch" class="w-full border rounded px-2 py-1 mb-2" placeholder="검색..." />
+    <table class="min-w-full text-sm">
+      <tbody id="modalProductQuoteList"></tbody>
+    </table>
+    <button id="btnCloseProductsQuote" class="mt-2 btn bg-gray-200 w-full">닫기</button>
+  </div>
+</div>
+
+<!-- 거래처 선택 모달 -->
+<div id="modalClients" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center">
+  <div class="bg-white p-4 rounded-lg w-96 max-h-[70vh] overflow-auto">
+    <h3 class="font-bold mb-2">거래처 선택</h3>
+    <input type="text" id="modalClientSearch" class="w-full border rounded px-2 py-1 mb-2" placeholder="검색..." />
+    <div id="modalClientList" class="space-y-1"></div>
+    <button id="btnCloseClients" class="mt-2 btn bg-gray-200 w-full">닫기</button>
+  </div>
+</div>
+
+<script type="module" defer>
+/* CORE */
+const PROXY='/api/notion';
+const DB_USERS='26d1f4ff9a0e800cba14e56be989568b';
+const DB_SALES='26e1f4ff9a0e801f807fde6aa13b12a0';
+const DB_PRODUCTS='2a01f4ff9a0e8016aa33c239d64eb482';
+const DB_CLIENTS='2a11f4ff9a0e80c5b431d7ca0194e149';
+const DB_QUOTES='2a21f4ff9a0e80a5b6b5fd006e46a44a';
+const rt=t=>({rich_text:[{type:'text',text:{content:String(t||'')}}]});
+const title=t=>({title:[{type:'text',text:{content:String(t||'')}}]});
+const dateISO=i=>({date:i?{start:i}:null});
+const select=n=>({select:n?{name:String(n)}:null});
+const num=n=>({number:(n===''||n==null)?null:Number(n)});
+async function api(path,body){
+  const r=await fetch(PROXY+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  if(!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+const notionQuery=(db,body)=>api('/query',{db,...body});
+const notionCreate=(db,p)=>api('/create',{db,properties:p});
+const notionDelete=id=>api('/delete',{pageId:id});
+
+/* SESSION & LOGIN */
+const SESSION_KEY="ynk_session";
+const SESSION_DURATION=2*60*60*1000;
+let currentUser=null;
+function getSession(){
+  const raw=localStorage.getItem(SESSION_KEY);
+  if(!raw) return null;
+  try{
+    const d=JSON.parse(raw);
+    if(Date.now()>d.expires){localStorage.removeItem(SESSION_KEY);return null;}
+    return d;
+  }catch{localStorage.removeItem(SESSION_KEY);return null;}
+}
+function saveSession(email){localStorage.setItem(SESSION_KEY,JSON.stringify({email,expires:Date.now()+SESSION_DURATION}));}
+function logout(){localStorage.removeItem(SESSION_KEY);location.reload();}
+async function restoreSession(){
+  const s=getSession();
+  if(!s) return false;
+  currentUser={Email:s.email};
+  return true;
+}
+async function login(email,pass){
+  const f={and:[{property:'Email',email:{equals:email}},{property:'PasswordHash',rich_text:{contains:pass.trim()}}]};
+  const r=await notionQuery(DB_USERS,{filter:f,page_size:1});
+  if(!r.results?.length) return false;
+  currentUser={Email:email};
+  saveSession(email);return true;
+}
+
+/* GLOBAL */
+let clients=[];let productCodes=[];let productMaster=[];
+let lastSalesRows=[];
+let currentPickingMode=null;
+let currentQuoteRow=null;
+
+/* LOADERS */
+async function loadClients(){const d=await notionQuery(DB_CLIENTS,{sorts:[{property:'ClientName',direction:'ascending'}],page_size:1000});
+  clients=d.results.map(r=>{const p=r.properties;return{name:p.ClientName?.title?.[0]?.plain_text||'', bizNo:p.BusinessNo?.rich_text?.[0]?.plain_text||'', email:p.Email?.email||'', tel:p.Tel?.rich_text?.[0]?.plain_text||''};});}
+async function loadProductCodes(){const d=await notionQuery(DB_PRODUCTS,{sorts:[{property:'ProductCode',direction:'ascending'}],page_size:1000});
+  productCodes=d.results.map(r=>{const p=r.properties;return{code:p.ProductCode?.rich_text?.[0]?.plain_text||'',name:p.ProductName?.rich_text?.[0]?.plain_text||''};});}
+async function preloadProductMaster(){const d=await notionQuery(DB_PRODUCTS,{sorts:[{property:'ProductCode',direction:'ascending'}],page_size:1000});
+  productMaster=d.results.map(r=>{const p=r.properties;return{code:p.ProductCode?.rich_text?.[0]?.plain_text||'', name:p.ProductName?.rich_text?.[0]?.plain_text||'', supplier:p.Supplier?.rich_text?.[0]?.plain_text||'', maker:p.Maker?.rich_text?.[0]?.plain_text||'', voltage:p.OutputV?.rich_text?.[0]?.plain_text||'', watts:p.OutputA?.rich_text?.[0]?.plain_text||'', eff:p.Efficiency?.rich_text?.[0]?.plain_text||'', lumen:p.Lumen?.rich_text?.[0]?.plain_text||'', cct:p.CCT?.rich_text?.[0]?.plain_text||''};});}
+
+/* UI INIT */
+function initUI(){
+  const authPanel=document.getElementById('authPanel');
+  const appPanel=document.getElementById('appPanel');
+  const userBadge=document.getElementById('userBadge');
+  const userName=document.getElementById('userName');
+  document.getElementById('btnLogout').onclick=()=>logout();
+  document.querySelectorAll('.tab-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      document.querySelectorAll('.tab-btn').forEach(x=>x.classList.remove('bg-emerald-600','text-white'));
+      btn.classList.add('bg-emerald-600','text-white');
+      document.querySelectorAll('.tab').forEach(t=>t.classList.add('hidden'));
+      document.getElementById('tab-'+btn.dataset.tab).classList.remove('hidden');
+    });
+  });
+  return{
+    showApp(mail){authPanel.classList.add('hidden'); appPanel.classList.remove('hidden'); userBadge.classList.remove('hidden'); userName.textContent=mail;},
+    showLogin(){appPanel.classList.add('hidden'); authPanel.classList.remove('hidden');}
+  };
+}
+
+/* SALES LOGIC */
+const saleType=document.getElementById('saleType');
+const saleRate=document.getElementById('saleRate');
+const rateHint=document.getElementById('rateHint');
+const itemsBody=document.querySelector('#itemsTable tbody');
+function applySaleTypeRule(){
+  const type=saleType.value;
+  if(type==='내자'){saleRate.value=1; saleRate.setAttribute('disabled','disabled'); rateHint.textContent='내자는 환율 1로 고정됩니다.';}
+  else{saleRate.removeAttribute('disabled'); rateHint.textContent='외자는 환율을 입력하세요.';}
+  calcTotal();
+}
+saleType.addEventListener('change',applySaleTypeRule);
+saleRate.addEventListener('input',calcTotal);
+function addItemRow(code="",name="",spec="",qty=1,price=0){
+  const tr=document.createElement('tr');
+  tr.innerHTML=`
+    <td><div class="flex gap-1"><input class="border rounded-xl px-2 py-1 w-28 item-code bg-gray-50" readonly value="${code}">
+    <button type="button" class="btn bg-emerald-600 text-white px-2 py-1 text-xs btnProdSel">선택</button></div></td>
+    <td><input class="border rounded-xl px-2 py-1 w-full item-name bg-gray-50" readonly value="${name}"></td>
+    <td><input class="border rounded-xl px-2 py-1 w-full item-spec" value="${spec}"></td>
+    <td><input type="number" class="border rounded-xl px-2 py-1 w-20 text-right item-qty" value="${qty}"></td>
+    <td><input type="number" class="border rounded-xl px-2 py-1 w-24 text-right item-price" value="${price}"></td>
+    <td class="item-total text-right pr-2 text-gray-700">0</td>
+    <td><button type="button" class="text-red-500 text-sm btnDel">✕</button></td>`;
+  tr.querySelector('.btnDel').onclick=()=>{tr.remove();calcTotal();};
+  tr.querySelectorAll('input').forEach(i=> i.addEventListener('input',calcTotal));
+  tr.querySelector('.btnProdSel').onclick=()=> openProductPicker(tr);
+  itemsBody.appendChild(tr);
+  calcTotal();
+}
+addItemRow();
+document.getElementById('addItem').onclick=()=>addItemRow();
+function calcTotal(){
+  const rateVal=Number(saleRate.value||1);
+  let total=0;
+  itemsBody.querySelectorAll('tr').forEach(tr=>{
+    const q=Number(tr.querySelector('.item-qty').value||0);
+    const p=Number(tr.querySelector('.item-price').value||0);
+    const s=q*p*rateVal;
+    total+=s;
+    tr.querySelector('.item-total').textContent=s.toLocaleString('ko-KR');
+  });
+  document.getElementById('saleTotal').textContent='₩'+total.toLocaleString('ko-KR');
+  return total;
+}
+async function generateSaleCode(date){
+  const prefix='S'+date.replace(/-/g,'');
+  const r=await notionQuery(DB_SALES,{filter:{property:'Date',date:{equals:date}}});
+  const c=(r.results?.length||0)+1;
+  return `${prefix}-${String(c).padStart(3,'0')}`;
+}
+document.getElementById('btnSaveSale').onclick=async()=>{
+  try{
+    const date=document.getElementById('saleDate').value||new Date().toISOString().slice(0,10);
+    const customer=document.getElementById('saleCustomer').value.trim();
+    const rateVal=Number(saleRate.value||1);
+    const type=saleType.value;
+    if(!customer){alert('거래처를 선택하세요.');return;}
+    if(!clients.find(c=>c.name===customer)){alert('등록된 거래처가 아닙니다.');return;}
+    const items=[...itemsBody.querySelectorAll('tr')].map(tr=>{
+      return{
+        code:tr.querySelector('.item-code').value.trim(),
+        name:tr.querySelector('.item-name').value.trim(),
+        spec:tr.querySelector('.item-spec').value.trim(),
+        qty:Number(tr.querySelector('.item-qty').value||0),
+        price:Number(tr.querySelector('.item-price').value||0)
+      };
+    });
+    for(const it of items){
+      if(!it.code){alert('제품을 선택하세요.');return;}
+      const found=productCodes.find(p=>p.code===it.code);
+      if(!found){alert(`등록되지 않은 제품코드: ${it.code}`);return;}
+      it.name=found.name;
+    }
+    const saleCode=await generateSaleCode(date);
+    document.getElementById('saleCodeEl').textContent=saleCode;
+    for(const it of items){
+      await notionCreate(DB_SALES,{
+        code:rt(saleCode),Date:dateISO(date),
+        Customer:rt(customer),Items:rt(it.name),
+        Specification:rt(it.spec),
+        SaleType:select(type),
+        ExchangeRate:num(rateVal),
+        Quantity:num(it.qty),UnitPrice:num(it.price),
+        Total:num(it.qty*it.price*rateVal),
+        Salesperson:rt(currentUser?.Email||'')
+      });
+    }
+    document.getElementById('saleMsg').classList.remove('hidden');
+    document.getElementById('btnPrintStatement').classList.remove('hidden');
+    setTimeout(()=>document.getElementById('saleMsg').classList.add('hidden'),1500);
+  }catch(err){alert('등록 오류: '+err.message);}
+};
+
+/* PRODUCT MODAL for SALES */
+function openProductPicker(row){
+  window._productPickTargetRow=row;
+  renderProductPickerTable('');
+  document.getElementById('productPickerModal').classList.remove('hidden');
+}
+document.getElementById('productSearch').addEventListener('input',e=>{
+  renderProductPickerTable(e.target.value.trim());
+});
+function renderProductPickerTable(keyword=''){
+  const tbody=document.getElementById('productPickerBody');
+  const kw=keyword.toLowerCase();
+  const filtered=productCodes.filter(p=>p.code.toLowerCase().includes(kw)||p.name.toLowerCase().includes(kw));
+  tbody.innerHTML=filtered.map(p=>`<tr class="hover:bg-gray-100 cursor-pointer" data-code="${p.code}"><td class="py-2 px-3">${p.code}</td><td class="py-2 px-3">${p.name}</td></tr>`).join('');
+  tbody.querySelectorAll('tr').forEach(tr=>{
+    tr.onclick=()=>{
+      const code=tr.dataset.code;
+      const target=window._productPickTargetRow;
+      const prod=productCodes.find(x=>x.code===code);
+      if(!target||!prod) return;
+      target.querySelector('.item-code').value=prod.code;
+      target.querySelector('.item-name').value=prod.name;
+      document.getElementById('productPickerModal').classList.add('hidden');
+      calcTotal();
+    };
+  });
+}
+
+/* CLIENT PICKER MODAL */
+document.getElementById('btnPickClient').onclick=()=>{currentPickingMode='sale-entry';openClientsModal();};
+document.getElementById('btnPickClientSearch').onclick=()=>{currentPickingMode='sales-search';openClientsModal();};
+document.getElementById('btnPickClientQuote').onclick=()=>{currentPickingMode='quotes';openClientsModal();};
+document.getElementById('btnCloseClients').onclick=()=>closeClientModal();
+document.getElementById('modalClientSearch').addEventListener('input',e=>{
+  renderClientList(e.target.value.trim());
+});
+function openClientsModal(){renderClientList('');document.getElementById('modalClients').classList.remove('hidden');}
+function closeClientModal(){document.getElementById('modalClients').classList.add('hidden');}
+function renderClientList(keyword=''){
+  const kw=keyword.toLowerCase();
+  const list=document.getElementById('modalClientList');
+  const rows=clients.filter(c=>!kw||c.name.toLowerCase().includes(kw)).map(c=>`<button type="button" class="w-full text-left px-3 py-2 hover:bg-gray-100" data-name="${c.name}">${c.name}</button>`).join('')||'<div class="px-3 py-6 text-center text-gray-400">검색 결과 없음</div>';
+  list.innerHTML=rows;
+  list.querySelectorAll('button[data-name]').forEach(btn=>{
+    btn.onclick=()=>{
+      const name=btn.getAttribute('data-name');
+      if(currentPickingMode==='sale-entry'){document.getElementById('saleCustomer').value=name;}
+      else if(currentPickingMode==='sales-search'){document.getElementById('sCustomer').value=name;}
+      else if(currentPickingMode==='quotes'){document.getElementById('quoteClient').value=name;}
+      closeClientModal();
+    };
+  });
+}
+
+/* CLIENT SAVE LOGIC */
+document.getElementById('btnSaveClient').onclick=async()=>{
+  try{
+    const data={
+      name:document.getElementById('cName').value.trim(),
+      type:document.getElementById('cType').value,
+      ceo:document.getElementById('cCEO').value.trim(),
+      bizNo:document.getElementById('cBizNo').value.trim(),
+      industry:document.getElementById('cIndustry').value.trim(),
+      address:document.getElementById('cAddress').value.trim(),
+      tel:document.getElementById('cTel').value.trim(),
+      fax:document.getElementById('cFax').value.trim(),
+      email:document.getElementById('cEmail').value.trim(),
+      currency:document.getElementById('cCurrency').value,
+      bank:document.getElementById('cBank').value.trim(),
+      account:document.getElementById('cAccountNo').value.trim(),
+      holder:document.getElementById('cAccountHolder').value.trim(),
+      taxType:document.getElementById('cTaxType').value,
+      status:document.getElementById('cStatus').value,
+      regDate:document.getElementById('cRegDate').value
+    };
+    if(!data.name){alert('거래처명을 입력하세요.');return;}
+    await notionCreate(DB_CLIENTS,{
+      ClientName:title(data.name),
+      Type:select(data.type),
+      CEO:rt(data.ceo),
+      BusinessNo:rt(data.bizNo),
+      Industry:rt(data.industry),
+      Address:rt(data.address),
+      Tel:rt(data.tel),
+      Fax:rt(data.fax),
+      Email:{email:data.email||null},
+      Currency:select(data.currency),
+      Bank:rt(data.bank),
+      AccountNo:rt(data.account),
+      AccountHolder:rt(data.holder),
+      TaxType:select(data.taxType),
+      Status:select(data.status),
+      RegDate:dateISO(data.regDate)
+    });
+    document.getElementById('clientMsg').classList.remove('hidden');
+    setTimeout(()=>document.getElementById('clientMsg').classList.add('hidden'),1500);
+    await loadClients();
+  }catch(err){alert('거래처 등록 오류: '+err.message);}
+};
+
+/* QUOTES LOGIC */
+const quoteTable=document.getElementById('quoteItems');
+const quoteSummary=document.getElementById('quoteSummary');
+function addQuoteRow(prefill={}){
+  const tr=document.createElement('tr');
+  tr.innerHTML=`
+    <td><button type="button" class="btnPickProduct text-emerald-600 underline text-sm">선택</button></td>
+    <td><input class="item-name border rounded-xl px-2 py-1 w-full" value="${prefill.name||''}"></td>
+    <td><input class="item-desc border rounded-xl px-2 py-1 w-full" value="${prefill.desc||''}"></td>
+    <td><input class="item-vol border rounded-xl px-2 py-1 w-20 text-center" value="${prefill.voltage||''}"></td>
+    <td><input class="item-watt border rounded-xl px-2 py-1 w-20 text-center" value="${prefill.watts||''}"></td>
+    <td><input class="item-eff border rounded-xl px-2 py-1 w-20 text-center" value="${prefill.eff||''}"></td>
+    <td><input class="item-lumen border rounded-xl px-2 py-1 w-20 text-center" value="${prefill.lumen||''}"></td>
+    <td><input class="item-cct border rounded-xl px-2 py-1 w-20 text-center" value="${prefill.cct||''}"></td>
+    <td><select class="item-unit border rounded-xl px-2 py-1"><option value="KRW">KRW</option><option value="USD">USD</option><option value="RMB">RMB</option></select></td>
+    <td><input type="number" class="item-price border rounded-xl px-2 py-1 w-24 text-right" value="${prefill.price||''}"></td>
+    <td><input type="number" class="item-qty border rounded-xl px-2 py-1 w-20 text-right" value="${prefill.qty||''}"></td>
+    <td class="item-amount text-right px-2">0</td>
+    <td class="item-remark text-gray-600 text-sm px-2">${prefill.code||''}</td>
+    <td><button type="button" class="btnDel text-red-500 text-sm">✕</button></td>`;
+  quoteTable.appendChild(tr);
+  calcQuoteTotal();
+}
+function calcQuoteTotal(){
+  let qtySum=0; let amtSum=0;
+  quoteTable.querySelectorAll('tr').forEach(tr=>{
+    const qty=Number(tr.querySelector('.item-qty')?.value||0);
+    const price=Number(tr.querySelector('.item-price')?.value||0);
+    const amt=qty*price;
+    tr.querySelector('.item-amount').textContent=amt.toLocaleString('ko-KR');
+    qtySum+=qty; amtSum+=amt;
+  });
+  quoteSummary.textContent=`총 수량: ${qtySum.toLocaleString('ko-KR')} / 총 금액: ${amtSum.toLocaleString('ko-KR')}`;
+}
+async function generateQuoteNo(date){
+  const prefix='Q'+date.replace(/-/g,'');
+  const r=await notionQuery(DB_QUOTES,{filter:{property:'Date',date:{equals:date}}});
+  const c=(r.results?.length||0)+1;
+  return `${prefix}-${String(c).padStart(3,'0')}`;
+}
+document.getElementById('btnAddQuoteItem').addEventListener('click',()=>addQuoteRow({}));
+quoteTable.addEventListener('input',e=>{
+  if(e.target.matches('.item-qty,.item-price')) calcQuoteTotal();
+});
+quoteTable.addEventListener('click',e=>{
+  if(e.target.classList.contains('btnDel')){
+    e.target.closest('tr').remove();calcQuoteTotal();
+  }
+  if(e.target.classList.contains('btnPickProduct')){
+    currentQuoteRow=e.target.closest('tr');
+    renderProductQuoteList('');
+    document.getElementById('modalProductsQuote').classList.remove('hidden');
+    document.getElementById('modalProductQuoteSearch').focus();
+  }
+});
+document.getElementById('btnCloseProductsQuote').onclick=()=>{document.getElementById('modalProductsQuote').classList.add('hidden');};
+document.getElementById('modalProductQuoteSearch').addEventListener('input',e=>{
+  renderProductQuoteList(e.target.value.trim());
+});
+function renderProductQuoteList(keyword){
+  const kw=(keyword||'').toLowerCase();
+  const tbody=document.getElementById('modalProductQuoteList');
+  const rows=(productMaster||[]).filter(p=>{
+    return !kw || p.code.toLowerCase().includes(kw) || p.name.toLowerCase().includes(kw)||p.supplier.toLowerCase().includes(kw)||p.maker.toLowerCase().includes(kw);
+  }).map(p=>{
+    return `<tr class="border-b hover:bg-gray-50">
+      <td class="px-2 py-1">${p.code}</td>
+      <td class="px-2 py-1">${p.name}</td>
+      <td class="px-2 py-1">${p.supplier}</td>
+      <td class="px-2 py-1">${p.maker}</td>
+      <td class="px-2 py-1">${p.voltage}</td>
+      <td class="px-2 py-1">${p.watts}</td>
+      <td class="px-2 py-1"><button type="button" class="btnPickThis underline text-emerald-600" data-code="${p.code}">선택</button></td>
+    </tr>`;
+  }).join('') || `<tr><td colspan="7" class="text-center text-gray-400 py-4">검색 결과 없음</td></tr>`;
+  tbody.innerHTML=rows;
+  tbody.querySelectorAll('.btnPickThis').forEach(btn=>{
+    btn.onclick=()=>{
+      const code=btn.getAttribute('data-code');
+      const p=productMaster.find(x=>x.code===code);
+      if(!p||!currentQuoteRow) return;
+      currentQuoteRow.querySelector('.item-name').value=p.name;
+      currentQuoteRow.querySelector('.item-desc').value='';
+      currentQuoteRow.querySelector('.item-vol').value=p.voltage||'';
+      currentQuoteRow.querySelector('.item-watt').value=p.watts||'';
+      currentQuoteRow.querySelector('.item-eff').value=p.eff||'';
+      currentQuoteRow.querySelector('.item-lumen').value=p.lumen||'';
+      currentQuoteRow.querySelector('.item-cct').value=p.cct||'';
+      currentQuoteRow.querySelector('.item-remark').textContent=p.code;
+      document.getElementById('modalProductsQuote').classList.add('hidden');
+      calcQuoteTotal();
+    };
+  });
+}
+document.getElementById('btnSaveQuote').onclick=async()=>{
+  try{
+    const date=document.getElementById('quoteDate').value||new Date().toISOString().slice(0,10);
+    const client=document.getElementById('quoteClient').value.trim();
+    if(!client){alert('거래처를 선택하세요.');return;}
+    const rows=[...quoteTable.querySelectorAll('tr')];
+    if(!rows.length){alert('견적 항목을 추가하세요.');return;}
+    const no=await generateQuoteNo(date);
+    document.getElementById('quoteNo').textContent=no;
+    for(const tr of rows){
+      const unit=tr.querySelector('.item-unit').value;
+      const price=Number(tr.querySelector('.item-price').value||0);
+      const qty=Number(tr.querySelector('.item-qty').value||0);
+      await notionCreate(DB_QUOTES,{
+        EstimateNo: rt(no),
+        Date: dateISO(date),
+        Client: rt(client),
+        Product: rt(tr.querySelector('.item-name').value),
+        Description: rt(tr.querySelector('.item-desc').value),
+        Voltage: rt(tr.querySelector('.item-vol').value),
+        Watts: rt(tr.querySelector('.item-watt').value),
+        LuminousEff: rt(tr.querySelector('.item-eff').value),
+        LumenOutput: rt(tr.querySelector('.item-lumen').value),
+        CCT: rt(tr.querySelector('.item-cct').value),
+        Unit: select(unit),
+        UnitPrice: num(price),
+        Qty: num(qty),
+        Amount: num(qty*price),
+        Remarks: rt(tr.querySelector('.item-remark').textContent),
+        Terms: rt(document.getElementById('quoteTerms').value),
+        GeneralInfo: rt(document.getElementById('quoteGeneral').value),
+        SpecialNotes: rt(document.getElementById('quoteSpecial').value)
+      });
+    }
+    alert('견적이 등록되었습니다.');
+    document.getElementById('btnPrintQuote').classList.remove('hidden');
+  }catch(err){alert('견적 저장 오류: '+err.message);}
+};
+
+/* LOGIN & INIT */
+const ui=initUI();
+document.getElementById('loginForm').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const mail=document.getElementById('loginEmail').value.trim();
+  const pass=document.getElementById('loginPassword').value.trim();
+  const loginMsg=document.getElementById('loginMsg');
+  try{
+    const ok=await login(mail,pass);
+    if(ok){
+      ui.showApp(mail);
+      await loadClients();
+      await loadProductCodes();
+      await preloadProductMaster();
+      applySaleTypeRule();
+      addQuoteRow({});
+    }else{
+      loginMsg.classList.remove('hidden');
+      setTimeout(()=>loginMsg.classList.add('hidden'),1500);
+    }
+  }catch(err){alert('로그인 오류: '+err.message);}
+});
+(async()=>{
+  const ok=await restoreSession();
+  if(ok){
+    ui.showApp(currentUser.Email);
+    await loadClients();
+    await loadProductCodes();
+    await preloadProductMaster();
+    applySaleTypeRule();
+    addQuoteRow({});
+  }
+})();
+</script>
+</body>
+</html>
