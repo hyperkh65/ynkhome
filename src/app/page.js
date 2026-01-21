@@ -548,31 +548,128 @@ export default function Home() {
       {/* Tracking Tool Modal */}
       {showToolModal === 'tracking' && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(10px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setShowToolModal(null)}>
-          <div style={{ background: 'white', width: '500px', borderRadius: '20px', padding: '24px', border: '1px solid #d2d2d7' }} onClick={e => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <h2 style={{ fontSize: '1.3rem', fontWeight: 600, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ background: 'white', width: '700px', maxHeight: '85vh', borderRadius: '20px', border: '1px solid #d2d2d7', display: 'flex', flexDirection: 'column' }} onClick={e => e.stopPropagation()}>
+            <div style={{ padding: '20px 24px', borderBottom: '1px solid #f0f0f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 600, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span>🔍</span> Shipment Tracking
               </h2>
               <button onClick={() => setShowToolModal(null)} style={{ background: '#f5f5f7', border: 'none', width: '30px', height: '30px', borderRadius: '50%', cursor: 'pointer', fontSize: '1.2rem' }}>×</button>
             </div>
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
-              <input type="text" placeholder="Enter B/L or Container Number" value={trackingNo} onChange={(e) => setTrackingNo(e.target.value)} style={{ flex: 1, padding: '12px', borderRadius: '10px', border: '1px solid #d2d2d7', fontSize: '0.85rem' }} />
-              <button onClick={handleTrack} disabled={isTracking} style={{ padding: '0 24px', background: '#1d1d1f', color: 'white', borderRadius: '10px', border: 'none', cursor: 'pointer', fontWeight: 500, fontSize: '0.85rem' }}>
-                {isTracking ? 'Tracking...' : 'Track'}
-              </button>
-            </div>
-            {trackResult && (
-              <div style={{ padding: '16px', background: trackResult.error ? '#fef2f2' : '#f0fdf4', borderRadius: '10px', border: `1px solid ${trackResult.error ? '#fecaca' : '#d1fae5'}` }}>
-                <div style={{ fontWeight: 500, color: trackResult.error ? '#dc2626' : '#065f46', fontSize: '0.9rem' }}>
-                  {trackResult.error || trackResult.status || 'Tracking result'}
-                </div>
-                {!trackResult.error && trackResult.location && (
-                  <div style={{ fontSize: '0.8rem', color: '#047857', marginTop: '6px' }}>
-                    Location: {trackResult.location}
-                  </div>
-                )}
+
+            <div style={{ padding: '20px 24px', overflowY: 'auto', flex: 1 }}>
+              <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+                <input
+                  type="text"
+                  placeholder="Enter B/L or Container Number"
+                  value={trackingNo}
+                  onChange={(e) => setTrackingNo(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleTrack()}
+                  style={{ flex: 1, padding: '10px 12px', borderRadius: '10px', border: '1px solid #d2d2d7', fontSize: '0.85rem' }}
+                />
+                <button
+                  onClick={handleTrack}
+                  disabled={isTracking}
+                  style={{ padding: '0 20px', background: '#1a1a1a', color: 'white', borderRadius: '10px', border: 'none', cursor: 'pointer', fontWeight: 500, fontSize: '0.85rem' }}
+                >
+                  {isTracking ? '...' : 'Track'}
+                </button>
               </div>
-            )}
+
+              {trackResult && (
+                <div>
+                  {trackResult.error ? (
+                    <div style={{ padding: '14px', background: '#fef2f2', borderRadius: '10px', border: '1px solid #fecaca' }}>
+                      <div style={{ fontWeight: 500, color: '#dc2626', fontSize: '0.85rem' }}>{trackResult.error}</div>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      {/* Header Status */}
+                      <div style={{ padding: '14px', background: '#f0fdf4', borderRadius: '10px', border: '1px solid #d1fae5' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                          <span style={{ fontSize: '0.7rem', color: '#065f46', fontWeight: 600 }}>
+                            {trackResult.type === 'IMPORT' ? '📥 IMPORT' : '📤 EXPORT'}
+                          </span>
+                          <span style={{ fontSize: '0.7rem', padding: '3px 10px', background: '#d1fae5', color: '#065f46', borderRadius: '6px', fontWeight: 600 }}>
+                            {trackResult.data?.prgsStts || trackResult.data?.csclPrgsStts || 'In Progress'}
+                          </span>
+                        </div>
+                        <div style={{ fontSize: '1rem', fontWeight: 700, color: '#065f46' }}>
+                          {trackResult.data?.shipNm || trackResult.data?.sanm || 'Vessel/Flight'}
+                        </div>
+                        {trackResult.data?.vydf && (
+                          <div style={{ fontSize: '0.7rem', color: '#047857', marginTop: '2px' }}>Voyage: {trackResult.data.vydf}</div>
+                        )}
+                      </div>
+
+                      {/* Cargo Info */}
+                      <div style={{ background: '#fafafa', borderRadius: '10px', padding: '12px' }}>
+                        <h3 style={{ fontSize: '0.8rem', fontWeight: 600, marginBottom: '10px', color: '#1d1d1f' }}>📦 Cargo Information</h3>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '0.7rem' }}>
+                          {trackResult.data?.mblNo && (<div><span style={{ color: '#86868b' }}>MBL:</span> <span style={{ fontWeight: 600, color: '#1d1d1f' }}>{trackResult.data.mblNo}</span></div>)}
+                          {trackResult.data?.hblNo && (<div><span style={{ color: '#86868b' }}>HBL:</span> <span style={{ fontWeight: 600, color: '#1d1d1f' }}>{trackResult.data.hblNo}</span></div>)}
+                          {trackResult.data?.blNo && (<div><span style={{ color: '#86868b' }}>B/L:</span> <span style={{ fontWeight: 600, color: '#1d1d1f' }}>{trackResult.data.blNo}</span></div>)}
+                          {trackResult.data?.cargMtNo && (<div><span style={{ color: '#86868b' }}>Cargo No:</span> <span style={{ fontWeight: 600, color: '#1d1d1f' }}>{trackResult.data.cargMtNo}</span></div>)}
+                          {trackResult.data?.prnm && (<div style={{ gridColumn: 'span 2' }}><span style={{ color: '#86868b' }}>Cargo:</span> <span style={{ fontWeight: 600, color: '#1d1d1f' }}>{trackResult.data.prnm}</span></div>)}
+                          {trackResult.data?.pckGcnt && (<div><span style={{ color: '#86868b' }}>Packages:</span> <span style={{ fontWeight: 600, color: '#1d1d1f' }}>{trackResult.data.pckGcnt} {trackResult.data.pckUt || ''}</span></div>)}
+                          {trackResult.data?.ttwg && (<div><span style={{ color: '#86868b' }}>Weight:</span> <span style={{ fontWeight: 600, color: '#1d1d1f' }}>{trackResult.data.ttwg} {trackResult.data.wghtUt || 'KG'}</span></div>)}
+                        </div>
+                      </div>
+
+                      {/* Route Info */}
+                      <div style={{ background: '#fafafa', borderRadius: '10px', padding: '12px' }}>
+                        <h3 style={{ fontSize: '0.8rem', fontWeight: 600, marginBottom: '10px', color: '#1d1d1f' }}>🚢 Route</h3>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '0.7rem' }}>
+                          {trackResult.data?.ldprNm && (<div><span style={{ color: '#86868b' }}>From:</span> <span style={{ fontWeight: 600, color: '#1d1d1f' }}>{trackResult.data.ldprNm}</span></div>)}
+                          {trackResult.data?.dsprNm && (<div><span style={{ color: '#86868b' }}>To:</span> <span style={{ fontWeight: 600, color: '#1d1d1f' }}>{trackResult.data.dsprNm}</span></div>)}
+                          {trackResult.data?.etprDt && (<div><span style={{ color: '#86868b' }}>Arrival:</span> <span style={{ fontWeight: 600, color: '#1d1d1f' }}>{trackResult.data.etprDt}</span></div>)}
+                          {trackResult.data?.tkofDt && (<div><span style={{ color: '#86868b' }}>Departure:</span> <span style={{ fontWeight: 600, color: '#1d1d1f' }}>{trackResult.data.tkofDt}</span></div>)}
+                          {trackResult.data?.etprCstm && (<div><span style={{ color: '#86868b' }}>Customs:</span> <span style={{ fontWeight: 600, color: '#1d1d1f' }}>{trackResult.data.etprCstm}</span></div>)}
+                          {trackResult.data?.shpmAirptPortNm && (<div><span style={{ color: '#86868b' }}>Port:</span> <span style={{ fontWeight: 600, color: '#1d1d1f' }}>{trackResult.data.shpmAirptPortNm}</span></div>)}
+                        </div>
+                      </div>
+
+                      {/* Customs Progress */}
+                      {trackResult.data?.csclPrgsStts && (
+                        <div style={{ background: '#fafafa', borderRadius: '10px', padding: '12px' }}>
+                          <h3 style={{ fontSize: '0.8rem', fontWeight: 600, marginBottom: '10px', color: '#1d1d1f' }}>📋 Customs Progress</h3>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px', background: '#f0fdf4', borderRadius: '8px', border: '1px solid #d1fae5' }}>
+                            <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#065f46' }}>{trackResult.data.csclPrgsStts}</div>
+                            {trackResult.data.prcsDttm && (
+                              <div style={{ fontSize: '0.65rem', color: '#047857', marginLeft: 'auto' }}>
+                                {trackResult.data.prcsDttm.substring(0, 8)} {trackResult.data.prcsDttm.substring(8, 10)}:{trackResult.data.prcsDttm.substring(10, 12)}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Timeline */}
+                      {trackResult.details && trackResult.details.length > 0 && (
+                        <div style={{ background: '#fafafa', borderRadius: '10px', padding: '12px' }}>
+                          <h3 style={{ fontSize: '0.8rem', fontWeight: 600, marginBottom: '10px', color: '#1d1d1f' }}>📍 Timeline</h3>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                            {trackResult.details.map((detail, idx) => (
+                              <div key={idx} style={{ padding: '8px', background: 'white', borderRadius: '8px', border: '1px solid #e5e5ea' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3px' }}>
+                                  <span style={{ fontSize: '0.7rem', fontWeight: 600, color: '#1d1d1f' }}>{detail.cargTrcnRelaBsopTpcd || 'Activity'}</span>
+                                  {detail.prcsDttm && (
+                                    <span style={{ fontSize: '0.65rem', color: '#86868b' }}>
+                                      {detail.prcsDttm.substring(0, 8)} {detail.prcsDttm.substring(8, 10)}:{detail.prcsDttm.substring(10, 12)}
+                                    </span>
+                                  )}
+                                </div>
+                                {detail.rlbrCn && (<div style={{ fontSize: '0.65rem', color: '#6b7280' }}>{detail.rlbrCn}</div>)}
+                                {detail.shedNm && (<div style={{ fontSize: '0.65rem', color: '#86868b', marginTop: '2px' }}>📍 {detail.shedNm}</div>)}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
