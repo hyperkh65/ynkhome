@@ -92,13 +92,12 @@ export default function Home() {
         const hData = await hRes.json();
         if (Array.isArray(hData)) setHistoryData(hData.reverse());
 
-        // Fetch Incheon Port Data (XML parsed to JSON on server)
+        // Fetch Incheon Port Data (XML-parsed JSON)
         const iRes = await fetch('/api/incheon/congestion');
         if (iRes.ok) {
           const iData = await iRes.json();
-          const rawItems = iData?.response?.body?.items?.item;
-          if (rawItems) {
-            setIncheonPort(Array.isArray(rawItems) ? rawItems : [rawItems]);
+          if (iData.success && Array.isArray(iData.data)) {
+            setIncheonPort(iData.data);
           }
         }
       } catch (err) { console.error(err); }
@@ -164,7 +163,7 @@ export default function Home() {
         <main>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px' }}>
             <h1 className={styles.sectionTitle}>{activeTab}</h1>
-            <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', fontWeight: 600 }}>v4.2.3-FORCE</span>
+            <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', fontWeight: 600 }}>v4.3.0-FINAL</span>
           </div>
 
           {activeTab === 'Overview' && (
