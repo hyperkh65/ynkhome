@@ -94,27 +94,42 @@ export default function Home() {
       }
     }));
 
-    // 3. Mock Port Status
-    setTimeout(() => {
-      setHubs(prev => prev.map(hub => {
-        const r = Math.random();
-        let status = 'Normal';
-        let color = '#ecfdf5'; // green bg
-        let textColor = '#15803d'; // green text
+    // 3. Real Incheon Port Status Fetch
+    try {
+      const res = await fetch('/api/incheon/congestion');
+      const json = await res.json();
 
-        if (r > 0.7) {
-          status = 'Busy';
-          color = '#ffedd5'; // orange bg
-          textColor = '#c2410c'; // orange text
-        } else if (r > 0.9) {
-          status = 'Congested';
-          color = '#fee2e2'; // red bg
-          textColor = '#b91c1c'; // red text
-        }
+      if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+        // Map API data to our hubs
+        const newHubs = hubs.map(hub => {
+          // Find matching data in API response
+          const match = json.data.find(d => d.trmnlNm && d.trmnlNm.includes(hub.name.substr(0, 2))); // Simple loose match
 
-        return { ...hub, status, color, textColor };
-      }));
-    }, 1500);
+          if (match) {
+            const level = match.cgstLevel || 'Normal'; // '원활', '보통', '혼잡'
+            let status = 'Normal';
+            let color = '#ecfdf5';
+            let textColor = '#15803d';
+
+            if (level.includes('보통')) {
+              status = 'Busy';
+              color = '#ffedd5';
+              textColor = '#c2410c';
+            } else if (level.includes('혼잡') || level.includes('포화')) {
+              status = 'Congested';
+              color = '#fee2e2';
+              textColor = '#b91c1c';
+            }
+
+            return { ...hub, status: status, color, textColor };
+          }
+          return hub;
+        });
+        setHubs(newHubs);
+      }
+    } catch (err) {
+      console.error("Port status fetch failed", err);
+    }
 
     // 2. Fetch Catalog Products form Supabase
     try {
