@@ -164,7 +164,7 @@ export default function Home() {
         <main>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px' }}>
             <h1 className={styles.sectionTitle}>{activeTab}</h1>
-            <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', fontWeight: 600 }}>v4.2.2-XML</span>
+            <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', fontWeight: 600 }}>v4.2.3-FORCE</span>
           </div>
 
           {activeTab === 'Overview' && (
