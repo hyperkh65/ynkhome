@@ -263,6 +263,9 @@ export default function Home() {
         <div className={`${styles.navItem} ${activeTab === 'Overview' && styles.navItemActive}`} onClick={() => setActiveTab('Overview')} style={{ color: activeTab === 'Overview' ? 'white' : '#86868b' }}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
         </div>
+        <div className={`${styles.navItem} ${activeTab === 'Catalog' && styles.navItemActive}`} onClick={() => setActiveTab('Catalog')} style={{ color: activeTab === 'Catalog' ? 'white' : '#86868b' }}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
+        </div>
         <div className={styles.navItem} onClick={() => setShowLibraryModal(true)} style={{ color: '#86868b' }}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
         </div>
@@ -299,159 +302,189 @@ export default function Home() {
         </div>
 
         {/* Dashboard Grid */}
-        <div style={{ flex: 1, padding: '18px', display: 'flex', flexDirection: 'column', gap: '14px', overflow: 'hidden' }}>
+        {/* Dashboard Content */}
+        {activeTab === 'Overview' ? (
+          <div style={{ flex: 1, padding: '18px', display: 'flex', flexDirection: 'column', gap: '14px', overflow: 'hidden' }}>
 
-          {/* Row 1: Market + Notices + News */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr) 200px 200px', gap: '10px', height: '110px' }}>
-            {/* Market Cards */}
-            <div style={{ background: 'white', borderRadius: '10px', padding: '14px', border: '1px solid #d2d2d7', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-              <div style={{ fontSize: '0.65rem', color: '#86868b', fontWeight: 500 }}>🇺🇸 USD/KRW</div>
-              <div style={{ fontSize: '1.15rem', fontWeight: 700, color: '#1d1d1f' }}>{marketData.usd.toFixed(2)}</div>
-              <div style={{ fontSize: '0.65rem', color: marketData.trends.usd === 'up' ? '#34c759' : '#ff3b30', fontWeight: 600 }}>
-                {marketData.trends.usd === 'up' ? '↑' : '↓'} 0.4%
-              </div>
-            </div>
-
-            <div style={{ background: 'white', borderRadius: '10px', padding: '14px', border: '1px solid #d2d2d7', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-              <div style={{ fontSize: '0.65rem', color: '#86868b', fontWeight: 500 }}>🇨🇳 CNY/KRW</div>
-              <div style={{ fontSize: '1.15rem', fontWeight: 700, color: '#1d1d1f' }}>{marketData.cny.toFixed(2)}</div>
-              <div style={{ fontSize: '0.65rem', color: marketData.trends.cny === 'up' ? '#34c759' : '#ff3b30', fontWeight: 600 }}>
-                {marketData.trends.cny === 'up' ? '↑' : '↓'} 0.1%
-              </div>
-            </div>
-
-            {marketData.metals && Object.entries(marketData.metals).map(([key, val]) => (
-              <div key={key} style={{ background: 'white', borderRadius: '10px', padding: '14px', border: '1px solid #d2d2d7', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                <div style={{ fontSize: '0.65rem', color: '#86868b', textTransform: 'uppercase', fontWeight: 500 }}>{key}</div>
-                <div style={{ fontSize: '1.15rem', fontWeight: 700, color: '#1d1d1f' }}>${(typeof val === 'object' ? val?.last : val)?.toLocaleString() || '—'}</div>
-                <div style={{ fontSize: '0.65rem', color: marketData.trends[key] === 'up' ? '#34c759' : '#ff3b30', fontWeight: 600 }}>
-                  {marketData.trends[key] === 'up' ? '↑' : '↓'}
+            {/* Row 1: Market + Notices + News */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr) 200px 200px', gap: '10px', height: '110px' }}>
+              {/* Market Cards */}
+              <div style={{ background: 'white', borderRadius: '10px', padding: '14px', border: '1px solid #d2d2d7', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                <div style={{ fontSize: '0.65rem', color: '#86868b', fontWeight: 500 }}>🇺🇸 USD/KRW</div>
+                <div style={{ fontSize: '1.15rem', fontWeight: 700, color: '#1d1d1f' }}>{marketData.usd.toFixed(2)}</div>
+                <div style={{ fontSize: '0.65rem', color: marketData.trends.usd === 'up' ? '#34c759' : '#ff3b30', fontWeight: 600 }}>
+                  {marketData.trends.usd === 'up' ? '↑' : '↓'} 0.4%
                 </div>
               </div>
-            ))}
 
-            {/* Notices - 네이버 검색어 순위 스타일 */}
-            <div style={{ background: 'white', borderRadius: '10px', padding: '12px 14px', border: '1px solid #d2d2d7', display: 'flex', flexDirection: 'column' }}>
-              <div style={{ fontSize: '0.75rem', fontWeight: 600, marginBottom: '8px', color: '#1d1d1f', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                📢 <span>Notice Board</span>
+              <div style={{ background: 'white', borderRadius: '10px', padding: '14px', border: '1px solid #d2d2d7', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                <div style={{ fontSize: '0.65rem', color: '#86868b', fontWeight: 500 }}>🇨🇳 CNY/KRW</div>
+                <div style={{ fontSize: '1.15rem', fontWeight: 700, color: '#1d1d1f' }}>{marketData.cny.toFixed(2)}</div>
+                <div style={{ fontSize: '0.65rem', color: marketData.trends.cny === 'up' ? '#34c759' : '#ff3b30', fontWeight: 600 }}>
+                  {marketData.trends.cny === 'up' ? '↑' : '↓'} 0.1%
+                </div>
               </div>
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '0.7rem', overflow: 'hidden' }}>
-                {notices.slice(0, 3).map((n, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    <span style={{ fontWeight: 700, color: i === 0 ? '#ff3b30' : i === 1 ? '#ff9500' : '#34c759', minWidth: '12px' }}>{i + 1}</span>
-                    <span style={{ color: '#1d1d1f', overflow: 'hidden', textOverflow: 'ellipsis' }}>{n.content}</span>
+
+              {marketData.metals && Object.entries(marketData.metals).map(([key, val]) => (
+                <div key={key} style={{ background: 'white', borderRadius: '10px', padding: '14px', border: '1px solid #d2d2d7', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                  <div style={{ fontSize: '0.65rem', color: '#86868b', textTransform: 'uppercase', fontWeight: 500 }}>{key}</div>
+                  <div style={{ fontSize: '1.15rem', fontWeight: 700, color: '#1d1d1f' }}>${(typeof val === 'object' ? val?.last : val)?.toLocaleString() || '—'}</div>
+                  <div style={{ fontSize: '0.65rem', color: marketData.trends[key] === 'up' ? '#34c759' : '#ff3b30', fontWeight: 600 }}>
+                    {marketData.trends[key] === 'up' ? '↑' : '↓'}
                   </div>
-                ))}
+                </div>
+              ))}
+
+              {/* Notices */}
+              <div style={{ background: 'white', borderRadius: '10px', padding: '12px 14px', border: '1px solid #d2d2d7', display: 'flex', flexDirection: 'column' }}>
+                <div style={{ fontSize: '0.75rem', fontWeight: 600, marginBottom: '8px', color: '#1d1d1f', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  📢 <span>Notice Board</span>
+                </div>
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '0.7rem', overflow: 'hidden' }}>
+                  {notices.slice(0, 3).map((n, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <span style={{ fontWeight: 700, color: i === 0 ? '#ff3b30' : i === 1 ? '#ff9500' : '#34c759', minWidth: '12px' }}>{i + 1}</span>
+                      <span style={{ color: '#1d1d1f', overflow: 'hidden', textOverflow: 'ellipsis' }}>{n.content}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* News */}
+              <div style={{ background: 'white', borderRadius: '10px', padding: '12px 14px', border: '1px solid #d2d2d7', display: 'flex', flexDirection: 'column' }}>
+                <div style={{ fontSize: '0.75rem', fontWeight: 600, marginBottom: '8px', color: '#1d1d1f', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  📰 <span>ETNews</span>
+                </div>
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '0.7rem', overflow: 'hidden' }}>
+                  {news.slice(0, 3).map((item, i) => (
+                    <a key={i} href={item.link} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textDecoration: 'none', color: 'inherit' }}>
+                      <span style={{ fontWeight: 700, color: i === 0 ? '#007aff' : i === 1 ? '#5ac8fa' : '#86868b', minWidth: '12px' }}>{i + 1}</span>
+                      <span style={{ color: '#1d1d1f', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.title}</span>
+                    </a>
+                  ))}
+                </div>
               </div>
             </div>
 
-            {/* News - 네이버 검색어 순위 스타일 */}
-            <div style={{ background: 'white', borderRadius: '10px', padding: '12px 14px', border: '1px solid #d2d2d7', display: 'flex', flexDirection: 'column' }}>
-              <div style={{ fontSize: '0.75rem', fontWeight: 600, marginBottom: '8px', color: '#1d1d1f', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                📰 <span>ETNews</span>
+            {/* Row 2: Port + Chart + Products */}
+            <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '280px 1fr 280px', gap: '14px', overflow: 'hidden' }}>
+
+              {/* Incheon Port */}
+              <div style={{ background: 'white', borderRadius: '14px', padding: '18px', border: '1px solid #d2d2d7', display: 'flex', flexDirection: 'column' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                  <h3 style={{ fontSize: '0.95rem', fontWeight: 600, margin: 0, color: '#1d1d1f' }}>🚢 Incheon Port</h3>
+                  {portLastUpdated && <span style={{ fontSize: '0.65rem', color: '#86868b' }}>{portLastUpdated}</span>}
+                </div>
+                <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {hubs.map(hub => (
+                    <div key={hub.id} style={{ padding: '10px', background: '#fafafa', borderRadius: '8px', border: '1px solid #f0f0f0' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                        <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#1d1d1f' }}>{hub.name}</span>
+                        <span style={{ fontSize: '0.65rem', fontWeight: 700, padding: '2px 8px', borderRadius: '4px', background: hub.color, color: hub.textColor }}>{hub.status}</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.65rem', color: '#86868b' }}>
+                        <span>Trend: <span style={{ fontWeight: 600, color: '#1d1d1f' }}>{hub.trend}</span></span>
+                        <span>Capacity: <span style={{ fontWeight: 600, color: '#1d1d1f' }}>{hub.cargo}</span></span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '0.7rem', overflow: 'hidden' }}>
-                {news.slice(0, 3).map((item, i) => (
-                  <a key={i} href={item.link} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', textDecoration: 'none', color: 'inherit' }}>
-                    <span style={{ fontWeight: 700, color: i === 0 ? '#007aff' : i === 1 ? '#5ac8fa' : '#86868b', minWidth: '12px' }}>{i + 1}</span>
-                    <span style={{ color: '#1d1d1f', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.title}</span>
-                  </a>
-                ))}
+
+              {/* Chart */}
+              <div style={{ background: 'white', borderRadius: '14px', padding: '18px', border: '1px solid #d2d2d7', display: 'flex', flexDirection: 'column' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                  <h3 style={{ fontSize: '0.95rem', fontWeight: 600, margin: 0, color: '#1d1d1f' }}>📈 Market Analysis</h3>
+                </div>
+                <div style={{ flex: 1, minHeight: '300px' }}>
+                  <MarketChart
+                    marketData={marketData}
+                    historyData={historyData}
+                    selectedMetal={selectedMetal}
+                    setSelectedMetal={setSelectedMetal}
+                    selectedCurrency={selectedCurrency}
+                    setSelectedCurrency={setSelectedCurrency}
+                  />
+                </div>
+              </div>
+
+              {/* Products Preview */}
+              <div style={{ background: 'white', borderRadius: '14px', padding: '18px', border: '1px solid #d2d2d7', display: 'flex', flexDirection: 'column' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                  <h3 style={{ fontSize: '0.95rem', fontWeight: 600, margin: 0, color: '#1d1d1f' }}>📦 Top Products</h3>
+                  <span onClick={() => setActiveTab('Catalog')} style={{ fontSize: '0.65rem', color: '#007aff', cursor: 'pointer', fontWeight: 600 }}>View All</span>
+                </div>
+                <div style={{ flex: 1, overflowY: 'auto', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
+                  {catalogData.slice(0, 8).map(p => (
+                    <div key={p.id} onClick={() => setSelectedProduct(p)} style={{ cursor: 'pointer', border: '1px solid #e5e5ea', borderRadius: '8px', overflow: 'hidden', transition: 'transform 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.02)'} onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}>
+                      <div style={{ width: '100%', height: '70px', background: '#f5f5f7' }}>
+                        <img src={p.image} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => e.target.src = 'https://picsum.photos/400/300?blur=5'} />
+                      </div>
+                      <div style={{ padding: '6px' }}>
+                        <div style={{ fontSize: '0.7rem', fontWeight: 600, color: '#1d1d1f', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Row 3: Toolbox */}
+            <div style={{ background: 'white', borderRadius: '14px', padding: '16px 20px', border: '1px solid #d2d2d7', height: '90px', display: 'flex', alignItems: 'center', gap: '20px' }}>
+              <div style={{ flexShrink: 0 }}>
+                <h3 style={{ fontSize: '0.9rem', fontWeight: 600, margin: 0, color: '#1d1d1f' }}>🧰 Toolbox</h3>
+              </div>
+              <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                <div onClick={() => setShowToolModal('cbm')} style={{ padding: '8px 16px', border: '2px solid #007aff', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', background: 'white' }}>
+                  <span style={{ fontSize: '1.2rem' }}>📐</span>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>CBM</span>
+                </div>
+                <div onClick={() => setShowToolModal('tracking')} style={{ padding: '8px 16px', border: '2px solid #34c759', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', background: 'white' }}>
+                  <span style={{ fontSize: '1.2rem' }}>🔍</span>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>Track</span>
+                </div>
               </div>
             </div>
           </div>
-
-          {/* Row 2: Port + Chart + Products */}
-          <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '280px 1fr 280px', gap: '14px', overflow: 'hidden' }}>
-
-            {/* Incheon Port */}
-            <div style={{ background: 'white', borderRadius: '14px', padding: '18px', border: '1px solid #d2d2d7', display: 'flex', flexDirection: 'column' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                <h3 style={{ fontSize: '0.95rem', fontWeight: 600, margin: 0, color: '#1d1d1f' }}>🚢 Incheon Port</h3>
-                {portLastUpdated && <span style={{ fontSize: '0.65rem', color: '#86868b' }}>{portLastUpdated}</span>}
+        ) : (
+          /* Full Catalog Content */
+          <div style={{ flex: 1, padding: '24px', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+              <div>
+                <h2 style={{ fontSize: '1.6rem', fontWeight: 700, margin: 0, color: '#1d1d1f' }}>Product Catalog</h2>
+                <p style={{ fontSize: '0.9rem', color: '#86868b', marginTop: '4px' }}>Explore our full inventory of high-quality products.</p>
               </div>
-              <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {hubs.map(hub => (
-                  <div key={hub.id} style={{ padding: '10px', background: '#fafafa', borderRadius: '8px', border: '1px solid #f0f0f0' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                      <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#1d1d1f' }}>{hub.name}</span>
-                      <span style={{ fontSize: '0.65rem', fontWeight: 700, padding: '2px 8px', borderRadius: '4px', background: hub.color, color: hub.textColor }}>{hub.status}</span>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                {/* Search/Filter UI could go here */}
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '24px' }}>
+              {catalogData.map(p => (
+                <div key={p.id} onClick={() => setSelectedProduct(p)} style={{ background: 'white', borderRadius: '18px', border: '1px solid #d2d2d7', overflow: 'hidden', cursor: 'pointer', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 20px 25px -5px rgb(0 0 0 / 0.1)'; }}>
+                  <div style={{ width: '100%', height: '180px', background: '#f5f5f7', position: 'relative' }}>
+                    <img src={p.image} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => e.target.src = 'https://picsum.photos/600/400?blur=5'} />
+                    {p.specs?.powerConsumption && (
+                      <div style={{ position: 'absolute', bottom: '12px', right: '12px', background: 'rgba(255,255,255,0.9)', padding: '4px 10px', borderRadius: '20px', fontSize: '0.7rem', fontWeight: 700, color: '#1d1d1f' }}>
+                        {p.specs.powerConsumption}W
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ padding: '16px' }}>
+                    <div style={{ fontSize: '0.9rem', fontWeight: 700, color: '#1d1d1f', marginBottom: '4px' }}>{p.name}</div>
+                    <div style={{ fontSize: '0.75rem', color: '#86868b', marginBottom: '12px', display: 'flex', gap: '4px' }}>
+                      <span>Mode: {p.specs?.modelName || '—'}</span>
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.65rem', color: '#86868b' }}>
-                      <span>Trend: <span style={{ fontWeight: 600, color: '#1d1d1f' }}>{hub.trend}</span></span>
-                      <span>Capacity: <span style={{ fontWeight: 600, color: '#1d1d1f' }}>{hub.cargo}</span></span>
+                    <div style={{ fontSize: '0.7rem', fontStyle: 'italic', color: '#1d1d1f', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span>View Specs</span>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
                     </div>
                   </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Chart */}
-            <div style={{ background: 'white', borderRadius: '14px', padding: '18px', border: '1px solid #d2d2d7', display: 'flex', flexDirection: 'column' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                <h3 style={{ fontSize: '0.95rem', fontWeight: 600, margin: 0, color: '#1d1d1f' }}>📈 Market Analysis</h3>
-              </div>
-              <div style={{ flex: 1, minHeight: '300px' }}>
-                <MarketChart
-                  marketData={marketData}
-                  historyData={historyData}
-                  selectedMetal={selectedMetal}
-                  setSelectedMetal={setSelectedMetal}
-                  selectedCurrency={selectedCurrency}
-                  setSelectedCurrency={setSelectedCurrency}
-                />
-              </div>
-            </div>
-
-            {/* Products */}
-            <div style={{ background: 'white', borderRadius: '14px', padding: '18px', border: '1px solid #d2d2d7', display: 'flex', flexDirection: 'column' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                <h3 style={{ fontSize: '0.95rem', fontWeight: 600, margin: 0, color: '#1d1d1f' }}>📦 Products</h3>
-                <span style={{ fontSize: '0.65rem', color: '#86868b' }}>{catalogData.length}</span>
-              </div>
-              <div style={{ flex: 1, overflowY: 'auto', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
-                {catalogData.slice(0, 8).map(p => (
-                  <div key={p.id} onClick={() => setSelectedProduct(p)} style={{ cursor: 'pointer', border: '1px solid #e5e5ea', borderRadius: '8px', overflow: 'hidden', transition: 'transform 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.02)'} onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}>
-                    <div style={{ width: '100%', height: '70px', background: '#f5f5f7' }}>
-                      <img src={p.image} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => e.target.src = 'https://picsum.photos/400/300?blur=5'} />
-                    </div>
-                    <div style={{ padding: '6px' }}>
-                      <div style={{ fontSize: '0.7rem', fontWeight: 600, color: '#1d1d1f', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Row 3: Toolbox */}
-          <div style={{ background: 'white', borderRadius: '14px', padding: '16px 20px', border: '1px solid #d2d2d7', height: '90px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-              <h3 style={{ fontSize: '0.9rem', fontWeight: 600, margin: 0, color: '#1d1d1f' }}>🧰 Toolbox</h3>
-              <span style={{ fontSize: '0.65rem', color: '#86868b' }}>Click to expand</span>
-            </div>
-            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-              {/* CBM Tool */}
-              <div onClick={() => setShowToolModal('cbm')} style={{ width: '70px', height: '50px', border: '2px solid #007aff', borderRadius: '10px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.2s', background: 'white' }} onMouseEnter={(e) => e.currentTarget.style.background = '#f0f9ff'} onMouseLeave={(e) => e.currentTarget.style.background = 'white'}>
-                <div style={{ fontSize: '1.3rem' }}>📐</div>
-                <div style={{ fontSize: '0.65rem', fontWeight: 600, color: '#1d1d1f', marginTop: '2px' }}>CBM</div>
-              </div>
-
-              {/* Tracking Tool */}
-              <div onClick={() => setShowToolModal('tracking')} style={{ width: '70px', height: '50px', border: '2px solid #34c759', borderRadius: '10px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.2s', background: 'white' }} onMouseEnter={(e) => e.currentTarget.style.background = '#f0fdf4'} onMouseLeave={(e) => e.currentTarget.style.background = 'white'}>
-                <div style={{ fontSize: '1.3rem' }}>🔍</div>
-                <div style={{ fontSize: '0.65rem', fontWeight: 600, color: '#1d1d1f', marginTop: '2px' }}>Track</div>
-              </div>
-
-              {/* More tools placeholders */}
-              {[1, 2, 3, 4].map(i => (
-                <div key={i} style={{ width: '70px', height: '50px', border: '2px dashed #d2d2d7', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.3 }}>
-                  <div style={{ fontSize: '1.5rem', color: '#86868b' }}>+</div>
                 </div>
               ))}
             </div>
           </div>
-        </div>
+        )}
       </main>
 
       {/* Modals */}
