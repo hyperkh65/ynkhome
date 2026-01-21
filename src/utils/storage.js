@@ -103,6 +103,12 @@ export const saveProduct = (product) => {
 
 export const deleteProduct = (id) => {
     const products = getProducts();
-    const filtered = products.filter(p => p.id !== id);
+    const filtered = products.filter(p => p.id != id);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
+};
+
+export const resetProducts = () => {
+    if (typeof window !== 'undefined') {
+        localStorage.removeItem(STORAGE_KEY);
+    }
 };
