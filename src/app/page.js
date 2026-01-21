@@ -96,6 +96,43 @@ export default function Home() {
       }
     }));
 
+    // --- Market History Merging Logic ---
+    const getMergedHistory = (realHistory, todayValue, keyPath) => {
+      const days = 30;
+      const merged = [];
+      const today = new Date();
+
+      // Get nested value from today's marketData
+      const getVal = (obj, path) => path.split('.').reduce((o, i) => o?.[i], obj);
+      const currentVal = getVal(marketData, keyPath) || todayValue;
+
+      for (let i = days - 1; i >= 0; i--) {
+        const d = new Date(today);
+        d.setDate(today.getDate() - i);
+        const dateStr = d.toISOString().split('T')[0];
+
+        // Find match in real history
+        const match = realHistory.find(h => h.date === dateStr);
+        if (match) {
+          const val = keyPath.split('.').length > 1
+            ? getVal(match, keyPath)
+            : match[keyPath];
+          merged.push({ date: dateStr, value: val });
+        } else {
+          // No real data for this day. Generate mock data based on recent trend or base value
+          // Base it on a slight fluctuation around the todayValue or first available real value
+          const base = currentVal;
+          const noise = (Math.random() - 0.5) * (base * 0.02); // 2% noise
+          merged.push({ date: dateStr, value: base + noise });
+        }
+      }
+
+      // Ensure the very last point is exactly today's real value
+      if (merged.length > 0) merged[merged.length - 1].value = currentVal;
+
+      return merged;
+    };
+
     // 3. Real Incheon Port Status Fetch
     try {
       const res = await fetch('/api/incheon/congestion');
