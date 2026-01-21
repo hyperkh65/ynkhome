@@ -131,8 +131,11 @@ export default function AdminLibrary() {
     if (!isAuthorized) return <div className="p-8 text-red-600">관리자 권한이 없습니다.</div>;
 
     return (
-        <div className={styles.container}>
-            <h1 className="text-2xl font-bold mb-6">자료실 게시판 관리</h1>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                <h1 className="text-2xl font-bold">Library Management</h1>
+                <a href="/admin" style={{ padding: '8px 16px', borderRadius: '8px', background: '#f1f5f9', color: '#64748b', textDecoration: 'none', fontWeight: 600 }}>← Back to Dashboard</a>
+            </div>
 
             {/* 입력 폼 */}
             <form onSubmit={handleSubmit} className="mb-8 p-6 bg-white border rounded-xl shadow-sm">
