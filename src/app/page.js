@@ -634,7 +634,7 @@ export default function Home() {
                           <h3 style={{ fontSize: '0.8rem', fontWeight: 600, marginBottom: '10px', color: '#1d1d1f' }}>📋 Customs Progress</h3>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px', background: '#f0fdf4', borderRadius: '8px', border: '1px solid #d1fae5' }}>
                             <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#065f46' }}>{trackResult.data.csclPrgsStts}</div>
-                            {trackResult.data.prcsDttm && (
+                            {trackResult.data?.prcsDttm && trackResult.data.prcsDttm.length >= 12 && (
                               <div style={{ fontSize: '0.65rem', color: '#047857', marginLeft: 'auto' }}>
                                 {trackResult.data.prcsDttm.substring(0, 8)} {trackResult.data.prcsDttm.substring(8, 10)}:{trackResult.data.prcsDttm.substring(10, 12)}
                               </div>
@@ -652,7 +652,7 @@ export default function Home() {
                               <div key={idx} style={{ padding: '8px', background: 'white', borderRadius: '8px', border: '1px solid #e5e5ea' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3px' }}>
                                   <span style={{ fontSize: '0.7rem', fontWeight: 600, color: '#1d1d1f' }}>{detail?.cargTrcnRelaBsopTpcd || 'Activity'}</span>
-                                  {detail?.prcsDttm && (
+                                  {detail?.prcsDttm && detail.prcsDttm.length >= 12 && (
                                     <span style={{ fontSize: '0.65rem', color: '#86868b' }}>
                                       {detail.prcsDttm.substring(0, 8)} {detail.prcsDttm.substring(8, 10)}:{detail.prcsDttm.substring(10, 12)}
                                     </span>
