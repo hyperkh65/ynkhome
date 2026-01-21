@@ -1,1 +1,0 @@
-<?xml version='1.0' encoding='UTF-8'?><GetTrmnlCnfResponse><body/><header><resultCode>99</resultCode><resultMsg>Invalid parameter for function.[CAS INFO-192.168.21.12:35000,33,1878238],[SESSION--4568],[URL-jdbc:cubrid:192.168.21.12:35000:simgr:simgr:********:?charset=utf-8].</resultMsg></header></GetTrmnlCnfResponse>

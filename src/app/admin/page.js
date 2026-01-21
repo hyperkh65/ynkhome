@@ -20,10 +20,20 @@ export default function AdminPage() {
         name: '',
         description: '',
         image: '',
-        material: '',
+        // Specs from image
+        partNo: '',
+        modelName: '',
+        colorTemp: '',
+        powerConsumption: '',
+        inputVoltage: '',
+        powerFactor: '',
+        luminousFlux: '',
+        criRa: '',
+        dimensions: '',
         weight: '',
         cert: '',
-        origin: '',
+        remarks: '',
+        // Links
         certificate: '',
         specSheet: ''
     });
@@ -65,10 +75,18 @@ export default function AdminPage() {
             name: '',
             description: '',
             image: '',
-            material: '',
+            partNo: '',
+            modelName: '',
+            colorTemp: '',
+            powerConsumption: '',
+            inputVoltage: '',
+            powerFactor: '',
+            luminousFlux: '',
+            criRa: '',
+            dimensions: '',
             weight: '',
             cert: '',
-            origin: '',
+            remarks: '',
             certificate: '',
             specSheet: ''
         });
@@ -80,10 +98,18 @@ export default function AdminPage() {
             name: product.name,
             description: product.description,
             image: product.image,
-            material: product.specs?.material || '',
+            partNo: product.specs?.partNo || '',
+            modelName: product.specs?.modelName || '',
+            colorTemp: product.specs?.colorTemp || '',
+            powerConsumption: product.specs?.powerConsumption || '',
+            inputVoltage: product.specs?.inputVoltage || '',
+            powerFactor: product.specs?.powerFactor || '',
+            luminousFlux: product.specs?.luminousFlux || '',
+            criRa: product.specs?.criRa || '',
+            dimensions: product.specs?.dimensions || '',
             weight: product.specs?.weight || '',
             cert: product.specs?.cert || '',
-            origin: product.specs?.origin || '',
+            remarks: product.specs?.remarks || '',
             certificate: product.specs?.certificate || '',
             specSheet: product.specs?.specSheet || ''
         });
@@ -146,10 +172,18 @@ export default function AdminPage() {
             description: formData.description,
             image: formData.image,
             specs: {
-                material: formData.material,
+                partNo: formData.partNo,
+                modelName: formData.modelName,
+                colorTemp: formData.colorTemp,
+                powerConsumption: formData.powerConsumption,
+                inputVoltage: formData.inputVoltage,
+                powerFactor: formData.powerFactor,
+                luminousFlux: formData.luminousFlux,
+                criRa: formData.criRa,
+                dimensions: formData.dimensions,
                 weight: formData.weight,
                 cert: formData.cert,
-                origin: formData.origin,
+                remarks: formData.remarks,
                 certificate: formData.certificate,
                 specSheet: formData.specSheet
             }
@@ -239,20 +273,52 @@ export default function AdminPage() {
                                     <input type="text" name="description" className={styles.input} value={formData.description} onChange={handleInputChange} placeholder="Short subtitle" />
                                 </div>
                                 <div className={styles.formGroup}>
-                                    <label className={styles.label}>Material</label>
-                                    <input type="text" name="material" className={styles.input} value={formData.material} onChange={handleInputChange} />
+                                    <label className={styles.label}>품번 (Part No)</label>
+                                    <input type="text" name="partNo" className={styles.input} value={formData.partNo} onChange={handleInputChange} />
                                 </div>
                                 <div className={styles.formGroup}>
-                                    <label className={styles.label}>Weight</label>
+                                    <label className={styles.label}>모델명 (Model Name)</label>
+                                    <input type="text" name="modelName" className={styles.input} value={formData.modelName} onChange={handleInputChange} />
+                                </div>
+                                <div className={styles.formGroup}>
+                                    <label className={styles.label}>색온도 (K)</label>
+                                    <input type="text" name="colorTemp" className={styles.input} value={formData.colorTemp} onChange={handleInputChange} />
+                                </div>
+                                <div className={styles.formGroup}>
+                                    <label className={styles.label}>소비전력 (W)</label>
+                                    <input type="text" name="powerConsumption" className={styles.input} value={formData.powerConsumption} onChange={handleInputChange} />
+                                </div>
+                                <div className={styles.formGroup}>
+                                    <label className={styles.label}>입력전압 (V)</label>
+                                    <input type="text" name="inputVoltage" className={styles.input} value={formData.inputVoltage} onChange={handleInputChange} />
+                                </div>
+                                <div className={styles.formGroup}>
+                                    <label className={styles.label}>역률 (Power Factor)</label>
+                                    <input type="text" name="powerFactor" className={styles.input} value={formData.powerFactor} onChange={handleInputChange} />
+                                </div>
+                                <div className={styles.formGroup}>
+                                    <label className={styles.label}>총광속 (lm)</label>
+                                    <input type="text" name="luminousFlux" className={styles.input} value={formData.luminousFlux} onChange={handleInputChange} />
+                                </div>
+                                <div className={styles.formGroup}>
+                                    <label className={styles.label}>연색성 (Ra)</label>
+                                    <input type="text" name="criRa" className={styles.input} value={formData.criRa} onChange={handleInputChange} />
+                                </div>
+                                <div className={styles.formGroup}>
+                                    <label className={styles.label}>외형치수 (Dimensions)</label>
+                                    <input type="text" name="dimensions" className={styles.input} value={formData.dimensions} onChange={handleInputChange} />
+                                </div>
+                                <div className={styles.formGroup}>
+                                    <label className={styles.label}>무게 (Weight)</label>
                                     <input type="text" name="weight" className={styles.input} value={formData.weight} onChange={handleInputChange} />
                                 </div>
-                                <div className={styles.formGroup}>
-                                    <label className={styles.label}>Certifications</label>
+                                <div className={styles.formGroup} style={{ gridColumn: 'span 2' }}>
+                                    <label className={styles.label}>인증 (Certifications)</label>
                                     <input type="text" name="cert" className={styles.input} value={formData.cert} onChange={handleInputChange} />
                                 </div>
-                                <div className={styles.formGroup}>
-                                    <label className={styles.label}>Origin</label>
-                                    <input type="text" name="origin" className={styles.input} value={formData.origin} onChange={handleInputChange} />
+                                <div className={styles.formGroup} style={{ gridColumn: 'span 2' }}>
+                                    <label className={styles.label}>비고 (Remarks)</label>
+                                    <textarea name="remarks" className={styles.input} style={{ height: '80px', padding: '10px' }} value={formData.remarks} onChange={handleInputChange} placeholder="Additional information or notes" />
                                 </div>
                                 <div className={styles.formGroup} style={{ gridColumn: 'span 2' }}>
                                     <label className={styles.label}>Image URL</label>
