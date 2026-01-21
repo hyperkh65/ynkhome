@@ -1,6 +1,8 @@
 import { supabase } from './supabase';
 
 export const getProducts = async () => {
+    if (!supabase) return [];
+
     const { data, error } = await supabase
         .from('products')
         .select('*')
@@ -14,6 +16,8 @@ export const getProducts = async () => {
 };
 
 export const saveProduct = async (product) => {
+    if (!supabase) throw new Error("Database not connected (missing update env vars)");
+
     // If it's a new product (no ID or ID is null), remove ID from object so Supabase generates it
     // But since our UI manages IDs or we want to allow editing...
 
@@ -42,6 +46,8 @@ export const saveProduct = async (product) => {
 };
 
 export const deleteProduct = async (id) => {
+    if (!supabase) throw new Error("Database not connected");
+
     const { error } = await supabase
         .from('products')
         .delete()
