@@ -797,26 +797,16 @@ export default function Home() {
                               {i < 4 && <div style={{ width: '2px', height: '30px', background: '#f1f5f9' }}></div>}
                             </div>
                             {(() => {
-                              // Comprehensive field search
-                              const getF = (f) => {
-                                const k = Object.keys(detail).find(key => key.toLowerCase() === f.toLowerCase());
-                                return k ? detail[k] : null;
+                              const getV = (f) => {
+                                const v = detail[f] || detail[f.toUpperCase()] || detail[f.toLowerCase()];
+                                if (!v) return null;
+                                return typeof v === 'object' ? (v['#text'] || v['content'] || JSON.stringify(v)) : String(v);
                               };
 
-                              // Common status fields in UNIPASS
-                              let status = getF('prgsSttsNm') ||
-                                getF('cargPrcsSttsNm') ||
-                                getF('prcsSttsNm') ||
-                                getF('sttsNm') ||
-                                getF('csclPrgsSttsNm') ||
-                                getF('statusNm') ||
-                                getF('prcsNm') ||
-                                getF('prgsStts') ||
-                                '';
-
-                              const rawDt = String(getF('prgsDt') || getF('prcsDttm') || getF('prgsDtTm') || getF('eventDt') || '');
-                              const location = getF('shedNm') || getF('prgsLocation') || getF('location') || getF('placeNm') || getF('shpmAirptPortNm') || 'Logistics Node';
-                              const dclNo = getF('dclNo') || getF('mblNo') || getF('refNo');
+                              const status = getV('prgsSttsNm') || getV('prgsStts') || getV('cargPrcsSttsNm') || 'Step Update';
+                              const rawDt = String(getV('prgsDt') || getV('prcsDttm') || getV('prgsDtTm') || '');
+                              const location = getV('shedNm') || getV('location') || 'Customs Zone';
+                              const dclNo = getV('dclNo') || getV('mblNo');
 
                               const formattedDt = rawDt.length >= 12
                                 ? `${rawDt.substring(0, 4)}-${rawDt.substring(4, 6)}-${rawDt.substring(6, 8)} ${rawDt.substring(8, 10)}:${rawDt.substring(10, 12)}`
@@ -832,7 +822,7 @@ export default function Home() {
                                   </div>
                                   {dclNo && (
                                     <div style={{ fontSize: '0.7rem', color: '#94a3b8', marginTop: '2px' }}>
-                                      관리번호/신고번호: {dclNo}
+                                      신고/관리번호: {dclNo}
                                     </div>
                                   )}
                                 </div>
