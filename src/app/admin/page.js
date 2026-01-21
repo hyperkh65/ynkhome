@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getProducts, saveProduct, deleteProduct } from '@/utils/storage';
+import { getProducts, saveProduct, deleteProduct, getNotices, saveNotice, deleteNotice } from '@/utils/storage';
 import styles from './admin.module.css';
 
 export default function AdminPage() {
@@ -11,7 +11,9 @@ export default function AdminPage() {
 
     // Data State
     const [products, setProducts] = useState([]);
+    const [notices, setNotices] = useState([]);
     const [editingId, setEditingId] = useState(null);
+    const [newNotice, setNewNotice] = useState('');
 
     // Form State
     const [formData, setFormData] = useState({
@@ -28,13 +30,15 @@ export default function AdminPage() {
 
     useEffect(() => {
         if (isAuthenticated) {
-            loadProducts();
+            loadData();
         }
     }, [isAuthenticated]);
 
-    const loadProducts = async () => {
-        const data = await getProducts();
-        setProducts(data);
+    const loadData = async () => {
+        const prodData = await getProducts();
+        setProducts(prodData);
+        const noticeData = await getNotices();
+        setNotices(noticeData);
     };
 
     const handleLogin = (e) => {
@@ -89,12 +93,33 @@ export default function AdminPage() {
         if (!window.confirm('Are you sure you want to delete this product?')) return;
         try {
             await deleteProduct(id);
-            await loadProducts();
+            await loadData();
             if (editingId === id) resetForm();
-            // Optional: alert('Deleted successfully'); 
         } catch (error) {
             console.error(error);
             alert('Delete failed: ' + (error.message || JSON.stringify(error)));
+        }
+    };
+
+    const handleNoticeSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            await saveNotice({ content: newNotice });
+            alert('Notice Posted');
+            await loadData();
+            setNewNotice('');
+        } catch (error) {
+            alert('Failed to post notice: ' + error.message);
+        }
+    };
+
+    const handleNoticeDelete = async (id) => {
+        if (!window.confirm('Delete this notice?')) return;
+        try {
+            await deleteNotice(id);
+            await loadData();
+        } catch (error) {
+            alert('Delete failed');
         }
     };
 
@@ -119,7 +144,7 @@ export default function AdminPage() {
         try {
             await saveProduct(payload);
             alert(editingId ? 'Product Updated' : 'Product Created');
-            await loadProducts();
+            await loadData();
             resetForm();
         } catch (error) {
             alert('Operation failed');
@@ -171,7 +196,7 @@ export default function AdminPage() {
                     </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(300px, 1fr) minmax(300px, 1fr)', gap: '32px', alignItems: 'start' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(300px, 1fr) minmax(300px, 1fr) 300px', gap: '32px', alignItems: 'start' }}>
 
                     {/* Form Section - Left */}
                     <div className={styles.formCard} style={{ position: 'sticky', top: '20px' }}>
@@ -238,7 +263,7 @@ export default function AdminPage() {
                         </form>
                     </div>
 
-                    {/* List Section - Right */}
+                    {/* List Section - Center */}
                     <div className={styles.card} style={{ height: 'calc(100vh - 120px)', overflowY: 'auto', position: 'sticky', top: '20px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', position: 'sticky', top: 0, background: 'white', zIndex: 10, paddingBottom: '10px', borderBottom: '1px solid #f1f5f9' }}>
                             <h3 style={{ fontSize: '1.1rem', fontWeight: 600, margin: 0 }}>Inventory ({products.length})</h3>
@@ -270,6 +295,36 @@ export default function AdminPage() {
                                         >
                                             Del
                                         </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Notice Section - Right */}
+                    <div className={styles.card} style={{ height: 'calc(100vh - 120px)', position: 'sticky', top: '20px', display: 'flex', flexDirection: 'column' }}>
+                        <div style={{ borderBottom: '1px solid #f1f5f9', paddingBottom: '10px', marginBottom: '10px' }}>
+                            <h3 style={{ fontSize: '1.1rem', fontWeight: 600, margin: 0 }}>System Notices</h3>
+                        </div>
+                        <form onSubmit={handleNoticeSubmit} style={{ marginBottom: '20px' }}>
+                            <textarea
+                                value={newNotice}
+                                onChange={(e) => setNewNotice(e.target.value)}
+                                placeholder="Write a new notice..."
+                                style={{ width: '100%', height: '80px', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0', resize: 'none', marginBottom: '8px' }}
+                                required
+                            />
+                            <button type="submit" className={styles.catBtn} style={{ width: '100%', justifyContent: 'center', background: '#3b82f6', color: 'white', border: 'none' }}>
+                                Post Notice
+                            </button>
+                        </form>
+                        <div style={{ flex: 1, overflowY: 'auto' }}>
+                            {notices.map(notice => (
+                                <div key={notice.id} style={{ padding: '10px', borderRadius: '8px', background: '#f8fafc', marginBottom: '8px', border: '1px solid #e2e8f0' }}>
+                                    <div style={{ fontSize: '0.9rem', marginBottom: '6px' }}>{notice.content}</div>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>{new Date(notice.created_at).toLocaleDateString()}</span>
+                                        <button onClick={() => handleNoticeDelete(notice.id)} style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.8rem' }}>Delete</button>
                                     </div>
                                 </div>
                             ))}

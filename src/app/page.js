@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import styles from './page.module.css';
 import MarketChart from '@/components/MarketChart';
 
-import { getProducts } from '@/utils/storage';
+import { getProducts, getNotices } from '@/utils/storage';
 
 export default function Home() {
   const [isMounted, setIsMounted] = useState(false);
@@ -19,6 +19,10 @@ export default function Home() {
   const [selectedCurrency, setSelectedCurrency] = useState('usd');
   const [activeTool, setActiveTool] = useState('cbm'); // default tool
   const [showSettings, setShowSettings] = useState(false);
+
+  // News & Notices State
+  const [notices, setNotices] = useState([]);
+  const [news, setNews] = useState([]);
 
   // Settings State
   const [darkMode, setDarkMode] = useState(false);
@@ -36,11 +40,11 @@ export default function Home() {
     usd: 1476.80,
     cny: 212.24,
     metals: {
-      alum: 0,
-      copper: 0,
-      steel: 0,
-      nickel: 0,
-      zinc: 0
+      alum: 2350.50,
+      copper: 9500.20,
+      steel: 680.00,
+      nickel: 16200.00,
+      zinc: 2800.00
     },
     trends: { usd: 'up', cny: 'up', alum: 'up', copper: 'down', steel: 'up', nickel: 'up', zinc: 'up' }
   });
@@ -80,7 +84,6 @@ export default function Home() {
 
   const fetchData = async () => {
     // 1. Market Data (Mock)
-    // In a real app, fetch from an API like Alpha Vantage or Yahoo Finance
     setMarketData(prev => ({
       ...prev,
       metals: {
@@ -92,12 +95,21 @@ export default function Home() {
       }
     }));
 
-    // 2. Fetch Catalog Products from LocalStorage/Supabase
+    // 2. Fetch Catalog Products form Supabase
     try {
       const products = await getProducts();
       setCatalogData(products);
+
+      const noticeList = await getNotices();
+      setNotices(noticeList);
+
+      fetch('/api/news')
+        .then(res => res.json())
+        .then(data => setNews(data.news || []))
+        .catch(err => console.error("News fetch error", err));
+
     } catch (e) {
-      console.error("Failed to load products", e);
+      console.error("Failed to load data", e);
     }
   };
 
@@ -182,6 +194,57 @@ export default function Home() {
 
         <div className={styles.dashboardGrid}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+
+            {/* 0. Notices & News Row */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' }}>
+              {/* Notices */}
+              <div className={styles.card} style={{ padding: '24px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                  <div style={{ padding: '6px', background: '#ecfdf5', borderRadius: '8px', color: '#10b981' }}>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                  </div>
+                  <h2 className={styles.cardTitle} style={{ fontSize: '1.1rem', margin: 0 }}>Notice Board</h2>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {notices.length === 0 ? (
+                    <div style={{ color: '#94a3b8', fontSize: '0.9rem' }}>No active notices.</div>
+                  ) : (
+                    notices.map((notice, i) => (
+                      <div key={i} style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', paddingBottom: '12px', borderBottom: i === notices.length - 1 ? 'none' : '1px solid #f1f5f9' }}>
+                        <div style={{ minWidth: '4px', height: '4px', background: '#ef4444', borderRadius: '50%', marginTop: '8px' }}></div>
+                        <div>
+                          <div style={{ fontSize: '0.9rem', lineHeight: '1.5' }}>{notice.content}</div>
+                          <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '4px' }}>{new Date(notice.created_at).toLocaleDateString()}</div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              {/* News (ETNews) */}
+              <div className={styles.card} style={{ padding: '24px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                  <div style={{ padding: '6px', background: '#eff6ff', borderRadius: '8px', color: '#3b82f6' }}>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+                  </div>
+                  <h2 className={styles.cardTitle} style={{ fontSize: '1.1rem', margin: 0 }}>Electronic Times (ETNews)</h2>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {news.length === 0 ? (
+                    <div style={{ color: '#94a3b8', fontSize: '0.9rem' }}>Loading news...</div>
+                  ) : (
+                    news.map((item, i) => (
+                      <a key={i} href={item.link} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', color: 'inherit', display: 'flex', gap: '12px', alignItems: 'flex-start', paddingBottom: '12px', borderBottom: i === news.length - 1 ? 'none' : '1px solid #f1f5f9', cursor: 'pointer' }}>
+                        <div style={{ minWidth: '60px', fontSize: '0.75rem', color: '#94a3b8', marginTop: '2px', textAlign: 'right' }}>{item.date && item.date.substring(5)}</div>
+                        <div style={{ fontSize: '0.9rem', fontWeight: 500, lineHeight: '1.4' }} className={styles.newsTitle}>{item.title}</div>
+                      </a>
+                    ))
+                  )}
+                </div>
+              </div>
+            </div>
+
             {/* 1. World Clock Banner */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
               <div className={styles.card} style={{ padding: '20px', background: 'linear-gradient(135deg, #10b981, #059669)', color: 'white' }}>
@@ -462,7 +525,7 @@ export default function Home() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                       <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#fff7ed', color: '#f97316', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                        <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10z"></path></svg>
                       </div>
                       <span style={{ fontWeight: 500 }}>Language</span>
                     </div>
