@@ -64,11 +64,14 @@ export default function Home() {
   ]);
   const [incheonPort, setIncheonPort] = useState([]);
 
-  // Handlers
+  // World Clock & Auto Refresh
   useEffect(() => {
     setIsMounted(true);
-    // World Clock
-    const timer = setInterval(() => {
+
+    // Initial fetch
+    fetchData();
+
+    const worldTimer = setInterval(() => {
       const now = new Date();
       setTimes({
         korea: now.toLocaleTimeString('en-US', { timeZone: 'Asia/Seoul', hour12: false }),
@@ -77,24 +80,28 @@ export default function Home() {
       });
     }, 1000);
 
-    // Initial Data Fetch
-    fetchData();
+    // Auto refresh all data every 1 minute
+    const refreshTimer = setInterval(() => {
+      fetchData();
+    }, 60000);
 
-    return () => clearInterval(timer);
+    return () => {
+      clearInterval(worldTimer);
+      clearInterval(refreshTimer);
+    };
   }, []);
 
   const fetchData = async () => {
-    // 1. Market Data (Mock)
-    setMarketData(prev => ({
-      ...prev,
-      metals: {
-        alum: 2350.50,
-        copper: 9500.20,
-        steel: 680.00,
-        nickel: 16200.00,
-        zinc: 2800.00
+    // 1. Fetch Real Market Data
+    try {
+      const mRes = await fetch('/api/market', { cache: 'no-store' });
+      const mData = await mRes.json();
+      if (mData.success) {
+        setMarketData(mData.data);
       }
-    }));
+    } catch (err) {
+      console.error("Market data fetch failed", err);
+    }
 
     // --- Market History Merging Logic ---
     const getMergedHistory = (realHistory, todayValue, keyPath) => {
@@ -139,33 +146,38 @@ export default function Home() {
       const json = await res.json();
 
       if (json.success && Array.isArray(json.data) && json.data.length > 0) {
-        setHubs(prev => prev.map((hub, idx) => {
+        setHubs(prev => prev.map((hub) => {
           // Find matching data in API response
           const match = json.data.find(d => {
-            const apiNm = (d.trmnlNm || '').toUpperCase();
+            const apiNm = (d.termName || d.trmnlNm || '').toUpperCase();
             const hubNm = hub.name.toUpperCase();
             return hubNm.includes(apiNm) || apiNm.includes(hubNm.substr(0, 2)) ||
               (hubNm.includes('인천') && apiNm.includes('ICT')) ||
               (hubNm.includes('한진') && apiNm.includes('HJIT')) ||
               (hubNm.includes('선광') && apiNm.includes('SNCT'));
-          }) || json.data[idx % json.data.length]; // Fallback to index if no match
+          });
 
           if (match) {
-            const level = match.cgstLevel || 'Normal';
-            let status = 'Normal';
-            let color = '#ecfdf5';
-            let textColor = '#15803d';
+            const level = (match.trafficStatus || match.cgstLevel || '').toUpperCase();
+            let status = 'Smooth';
+            let color = '#ecfdf5'; // Green bg
+            let textColor = '#059669'; // Green text
 
-            if (level.includes('보통')) {
-              status = 'Busy';
-              color = '#ffedd5';
-              textColor = '#c2410c';
-            } else if (level.includes('혼잡') || level.includes('포화')) {
+            if (level === 'R' || level.includes('혼잡') || level.includes('포화')) {
               status = 'Congested';
-              color = '#fee2e2';
-              textColor = '#b91c1c';
+              color = '#fee2e2'; // Red bg
+              textColor = '#dc2626'; // Red text
+            } else if (level === 'Y' || level === 'M' || level.includes('보통')) {
+              status = 'Moderate';
+              color = '#fffbeb'; // Yellow bg
+              textColor = '#d97706'; // Yellow text
+            } else if (level === 'B' || level === 'G' || level.includes('원활')) {
+              status = 'Smooth';
+              color = '#ecfdf5';
+              textColor = '#059669';
             }
-            return { ...hub, status: status, color, textColor };
+
+            return { ...hub, status, color, textColor };
           }
           return hub;
         }));
