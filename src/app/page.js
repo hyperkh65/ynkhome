@@ -215,10 +215,10 @@ export default function Home() {
                   </div>
                   <div style={{ height: '300px' }}>
                     <MarketChart
-                      data={historyData.map(d => ({ date: d.date, value: d.usd }))}
-                      todayValue={marketData.usd}
-                      title="USD/KRW Index"
-                      color="#7c3aed"
+                      data={historyData.map(d => ({ date: d.date, value: d.cny }))}
+                      todayValue={marketData.cny}
+                      title="CNY/KRW Index"
+                      color="#ef4444"
                       unit=" ₩"
                     />
                   </div>
