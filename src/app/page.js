@@ -40,6 +40,7 @@ export default function Home() {
     { id: 'shanghai', name: 'Shang. (CN)', status: 'Moderate', color: '#fef3c7', textColor: '#92400e' },
     { id: 'hcm', name: 'HCM (VN)', status: 'Delay', color: '#fee2e2', textColor: '#991b1b' }
   ]);
+  const [incheonPort, setIncheonPort] = useState([]);
 
   // Handlers
   const addProduct = () => {
@@ -90,6 +91,16 @@ export default function Home() {
         const hRes = await fetch('/api/market/history');
         const hData = await hRes.json();
         if (Array.isArray(hData)) setHistoryData(hData.reverse());
+
+        // Fetch Incheon Port Data
+        const iRes = await fetch('/api/incheon/congestion');
+        const iData = await iRes.json();
+        if (iData?.response?.body?.items?.item) {
+          const items = Array.isArray(iData.response.body.items.item)
+            ? iData.response.body.items.item
+            : [iData.response.body.items.item];
+          setIncheonPort(items);
+        }
       } catch (err) { console.error(err); }
     };
 
@@ -231,30 +242,46 @@ export default function Home() {
 
                 {/* Recent Shipments / Activity (Image 2 style) */}
                 <div className={styles.card}>
-                  <h3 className={styles.cardTitle} style={{ marginBottom: '20px' }}>Logistics Activity</h3>
+                  <h3 className={styles.cardTitle} style={{ marginBottom: '20px' }}>Incheon Port Congestion (Real-time)</h3>
                   <div className={styles.tableWrapper}>
                     <table className={styles.table}>
                       <thead>
                         <tr>
-                          <th>Hub</th>
+                          <th>Terminal</th>
                           <th>Status</th>
                           <th>Efficiency</th>
-                          <th>Last Update</th>
+                          <th>Time</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {hubs.map(hub => (
-                          <tr key={hub.id}>
-                            <td>{hub.name}</td>
-                            <td><span className={styles.trendTag} style={{ background: hub.color, color: hub.textColor }}>{hub.status}</span></td>
-                            <td>
-                              <div style={{ width: '100px', height: '6px', background: '#e2e8f0', borderRadius: '3px', position: 'relative' }}>
-                                <div style={{ position: 'absolute', left: 0, top: 0, height: '100%', width: hub.status === 'Stable' ? '85%' : '45%', background: hub.textColor, borderRadius: '3px' }}></div>
-                              </div>
-                            </td>
-                            <td>{times.korea}</td>
-                          </tr>
-                        ))}
+                        {(incheonPort.length > 0 ? incheonPort : hubs).map((item, idx) => {
+                          const isReal = !!item.termName;
+                          const name = isReal ? item.termName : item.name;
+                          const status = isReal ? (
+                            item.trafficStatus === 'A' ? 'Smooth' :
+                              item.trafficStatus === 'B' ? 'Normal' : 'Congested'
+                          ) : item.status;
+
+                          const color = status === 'Smooth' || status === 'Stable' ? '#dcfce7' :
+                            status === 'Normal' || status === 'Moderate' ? '#fef3c7' : '#fee2e2';
+                          const textColor = status === 'Smooth' || status === 'Stable' ? '#166534' :
+                            status === 'Normal' || status === 'Moderate' ? '#92400e' : '#991b1b';
+                          const fillWidth = status === 'Smooth' || status === 'Stable' ? '90%' :
+                            status === 'Normal' || status === 'Moderate' ? '60%' : '30%';
+
+                          return (
+                            <tr key={isReal ? item.termCd + idx : item.id}>
+                              <td style={{ fontWeight: 600 }}>{name}</td>
+                              <td><span className={styles.trendTag} style={{ background: color, color: textColor }}>{status}</span></td>
+                              <td>
+                                <div style={{ width: '100px', height: '6px', background: '#e2e8f0', borderRadius: '3px', position: 'relative' }}>
+                                  <div style={{ position: 'absolute', left: 0, top: 0, height: '100%', width: fillWidth, background: textColor, borderRadius: '3px', transition: 'width 0.5s' }}></div>
+                                </div>
+                              </td>
+                              <td style={{ fontSize: '0.8rem', color: '#94a3b8' }}>{isReal ? item.trafficTime.split(' ')[1] : times.korea}</td>
+                            </tr>
+                          );
+                        })}
                       </tbody>
                     </table>
                   </div>
