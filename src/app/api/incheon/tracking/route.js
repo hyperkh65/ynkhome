@@ -37,10 +37,15 @@ export async function GET(request) {
                 const totalCount = parseInt(root?.tCnt || 0);
 
                 if (totalCount > 0 && result) {
+                    // Get details (Timeline) - can be a single object or an array
+                    let details = root?.cargCsclPrgsInfoDtlQryVo || [];
+                    if (!Array.isArray(details)) details = [details];
+
                     return Response.json({
                         success: true,
                         type: 'IMPORT',
-                        data: result
+                        data: result,
+                        details: details
                     });
                 }
             }

@@ -411,24 +411,24 @@ export default function Home() {
                 <button className={styles.catBtn} style={{ background: '#1a1a1a', color: 'white', border: 'none' }} onClick={handleTrack}>Track</button>
               </div>
 
-              <div style={{ height: '500px', background: '#eef2f6', borderRadius: '24px', display: 'flex', alignItems: 'center', justifycontent: 'center', color: '#94a3b8', border: '2px dashed #cbd5e1' }}>
+              <div style={{ minHeight: '500px', background: '#eef2f6', borderRadius: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1a1a1a', border: '2px dashed #cbd5e1', overflow: 'hidden' }}>
                 {isTracking ? (
                   <div style={{ textAlign: 'center' }}>
                     <div className={styles.loadingPulse} style={{ width: '40px', height: '40px', margin: '0 auto 20px', background: 'var(--accent-purple)', borderRadius: '50%' }}></div>
-                    <p>SCANNING TERMINAL DATA...</p>
+                    <p style={{ color: '#94a3b8' }}>SCANNING TERMINAL DATA...</p>
                   </div>
                 ) : trackResult ? (
                   trackResult.error ? (
                     <p style={{ color: '#ef4444' }}>{trackResult.error}</p>
                   ) : (
-                    <div style={{ textAlign: 'center', color: '#1a1a1a', padding: '40px', width: '100%' }}>
+                    <div style={{ textAlign: 'center', color: '#1a1a1a', padding: '30px', width: '100%', alignSelf: 'start' }}>
                       <h2 style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
                         <span style={{ fontSize: '1.5rem' }}>🇰🇷</span> UNIPASS Live Connected
                       </h2>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                         {trackResult.type === 'IMPORT' ? (
                           <>
-                            <div className={styles.marketCard} style={{ background: 'white', border: 'none', boxShadow: 'var(--shadow-soft)', gridColumn: 'span 2' }}>
+                            <div className={styles.marketCard} style={{ background: 'white', border: 'none', boxShadow: 'var(--shadow-soft)', gridColumn: 'span 2', padding: '15px' }}>
                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
                                 <strong>Import Status</strong>
                                 <span style={{ background: 'var(--accent-purple)', color: 'white', padding: '4px 12px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 700 }}>
@@ -437,31 +437,44 @@ export default function Home() {
                               </div>
                             </div>
 
-                            <div className={styles.marketCard} style={{ background: 'white', border: 'none', boxShadow: 'var(--shadow-soft)' }}>
+                            <div className={styles.marketCard} style={{ background: 'white', border: 'none', boxShadow: 'var(--shadow-soft)', padding: '12px' }}>
                               <strong>B/L (Import)</strong>
                               <span style={{ fontWeight: 600, fontSize: '0.85rem' }}>{trackResult.data.hblNo || trackResult.data.mblNo}</span>
                             </div>
-                            <div className={styles.marketCard} style={{ background: 'white', border: 'none', boxShadow: 'var(--shadow-soft)' }}>
+                            <div className={styles.marketCard} style={{ background: 'white', border: 'none', boxShadow: 'var(--shadow-soft)', padding: '12px' }}>
                               <strong>Vessel</strong>
                               <span style={{ fontSize: '0.85rem' }}>{trackResult.data.shipNm || 'N/A'}</span>
                             </div>
 
-                            <div className={styles.marketCard} style={{ background: 'white', border: 'none', boxShadow: 'var(--shadow-soft)' }}>
+                            <div className={styles.marketCard} style={{ background: 'white', border: 'none', boxShadow: 'var(--shadow-soft)', padding: '12px' }}>
                               <strong>Loading Port</strong>
                               <span style={{ fontSize: '0.85rem' }}>{trackResult.data.ldngPrtNm || 'N/A'}</span>
                             </div>
-                            <div className={styles.marketCard} style={{ background: 'white', border: 'none', boxShadow: 'var(--shadow-soft)' }}>
+                            <div className={styles.marketCard} style={{ background: 'white', border: 'none', boxShadow: 'var(--shadow-soft)', padding: '12px' }}>
                               <strong>Discharge Port</strong>
                               <span style={{ fontSize: '0.85rem' }}>{trackResult.data.dschPrtNm || 'N/A'}</span>
                             </div>
 
-                            <div className={styles.marketCard} style={{ background: 'white', border: 'none', boxShadow: 'var(--shadow-soft)' }}>
-                              <strong>Weight</strong>
-                              <span style={{ fontSize: '0.85rem' }}>{trackResult.data.ttwg} {trackResult.data.wgUt}</span>
-                            </div>
-                            <div className={styles.marketCard} style={{ background: 'white', border: 'none', boxShadow: 'var(--shadow-soft)' }}>
-                              <strong>Customs</strong>
-                              <span style={{ fontSize: '0.85rem' }}>{trackResult.data.etprCstmNm || 'N/A'}</span>
+                            {/* Timeline / Processing Detail */}
+                            <div className={styles.marketCard} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', gridColumn: 'span 2', textAlign: 'left', marginTop: '10px' }}>
+                              <strong style={{ display: 'block', marginBottom: '10px', fontSize: '0.9rem', color: '#475569' }}>Cargo Timeline</strong>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '300px', overflowY: 'auto', paddingRight: '5px' }}>
+                                {trackResult.details && trackResult.details.length > 0 ? (
+                                  trackResult.details.map((item, idx) => (
+                                    <div key={idx} style={{ padding: '10px', background: 'white', borderRadius: '12px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderLeft: '4px solid #8b5cf6' }}>
+                                      <div>
+                                        <div style={{ fontWeight: 600, fontSize: '0.85rem' }}>{item.rlbrCn || item.cargTrcnRelaBsopTpcd}</div>
+                                        <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{item.shedNm}</div>
+                                      </div>
+                                      <div style={{ fontSize: '0.75rem', color: '#94a3b8', textAlign: 'right', minWidth: '80px' }}>
+                                        {String(item.prcsDttm).replace(/(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/, '$1-$2-$3 $4:$5')}
+                                      </div>
+                                    </div>
+                                  ))
+                                ) : (
+                                  <div style={{ fontSize: '0.8rem', color: '#94a3b8', padding: '20px', textAlign: 'center' }}>No timeline data available.</div>
+                                )}
+                              </div>
                             </div>
                           </>
                         ) : (
@@ -504,7 +517,7 @@ export default function Home() {
                     </div>
                   )
                 ) : (
-                  <p>ENTER B/L NUMBER TO TRACK SHIPMENT</p>
+                  <p>SCAN B/L OR CONTAINER FOR LIVE AIS DATA</p>
                 )}
               </div>
             </div>
