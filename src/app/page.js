@@ -69,8 +69,7 @@ export default function Home() {
 
   useEffect(() => {
     setIsMounted(true);
-    // Load Catalog Data from Local Storage
-    setCatalogData(getProducts());
+    // Load Catalog Data from Local Storage (moved to async fetchData)
 
     const formatTime = (offset) => {
       const d = new Date(new Date().getTime() + (offset * 60 * 60 * 1000));
@@ -80,6 +79,10 @@ export default function Home() {
 
     const fetchData = async () => {
       try {
+        // Fetch from Supabase
+        const products = await getProducts();
+        setCatalogData(products);
+
         const res = await fetch('/api/market');
         const data = await res.json();
         if (data.success) {
