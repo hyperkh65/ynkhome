@@ -797,15 +797,26 @@ export default function Home() {
                               {i < 4 && <div style={{ width: '2px', height: '30px', background: '#f1f5f9' }}></div>}
                             </div>
                             {(() => {
-                              // Case-insensitive field lookups
+                              // Comprehensive field search
                               const getF = (f) => {
                                 const k = Object.keys(detail).find(key => key.toLowerCase() === f.toLowerCase());
                                 return k ? detail[k] : null;
                               };
-                              const status = getF('prgsSttsNm') || getF('cargPrcsSttsNm') || getF('prgsStts') || getF('prcsSttsNm') || 'Status N/A';
-                              const rawDt = String(getF('prgsDt') || getF('prcsDttm') || getF('prgsDtTm') || '');
-                              const location = getF('shedNm') || getF('prgsLocation') || 'Processing Node';
-                              const dclNo = getF('dclNo') || getF('dclNo');
+
+                              // Common status fields in UNIPASS
+                              let status = getF('prgsSttsNm') ||
+                                getF('cargPrcsSttsNm') ||
+                                getF('prcsSttsNm') ||
+                                getF('sttsNm') ||
+                                getF('csclPrgsSttsNm') ||
+                                getF('statusNm') ||
+                                getF('prcsNm') ||
+                                getF('prgsStts') ||
+                                '';
+
+                              const rawDt = String(getF('prgsDt') || getF('prcsDttm') || getF('prgsDtTm') || getF('eventDt') || '');
+                              const location = getF('shedNm') || getF('prgsLocation') || getF('location') || getF('placeNm') || getF('shpmAirptPortNm') || 'Logistics Node';
+                              const dclNo = getF('dclNo') || getF('mblNo') || getF('refNo');
 
                               const formattedDt = rawDt.length >= 12
                                 ? `${rawDt.substring(0, 4)}-${rawDt.substring(4, 6)}-${rawDt.substring(6, 8)} ${rawDt.substring(8, 10)}:${rawDt.substring(10, 12)}`
@@ -821,7 +832,7 @@ export default function Home() {
                                   </div>
                                   {dclNo && (
                                     <div style={{ fontSize: '0.7rem', color: '#94a3b8', marginTop: '2px' }}>
-                                      신고번호: {dclNo}
+                                      관리번호/신고번호: {dclNo}
                                     </div>
                                   )}
                                 </div>
