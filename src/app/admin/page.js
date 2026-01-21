@@ -86,7 +86,7 @@ export default function AdminPage() {
     };
 
     const handleDelete = async (id) => {
-        if (!confirm('Are you sure you want to delete this product?')) return;
+        if (!window.confirm('Are you sure you want to delete this product?')) return;
         try {
             await deleteProduct(id);
             await loadProducts();
@@ -160,7 +160,7 @@ export default function AdminPage() {
             <div className={styles.adminDashboard} style={{ margin: '0 auto', maxWidth: '1200px', paddingBottom: '100px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px', marginTop: '20px' }}>
                     <div>
-                        <h1 className={styles.title}>YNK Inventory Management</h1>
+                        <h1 className={styles.title}>YNK Inventory Management <span style={{ fontSize: '0.8rem', color: '#10b981', background: '#dcfce7', padding: '2px 8px', borderRadius: '12px', verticalAlign: 'middle' }}>DB Connected</span></h1>
                         <p style={{ color: '#64748b', fontSize: '0.9rem' }}>
                             {editingId ? `Editing Product #${editingId}` : 'Create New Product'}
                         </p>
@@ -242,7 +242,7 @@ export default function AdminPage() {
                     <div className={styles.card} style={{ height: 'calc(100vh - 120px)', overflowY: 'auto', position: 'sticky', top: '20px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', position: 'sticky', top: 0, background: 'white', zIndex: 10, paddingBottom: '10px', borderBottom: '1px solid #f1f5f9' }}>
                             <h3 style={{ fontSize: '1.1rem', fontWeight: 600, margin: 0 }}>Inventory ({products.length})</h3>
-                            <button onClick={resetForm} style={{ fontSize: '0.8rem', color: '#3b82f6', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>+ New Item</button>
+                            <button type="button" onClick={resetForm} style={{ fontSize: '0.8rem', color: '#3b82f6', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>+ New Item</button>
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', paddingBottom: '20px' }}>
                             {products.length === 0 && <div style={{ padding: '20px', textAlign: 'center', color: '#94a3b8' }}>No products found.</div>}
@@ -257,12 +257,14 @@ export default function AdminPage() {
                                     </div>
                                     <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
                                         <button
+                                            type="button"
                                             onClick={() => handleEdit(product)}
                                             style={{ padding: '6px 12px', border: '1px solid #e2e8f0', background: 'white', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem' }}
                                         >
                                             Edit
                                         </button>
                                         <button
+                                            type="button"
                                             onClick={() => handleDelete(product.id)}
                                             style={{ padding: '6px 12px', border: 'none', background: '#fee2e2', color: '#991b1b', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem' }}
                                         >
