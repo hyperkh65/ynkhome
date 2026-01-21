@@ -18,6 +18,8 @@ export default function Home() {
   const [selectedMetal, setSelectedMetal] = useState('aluminum');
   const [selectedCurrency, setSelectedCurrency] = useState('usd');
   const [showSettings, setShowSettings] = useState(false);
+  const [showMarketModal, setShowMarketModal] = useState(false);
+  const [showTrackingModal, setShowTrackingModal] = useState(false);
 
   // News & Notices State
   const [notices, setNotices] = useState([]);
@@ -100,13 +102,15 @@ export default function Home() {
       const json = await res.json();
 
       if (json.success && Array.isArray(json.data) && json.data.length > 0) {
-        // Map API data to our hubs
-        const newHubs = hubs.map(hub => {
+        setHubs(prev => prev.map((hub, idx) => {
           // Find matching data in API response
-          const match = json.data.find(d => d.trmnlNm && d.trmnlNm.includes(hub.name.substr(0, 2))); // Simple loose match
+          const match = json.data.find(d =>
+            (d.trmnlNm && d.trmnlNm.includes(hub.name.substr(0, 2))) ||
+            (d.trmnlNm && hub.name.includes(d.trmnlNm.substr(0, 2)))
+          ) || json.data[idx % json.data.length]; // Fallback to data by index if match fails
 
           if (match) {
-            const level = match.cgstLevel || 'Normal'; // '원활', '보통', '혼잡'
+            const level = match.cgstLevel || 'Normal';
             let status = 'Normal';
             let color = '#ecfdf5';
             let textColor = '#15803d';
@@ -120,12 +124,10 @@ export default function Home() {
               color = '#fee2e2';
               textColor = '#b91c1c';
             }
-
             return { ...hub, status: status, color, textColor };
           }
           return hub;
-        });
-        setHubs(newHubs);
+        }));
       }
     } catch (err) {
       console.error("Port status fetch failed", err);
@@ -197,6 +199,12 @@ export default function Home() {
         </div>
         <div className={`${styles.navItem} ${activeTab === 'Portfolio' && styles.navItemActive}`} onClick={() => setActiveTab('Portfolio')} title="Portfolio">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+        </div>
+        <div className={styles.navItem} onClick={() => setShowMarketModal(true)} title="Market Charts">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+        </div>
+        <div className={styles.navItem} onClick={() => setShowTrackingModal(true)} title="Global Tracking">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
         </div>
 
         {/* YNK ERP Link */}
@@ -302,7 +310,9 @@ export default function Home() {
             <div className={styles.card}>
               <div className={styles.cardHeader}>
                 <h2 className={styles.cardTitle}>Global Market Trends</h2>
-                <button style={{ fontSize: '0.8rem', color: 'var(--accent-primary)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>Detailed View →</button>
+                <button
+                  onClick={() => setShowMarketModal(true)}
+                  style={{ fontSize: '0.8rem', color: 'var(--accent-primary)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>Detailed View →</button>
               </div>
 
               <div className={styles.marketGrid}>
@@ -596,6 +606,124 @@ export default function Home() {
             >
               Save Changes
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Modal for Large Market Chart */}
+      {showMarketModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(10px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setShowMarketModal(false)}>
+          <div className={styles.card} style={{ maxWidth: '900px', width: '95%', height: '80vh', display: 'flex', flexDirection: 'column', animation: 'fadeIn 0.3s ease-out' }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+              <div>
+                <h2 className={styles.cardTitle} style={{ fontSize: '1.8rem', margin: 0 }}>Market Intelligence</h2>
+                <p style={{ color: 'var(--text-muted)', margin: '4px 0 0 0' }}>Detailed historical data and real-time trends</p>
+              </div>
+              <button
+                onClick={() => setShowMarketModal(false)}
+                style={{ background: '#f1f5f9', border: 'none', cursor: 'pointer', padding: '12px', borderRadius: '50%', color: 'var(--text-muted)' }}
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+              </button>
+            </div>
+
+            <div style={{ flex: 1, minHeight: 0 }}>
+              <MarketChart
+                marketData={marketData}
+                selectedMetal={selectedMetal}
+                setSelectedMetal={setSelectedMetal}
+                selectedCurrency={selectedCurrency}
+                setSelectedCurrency={setSelectedCurrency}
+              />
+            </div>
+
+            <div style={{ marginTop: '24px', padding: '20px', background: '#f8fafc', borderRadius: '16px', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
+              <div className={styles.marketCard}>
+                <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Volatility (30d)</div>
+                <div style={{ fontWeight: 700 }}>Low (±0.4%)</div>
+              </div>
+              <div className={styles.marketCard}>
+                <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Latest Update</div>
+                <div style={{ fontWeight: 700 }}>Real-time</div>
+              </div>
+              <div className={styles.marketCard}>
+                <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Source</div>
+                <div style={{ fontWeight: 700 }}>LME / KRX</div>
+              </div>
+              <div className={styles.marketCard}>
+                <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Signal</div>
+                <div style={{ fontWeight: 700, color: '#10b981' }}>Strong Buy</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal for Global Tracking */}
+      {showTrackingModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(10px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setShowTrackingModal(false)}>
+          <div className={styles.card} style={{ maxWidth: '800px', width: '95%', maxHeight: '90vh', overflowY: 'auto', animation: 'fadeIn 0.3s ease-out' }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+              <h2 className={styles.cardTitle} style={{ fontSize: '1.8rem', margin: 0 }}>Global Logistics Tracking</h2>
+              <button
+                onClick={() => setShowTrackingModal(false)}
+                style={{ background: '#f1f5f9', border: 'none', cursor: 'pointer', padding: '12px', borderRadius: '50%', color: 'var(--text-muted)' }}
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', gap: '12px', marginBottom: '24px' }}>
+              <input
+                type="text"
+                placeholder="Enter MBL or HBL Number..."
+                value={trackingNo}
+                onChange={(e) => setTrackingNo(e.target.value)}
+                style={{ flex: 1, padding: '16px', borderRadius: '12px', border: '2px solid #e2e8f0', fontSize: '1rem', outline: 'none' }}
+              />
+              <button
+                onClick={handleTrack}
+                disabled={isTracking}
+                style={{ padding: '0 32px', background: '#1a1a1a', color: 'white', borderRadius: '12px', fontWeight: 600, border: 'none', cursor: 'pointer' }}
+              >
+                {isTracking ? 'Searching...' : 'Track'}
+              </button>
+            </div>
+
+            {trackResult ? (
+              <div style={{ background: '#f0fdf4', borderRadius: '20px', padding: '32px', border: '1px solid #bbf7d0' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '24px' }}>
+                  <div>
+                    <div style={{ color: '#166534', fontWeight: 700, fontSize: '1.2rem' }}>Status: {trackResult.status}</div>
+                    <div style={{ color: '#15803d', marginTop: '4px' }}>Current Location: {trackResult.location}</div>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ color: '#15803d', fontSize: '0.9rem' }}>Estimated Arrival</div>
+                    <div style={{ fontWeight: 700, fontSize: '1.1rem' }}>{trackResult.eta}</div>
+                  </div>
+                </div>
+                {/* Timeline Placeholder */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  {[1, 2, 3].map(i => (
+                    <div key={i} style={{ display: 'flex', gap: '20px' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                        <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: i === 1 ? '#10b981' : '#cbd5e1' }}></div>
+                        {i < 3 && <div style={{ width: '2px', flex: 1, background: '#cbd5e1', margin: '4px 0' }}></div>}
+                      </div>
+                      <div style={{ paddingBottom: '16px' }}>
+                        <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>Node {i} Processing</div>
+                        <div style={{ fontSize: '0.8rem', color: '#64748b' }}>2024-10-{20 + i} 14:00</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div style={{ padding: '60px', textAlign: 'center', color: '#94a3b8' }}>
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '16px', opacity: 0.5 }}><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+                <p>Waiting for shipment tracking number...</p>
+              </div>
+            )}
           </div>
         </div>
       )}
