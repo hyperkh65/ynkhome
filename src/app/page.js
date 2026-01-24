@@ -446,12 +446,32 @@ export default function Home() {
                 </div>
               </div>
 
+              {/* Products Preview */}
+              <div style={{ background: 'white', borderRadius: '14px', padding: '18px', border: '1px solid #d2d2d7', display: 'flex', flexDirection: 'column' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                  <h3 style={{ fontSize: '0.95rem', fontWeight: 600, margin: 0, color: '#1d1d1f' }}>📦 Top Products</h3>
+                  <span onClick={() => setActiveTab('Catalog')} style={{ fontSize: '0.65rem', color: '#007aff', cursor: 'pointer', fontWeight: 600 }}>View All</span>
+                </div>
+                <div style={{ flex: 1, overflowY: 'auto', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
+                  {catalogData.slice(0, 12).map(p => (
+                    <div key={p.id} onClick={() => setSelectedProduct(p)} style={{ cursor: 'pointer', border: '1px solid #e5e5ea', borderRadius: '8px', overflow: 'hidden', transition: 'transform 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.02)'} onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}>
+                      <div style={{ width: '100%', height: '80px', background: '#f5f5f7' }}>
+                        <img src={p.image} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => e.target.src = 'https://picsum.photos/400/300?blur=5'} />
+                      </div>
+                      <div style={{ padding: '8px' }}>
+                        <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#1d1d1f', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
               {/* Chart */}
               <div style={{ background: 'white', borderRadius: '14px', padding: '18px', border: '1px solid #d2d2d7', display: 'flex', flexDirection: 'column' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                   <h3 style={{ fontSize: '0.95rem', fontWeight: 600, margin: 0, color: '#1d1d1f' }}>📈 Market Analysis</h3>
                 </div>
-                <div style={{ flex: 1, minHeight: '300px' }}>
+                <div style={{ flex: 1, minHeight: '200px' }}>
                   <MarketChart
                     marketData={marketData}
                     historyData={historyData}
@@ -460,26 +480,6 @@ export default function Home() {
                     selectedCurrency={selectedCurrency}
                     setSelectedCurrency={setSelectedCurrency}
                   />
-                </div>
-              </div>
-
-              {/* Products Preview */}
-              <div style={{ background: 'white', borderRadius: '14px', padding: '18px', border: '1px solid #d2d2d7', display: 'flex', flexDirection: 'column' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                  <h3 style={{ fontSize: '0.95rem', fontWeight: 600, margin: 0, color: '#1d1d1f' }}>📦 Top Products</h3>
-                  <span onClick={() => setActiveTab('Catalog')} style={{ fontSize: '0.65rem', color: '#007aff', cursor: 'pointer', fontWeight: 600 }}>View All</span>
-                </div>
-                <div style={{ flex: 1, overflowY: 'auto', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
-                  {catalogData.slice(0, 8).map(p => (
-                    <div key={p.id} onClick={() => setSelectedProduct(p)} style={{ cursor: 'pointer', border: '1px solid #e5e5ea', borderRadius: '8px', overflow: 'hidden', transition: 'transform 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.02)'} onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}>
-                      <div style={{ width: '100%', height: '70px', background: '#f5f5f7' }}>
-                        <img src={p.image} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => e.target.src = 'https://picsum.photos/400/300?blur=5'} />
-                      </div>
-                      <div style={{ padding: '6px' }}>
-                        <div style={{ fontSize: '0.7rem', fontWeight: 600, color: '#1d1d1f', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</div>
-                      </div>
-                    </div>
-                  ))}
                 </div>
               </div>
             </div>
