@@ -11,7 +11,7 @@ export default function Home() {
   const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
   const [activeTab, setActiveTab] = useState('Overview');
-
+  const [times, setTimes] = useState({ korea: '00:00:00', china: '00:00:00', vietnam: '00:00:00' });
   const [trackingNo, setTrackingNo] = useState('');
   const [isTracking, setIsTracking] = useState(false);
   const [trackResult, setTrackResult] = useState(null);
@@ -67,11 +67,21 @@ export default function Home() {
     setIsMounted(true);
     fetchData();
 
+    const worldTimer = setInterval(() => {
+      const now = new Date();
+      setTimes({
+        korea: now.toLocaleTimeString('en-US', { timeZone: 'Asia/Seoul', hour12: false }),
+        china: now.toLocaleTimeString('en-US', { timeZone: 'Asia/Shanghai', hour12: false }),
+        vietnam: now.toLocaleTimeString('en-US', { timeZone: 'Asia/Ho_Chi_Minh', hour12: false })
+      });
+    }, 1000);
+
     const refreshTimer = setInterval(() => {
       fetchData();
     }, 60000);
 
     return () => {
+      clearInterval(worldTimer);
       clearInterval(refreshTimer);
     };
   }, []);
@@ -329,7 +339,21 @@ export default function Home() {
         {/* Top Bar */}
         <div style={{ padding: '14px 24px', background: 'white', borderBottom: '1px solid #d2d2d7', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h1 style={{ fontSize: '1.4rem', fontWeight: 600, margin: 0, color: '#1d1d1f', letterSpacing: '-0.02em' }}>YNK Intelligence</h1>
-
+          <div style={{ display: 'flex', gap: '28px', fontSize: '0.75rem', color: '#86868b' }}>
+            {isMounted && (
+              <>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span>🇰🇷</span> <span style={{ fontWeight: 600, color: '#1d1d1f', fontVariantNumeric: 'tabular-nums' }}>{times.korea}</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span>🇨🇳</span> <span style={{ fontWeight: 600, color: '#1d1d1f', fontVariantNumeric: 'tabular-nums' }}>{times.china}</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span>🇻🇳</span> <span style={{ fontWeight: 600, color: '#1d1d1f', fontVariantNumeric: 'tabular-nums' }}>{times.vietnam}</span>
+                </div>
+              </>
+            )}
+          </div>
         </div>
 
         {/* Dashboard Grid */}
