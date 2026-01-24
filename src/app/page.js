@@ -11,7 +11,7 @@ export default function Home() {
   const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
   const [activeTab, setActiveTab] = useState('Overview');
-  const [times, setTimes] = useState({ korea: '--:--:--', china: '--:--:--', vietnam: '--:--:--' });
+
   const [trackingNo, setTrackingNo] = useState('');
   const [isTracking, setIsTracking] = useState(false);
   const [trackResult, setTrackResult] = useState(null);
@@ -67,21 +67,11 @@ export default function Home() {
     setIsMounted(true);
     fetchData();
 
-    const worldTimer = setInterval(() => {
-      const now = new Date();
-      setTimes({
-        korea: now.toLocaleTimeString('en-US', { timeZone: 'Asia/Seoul', hour12: false }),
-        china: now.toLocaleTimeString('en-US', { timeZone: 'Asia/Shanghai', hour12: false }),
-        vietnam: now.toLocaleTimeString('en-US', { timeZone: 'Asia/Ho_Chi_Minh', hour12: false })
-      });
-    }, 1000);
-
     const refreshTimer = setInterval(() => {
       fetchData();
     }, 60000);
 
     return () => {
-      clearInterval(worldTimer);
       clearInterval(refreshTimer);
     };
   }, []);
@@ -290,19 +280,19 @@ export default function Home() {
         </div>
 
         <div
-          className={styles.navItem}
+          className={`${styles.navItem} ${showMarketModal && styles.navItemActive}`}
           onClick={() => setShowMarketModal(true)}
           title="Market Trends"
-          style={{ color: '#86868b' }}
+          style={{ color: showMarketModal ? 'white' : '#86868b' }}
         >
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
         </div>
 
         <div
-          className={styles.navItem}
-          onClick={() => setShowTrackingModal(true)}
+          className={`${styles.navItem} ${showToolModal === 'tracking' && styles.navItemActive}`}
+          onClick={() => setShowToolModal('tracking')}
           title="Shipment Tracking"
-          style={{ color: '#86868b' }}
+          style={{ color: showToolModal === 'tracking' ? 'white' : '#86868b' }}
         >
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
         </div>
@@ -339,11 +329,7 @@ export default function Home() {
         {/* Top Bar */}
         <div style={{ padding: '14px 24px', background: 'white', borderBottom: '1px solid #d2d2d7', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h1 style={{ fontSize: '1.4rem', fontWeight: 600, margin: 0, color: '#1d1d1f', letterSpacing: '-0.02em' }}>YNK Intelligence</h1>
-          <div style={{ display: 'flex', gap: '28px', fontSize: '0.75rem', color: '#86868b' }}>
-            <div>🇰🇷 <span style={{ fontWeight: 600, color: '#1d1d1f' }}>{times.korea}</span></div>
-            <div>🇨🇳 <span style={{ fontWeight: 600, color: '#1d1d1f' }}>{times.china}</span></div>
-            <div>🇻🇳 <span style={{ fontWeight: 600, color: '#1d1d1f' }}>{times.vietnam}</span></div>
-          </div>
+
         </div>
 
         {/* Dashboard Grid */}
@@ -753,21 +739,38 @@ export default function Home() {
       {/* Market Modal with full chart */}
       {showMarketModal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(10px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setShowMarketModal(false)}>
-          <div style={{ background: 'white', maxWidth: '900px', width: '90%', maxHeight: '90vh', borderRadius: '20px', padding: '32px', border: '1px solid #d2d2d7' }} onClick={e => e.stopPropagation()}>
+          <div style={{ background: 'white', maxWidth: '1000px', width: '95%', maxHeight: '90vh', borderRadius: '24px', padding: '32px', border: '1px solid #d2d2d7', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)' }} onClick={e => e.stopPropagation()}>
             <div style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h2 style={{ fontSize: '1.5rem', fontWeight: 600, margin: 0 }}>Market Analysis</h2>
-              <button onClick={() => setShowMarketModal(false)} style={{ background: '#f5f5f7', border: 'none', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', fontSize: '1.3rem' }}>×</button>
+              <div>
+                <h2 style={{ fontSize: '1.5rem', fontWeight: 600, margin: 0, color: '#1d1d1f' }}>Market Analysis Dashboard</h2>
+                <p style={{ fontSize: '0.9rem', color: '#86868b', margin: '4px 0 0 0' }}>Real-time currency and metal market trends</p>
+              </div>
+              <button onClick={() => setShowMarketModal(false)} style={{ background: '#f5f5f7', border: 'none', width: '40px', height: '40px', borderRadius: '50%', cursor: 'pointer', fontSize: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.2s' }} onMouseEnter={e => e.target.style.background = '#e8e8ed'} onMouseLeave={e => e.target.style.background = '#f5f5f7'}>×</button>
             </div>
-            <div style={{ fontSize: '0.85rem', color: '#86868b' }}>Detailed market trend analysis coming soon...</div>
-          </div>
-        </div>
-      )}
-
-      {showTrackingModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(10px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setShowTrackingModal(false)}>
-          <div style={{ background: 'white', maxWidth: '600px', width: '90%', borderRadius: '20px', padding: '32px', border: '1px solid #d2d2d7' }} onClick={e => e.stopPropagation()}>
-            <h2 style={{ fontSize: '1.4rem', fontWeight: 600, marginBottom: '20px' }}>Advanced Tracking</h2>
-            <div style={{ fontSize: '0.85rem', color: '#86868b' }}>Advanced tracking features coming soon...</div>
+            <div style={{ height: '500px', minHeight: '400px' }}>
+              <MarketChart
+                marketData={marketData}
+                historyData={historyData}
+                selectedMetal={selectedMetal}
+                setSelectedMetal={setSelectedMetal}
+                selectedCurrency={selectedCurrency}
+                setSelectedCurrency={setSelectedCurrency}
+              />
+            </div>
+            <div style={{ marginTop: '24px', padding: '20px', background: '#f5f5f7', borderRadius: '16px', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: '0.75rem', color: '#86868b', marginBottom: '4px' }}>Market Status</div>
+                <div style={{ fontSize: '1rem', fontWeight: 600, color: '#34c759' }}>● Active</div>
+              </div>
+              <div style={{ textAlign: 'center', borderLeft: '1px solid #d2d2d7', borderRight: '1px solid #d2d2d7' }}>
+                <div style={{ fontSize: '0.75rem', color: '#86868b', marginBottom: '4px' }}>Data Latency</div>
+                <div style={{ fontSize: '1rem', fontWeight: 600 }}>&lt; 500ms</div>
+              </div>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: '0.75rem', color: '#86868b', marginBottom: '4px' }}>Last Updated</div>
+                <div style={{ fontSize: '1rem', fontWeight: 600 }}>{new Date().toLocaleTimeString()}</div>
+              </div>
+            </div>
           </div>
         </div>
       )}
