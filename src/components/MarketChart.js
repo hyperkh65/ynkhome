@@ -99,23 +99,25 @@ export default function MarketChart({
     const chartColor = isProfit ? '#10b981' : '#ef4444'; // Green or Red based on 30-day trend
 
     return (
-        <div style={{ width: '100%', height: '100%', minHeight: '320px', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ width: '100%', height: '100%', minHeight: '140px', display: 'flex', flexDirection: 'column' }}>
             {/* Controls Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                    <select
-                        value={viewType}
-                        onChange={handleTypeChange}
-                        style={{ padding: '6px 12px', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '0.9rem', fontWeight: 600, background: '#f8fafc' }}
-                    >
-                        <option value="metal">Raw Materials</option>
-                        <option value="currency">Currency</option>
-                    </select>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                <div style={{ display: 'flex', gap: '6px' }}>
+                    {!forcedViewType && (
+                        <select
+                            value={viewType}
+                            onChange={handleTypeChange}
+                            style={{ padding: '2px 6px', borderRadius: '4px', border: '1px solid #e2e8f0', fontSize: '0.75rem', fontWeight: 600, background: '#f8fafc' }}
+                        >
+                            <option value="metal">Raw Materials</option>
+                            <option value="currency">Currency</option>
+                        </select>
+                    )}
 
                     <select
                         value={currentItem}
                         onChange={handleItemChange}
-                        style={{ padding: '6px 12px', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '0.9rem', fontWeight: 600, background: 'white' }}
+                        style={{ padding: '2px 6px', borderRadius: '4px', border: '1px solid #e2e8f0', fontSize: '0.75rem', fontWeight: 600, background: 'white' }}
                     >
                         {viewType === 'metal' ? (
                             <>
@@ -135,19 +137,16 @@ export default function MarketChart({
                 </div>
 
                 <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: '1.2rem', fontWeight: 700, fontFamily: 'monospace' }}>
+                    <div style={{ fontSize: '0.9rem', fontWeight: 700, fontFamily: 'monospace' }}>
                         {viewType === 'currency' ? '' : '$'}
                         {currentValue.toLocaleString()}
-                        {viewType === 'currency' ? ' KRW' : ''}
-                    </div>
-                    <div style={{ fontSize: '0.8rem', color: isProfit ? '#10b981' : '#ef4444', fontWeight: 600 }}>
-                        {isProfit ? '▲' : '▼'} 30 Day Trend
+                        {viewType === 'currency' ? ' ₩' : ''}
                     </div>
                 </div>
             </div>
 
             {/* Chart */}
-            <div style={{ width: '100%', height: '300px', marginTop: 'auto' }}>
+            <div style={{ width: '100%', height: '100px', marginTop: 'auto' }}>
                 <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={chartData}>
                         <defs>
