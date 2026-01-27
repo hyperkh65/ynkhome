@@ -1,304 +1,312 @@
 <!doctype html>
 <html lang="ko">
+
 <head>
-<meta charset="utf-8" />
-<title>견적서</title>
+  <meta charset="utf-8" />
+  <title>견적서</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
 
-<!-- PDF 변환 라이브러리 -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <!-- PDF 변환 라이브러리 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-<style>
-  :root{
-    --blue-main:#2A69B1;
-    --blue-light:#E9F1FB;
-    --line:#BFCFE3;
-    --text-dark:#1F2A37;
-    --text-light:#4A5568;
-  }
+  <style>
+    :root {
+      --blue-main: #2A69B1;
+      --blue-light: #E9F1FB;
+      --line: #BFCFE3;
+      --text-dark: #1F2A37;
+      --text-light: #4A5568;
+    }
 
-  body {
-    font-family: 'Pretendard', sans-serif;
-    width: 210mm;
-    margin: 0 auto;
-    padding: 0;
-    background: #FFFFFF;
-    color: var(--text-dark);
-  }
+    body {
+      font-family: 'Pretendard', sans-serif;
+      width: 210mm;
+      margin: 0 auto;
+      padding: 0;
+      background: #FFFFFF;
+      color: var(--text-dark);
+    }
 
-  /* ===== 버튼 영역 ===== */
-  #actionButtons {
-    position: fixed;
-    top: 20px;
-    right: 25px;
-    z-index: 9999;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
+    /* ===== 버튼 영역 ===== */
+    #actionButtons {
+      position: fixed;
+      top: 20px;
+      right: 25px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
 
-  .action-btn {
-    background: var(--blue-main);
-    color: white;
-    border: none;
-    padding: 10px 14px;
-    font-size: 13px;
-    border-radius: 6px;
-    cursor: pointer;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.25);
-  }
-  .action-btn:hover { opacity: 0.85; }
+    .action-btn {
+      background: var(--blue-main);
+      color: white;
+      border: none;
+      padding: 10px 14px;
+      font-size: 13px;
+      border-radius: 6px;
+      cursor: pointer;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
+    }
 
-  /* 본문 */
-  .page-frame {
-    width: 210mm;
-    min-height: 297mm;
-    padding: 18mm 16mm;
-    border: 1px solid var(--line);
-    box-sizing: border-box;
-    position: relative;
-  }
+    .action-btn:hover {
+      opacity: 0.85;
+    }
 
-  .logo {
-    max-width: 150px;
-    width: 22%;
-    height: auto;
-    display: block;
-    margin: 0 auto 0 auto;
-  }
+    /* 본문 */
+    .page-frame {
+      width: 210mm;
+      min-height: 297mm;
+      padding: 18mm 16mm;
+      border: 1px solid var(--line);
+      box-sizing: border-box;
+      position: relative;
+    }
 
-  h1 {
-    text-align: center;
-    font-size: 26px;
-    font-weight: 700;
-    color: var(--blue-main);
-    margin: 10px 0 15px 0;
-    letter-spacing: 2px;
-  }
+    .logo {
+      max-width: 150px;
+      width: 22%;
+      height: auto;
+      display: block;
+      margin: 0 auto 0 auto;
+    }
 
-  .est-header {
-    display: flex;
-    justify-content: space-between;
-    font-size: 13px;
-    color: var(--text-light);
-    margin-bottom: 22px;
-  }
+    h1 {
+      text-align: center;
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--blue-main);
+      margin: 10px 0 15px 0;
+      letter-spacing: 2px;
+    }
 
-  .flex-row {
-    display: flex;
-    justify-content: space-between;
-    gap: 14px;
-  }
+    .est-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      color: var(--text-light);
+      margin-bottom: 22px;
+    }
 
-  .info-box {
-    width: 50%;
-    padding: 14px 16px;
-    border: 1px solid var(--line);
-    background: #FAFCFF;
-    border-radius: 4px;
-    position: relative;   /* 도장 배치용 */
-  }
+    .flex-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+    }
 
-  .info-title {
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--blue-main);
-    margin-bottom: 8px;
-  }
+    .info-box {
+      width: 50%;
+      padding: 14px 16px;
+      border: 1px solid var(--line);
+      background: #FAFCFF;
+      border-radius: 4px;
+      position: relative;
+      /* 도장 배치용 */
+    }
 
-  #cust-name {
-    font-size: 16px;
-    font-weight: 700;
-    margin-bottom: 6px;
-  }
+    .info-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--blue-main);
+      margin-bottom: 8px;
+    }
 
-  .info-item {
-    font-size: 12.5px;
-    margin-bottom: 4px;
-    color: var(--text-light);
-  }
+    #cust-name {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
 
-  /* 도장 inside Y&K 박스 */
-  .stamp-inside {
-    width: 210px;       /*  1.5배 확대 적용 */
-    position: absolute;
-    bottom: 10px;
-    right: 10px;
-    opacity: 0.95;
-  }
+    .info-item {
+      font-size: 12.5px;
+      margin-bottom: 4px;
+      color: var(--text-light);
+    }
 
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 26px;
-    font-size: 11.6px;
-  }
+    /* 도장 inside Y&K 박스 */
+    .stamp-inside {
+      width: 210px;
+      /*  1.5배 확대 적용 */
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      opacity: 0.95;
+    }
 
-  /*  행 정렬 개선 */
-  table th, table td {
-    vertical-align: middle !important;
-    line-height: 1.35;
-    padding-top: 6px;
-    padding-bottom: 6px;
-  }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 26px;
+      font-size: 11.6px;
+    }
 
-  th {
-    background: var(--blue-light);
-    border: 1px solid var(--line);
-    padding: 7px 4px;
-    color: var(--blue-main);
-    font-weight: 700;
-    text-align: center;
-  }
+    /*  행 정렬 개선 */
+    table th,
+    table td {
+      vertical-align: middle !important;
+      line-height: 1.35;
+      padding-top: 6px;
+      padding-bottom: 6px;
+    }
 
-  td {
-    border: 1px solid var(--line);
-    padding: 5px 4px;
-    text-align: center;
-    background: #ffffff;
-    color: var(--text-dark);
-  }
+    th {
+      background: var(--blue-light);
+      border: 1px solid var(--line);
+      padding: 7px 4px;
+      color: var(--blue-main);
+      font-weight: 700;
+      text-align: center;
+    }
 
-  .section-title {
-    margin-top: 26px;
-    margin-bottom: 8px;
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--blue-main);
-    border-left: 4px solid var(--blue-main);
-    padding-left: 10px;
-  }
+    td {
+      border: 1px solid var(--line);
+      padding: 5px 4px;
+      text-align: center;
+      background: #ffffff;
+      color: var(--text-dark);
+    }
 
-  .notes-box {
-    border: 1px solid var(--line);
-    background: #FAFCFF;
-    padding: 12px;
-    border-radius: 4px;
-    min-height: 70px;
-    white-space: pre-line;
-    color: var(--text-light);
-  }
+    .section-title {
+      margin-top: 26px;
+      margin-bottom: 8px;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--blue-main);
+      border-left: 4px solid var(--blue-main);
+      padding-left: 10px;
+    }
 
-  .total-box {
-    margin-top: 20px;
-    border: 1px solid var(--blue-main);
-    padding: 14px;
-    border-radius: 4px;
-    background: #F4F9FF;
-    font-size: 15px;
-    font-weight: 700;
-    color: var(--blue-main);
-  }
+    .notes-box {
+      border: 1px solid var(--line);
+      background: #FAFCFF;
+      padding: 12px;
+      border-radius: 4px;
+      min-height: 70px;
+      white-space: pre-line;
+      color: var(--text-light);
+    }
 
-  .confidential {
-    margin-top: 18px;
-    text-align: center;
-    font-size: 11.5px;
-    color: #CC0000;
-    font-weight: 600;
-  }
+    .total-box {
+      margin-top: 20px;
+      border: 1px solid var(--blue-main);
+      padding: 14px;
+      border-radius: 4px;
+      background: #F4F9FF;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--blue-main);
+    }
 
-  .footer {
-    margin-top: 22px;
-    text-align: center;
-    font-size: 11px;
-    color: var(--text-light);
-  }
-</style>
+    .confidential {
+      margin-top: 18px;
+      text-align: center;
+      font-size: 11.5px;
+      color: #CC0000;
+      font-weight: 600;
+    }
+
+    .footer {
+      margin-top: 22px;
+      text-align: center;
+      font-size: 11px;
+      color: var(--text-light);
+    }
+  </style>
 </head>
 
 <body>
 
-<!-- PDF / 인쇄 버튼 -->
-<div id="actionButtons">
-  <button class="action-btn" id="btnPdf">PDF 다운로드</button>
-  <button class="action-btn" id="btnPrint">인쇄</button>
-</div>
-
-<div id="estimateArea" class="page-frame">
-
-  <img src="/templates/logo.png" class="logo" />
-  <h1>견&nbsp;적&nbsp;서</h1>
-
-  <div class="est-header">
-    <div><b>견적번호:</b> <span id="est-no"></span></div>
-    <div><b>견적일자:</b> <span id="est-date"></span></div>
+  <!-- PDF / 인쇄 버튼 -->
+  <div id="actionButtons">
+    <button class="action-btn" id="btnPdf">PDF 다운로드</button>
+    <button class="action-btn" id="btnPrint">인쇄</button>
   </div>
 
-  <div class="flex-row">
+  <div id="estimateArea" class="page-frame">
 
-    <!-- 고객 정보 -->
-    <div class="info-box">
-      <div class="info-title">고객사 정보</div>
-      <div id="cust-name"></div>
-      <div class="info-item"><b>주소:</b> <span id="cust-address"></span></div>
-      <div class="info-item"><b>전화:</b> <span id="cust-tel"></span></div>
-      <div class="info-item"><b>팩스:</b> <span id="cust-fax"></span></div>
-      <div class="info-item"><b>Email:</b> <span id="cust-email"></span></div>
+    <img src="/erp/templates/logo.png" class="logo" />
+    <h1>견&nbsp;적&nbsp;서</h1>
+
+    <div class="est-header">
+      <div><b>견적번호:</b> <span id="est-no"></span></div>
+      <div><b>견적일자:</b> <span id="est-date"></span></div>
     </div>
 
-    <!-- YNK 정보 + 도장 -->
-    <div class="info-box">
-      <div class="info-title">(주)와이앤케이</div>
-      <div class="info-item">주소: 인천광역시 미추홀구 석정로 271</div>
-      <div class="info-item">Tel: 032-862-1350</div>
-      <div class="info-item">Fax: 032-863-1351</div>
-      <div class="info-item">Email: <span id="company-email"></span></div>
+    <div class="flex-row">
 
-      <!-- 도장 -->
-      <img src="/templates/stamp.png" class="stamp-inside" />
+      <!-- 고객 정보 -->
+      <div class="info-box">
+        <div class="info-title">고객사 정보</div>
+        <div id="cust-name"></div>
+        <div class="info-item"><b>주소:</b> <span id="cust-address"></span></div>
+        <div class="info-item"><b>전화:</b> <span id="cust-tel"></span></div>
+        <div class="info-item"><b>팩스:</b> <span id="cust-fax"></span></div>
+        <div class="info-item"><b>Email:</b> <span id="cust-email"></span></div>
+      </div>
+
+      <!-- YNK 정보 + 도장 -->
+      <div class="info-box">
+        <div class="info-title">(주)와이앤케이</div>
+        <div class="info-item">주소: 인천광역시 미추홀구 석정로 271</div>
+        <div class="info-item">Tel: 032-862-1350</div>
+        <div class="info-item">Fax: 032-863-1351</div>
+        <div class="info-item">Email: <span id="company-email"></span></div>
+
+        <!-- 도장 -->
+        <img src="/erp/templates/stamp.png" class="stamp-inside" />
+      </div>
+
+    </div>
+
+
+    <table>
+      <thead>
+        <tr>
+          <th>ITEM</th>
+          <th>Product</th>
+          <th>Description</th>
+          <th>Volt</th>
+          <th>Watt</th>
+          <th>Eff.</th>
+          <th>Lumen</th>
+          <th>CCT</th>
+          <th>Unit</th>
+          <th>Unit Price</th>
+          <th>Qty</th>
+          <th>Amount</th>
+          <th>Code</th>
+        </tr>
+      </thead>
+      <tbody id="est-body"></tbody>
+    </table>
+
+    <div class="total-box">
+      총 합계: <span id="total-amount">0</span>
+    </div>
+
+    <div class="section-title">Terms / Conditions</div>
+    <div class="notes-box" id="est-terms"></div>
+
+    <div class="section-title">General Information</div>
+    <div class="notes-box" id="est-general"></div>
+
+    <div class="section-title">Special Notes</div>
+    <div class="notes-box" id="est-special"></div>
+
+    <div class="confidential">
+      ※ 본 견적서는 기밀 문서이며 외부 공유 및 무단 복제를 금합니다.
+    </div>
+
+    <div class="footer">
+      Page 1 / 1
     </div>
 
   </div>
 
 
-  <table>
-    <thead>
-      <tr>
-        <th>ITEM</th>
-        <th>Product</th>
-        <th>Description</th>
-        <th>Volt</th>
-        <th>Watt</th>
-        <th>Eff.</th>
-        <th>Lumen</th>
-        <th>CCT</th>
-        <th>Unit</th>
-        <th>Unit Price</th>
-        <th>Qty</th>
-        <th>Amount</th>
-        <th>Code</th>
-      </tr>
-    </thead>
-    <tbody id="est-body"></tbody>
-  </table>
-
-  <div class="total-box">
-    총 합계: <span id="total-amount">0</span>
-  </div>
-
-  <div class="section-title">Terms / Conditions</div>
-  <div class="notes-box" id="est-terms"></div>
-
-  <div class="section-title">General Information</div>
-  <div class="notes-box" id="est-general"></div>
-
-  <div class="section-title">Special Notes</div>
-  <div class="notes-box" id="est-special"></div>
-
-  <div class="confidential">
-    ※ 본 견적서는 기밀 문서이며 외부 공유 및 무단 복제를 금합니다.
-  </div>
-
-  <div class="footer">
-    Page 1 / 1
-  </div>
-
-</div>
-
-
-<script>
+  <script>
 let estData = null;
 
 function makeSafeFileName(str){
@@ -401,7 +409,8 @@ document.getElementById("btnPdf").onclick = () => {
 
 /* 인쇄 */
 document.getElementById("btnPrint").onclick = () => window.print();
-</script>
+  </script>
 
 </body>
+
 </html>
