@@ -131,7 +131,8 @@ export default function AdminPage() {
             await loadData();
             resetForm();
         } catch (error) {
-            alert('저장 실패');
+            console.error('Product Save Error:', error);
+            alert('상품 저장 실패: ' + (error.message || 'Unknown error'));
         }
     };
 
@@ -162,7 +163,8 @@ export default function AdminPage() {
             setCatalogForm({ name: '', file_url: '' });
             await loadData();
         } catch (err) {
-            alert('등록 실패');
+            console.error('Catalog Save Error:', err);
+            alert('카탈로그 등록 실패: ' + (err.message || 'Unknown error'));
         }
     };
 

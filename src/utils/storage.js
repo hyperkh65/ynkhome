@@ -161,7 +161,6 @@ export const uploadFile = async (file, bucket = 'library') => {
 };
 
 // --- Electronic Catalogs ---
-// ... (기존 코드 유지)
 export const getCatalogs = async () => {
     if (!supabase) return [];
 
@@ -179,9 +178,13 @@ export const getCatalogs = async () => {
 
 export const saveCatalog = async (catalog) => {
     if (!supabase) throw new Error("Database not connected");
+
+    const payload = { ...catalog };
+    if (!payload.id) delete payload.id;
+
     const { data, error } = await supabase
         .from('catalogs')
-        .upsert(catalog)
+        .upsert(payload)
         .select();
     if (error) throw error;
     return data;
