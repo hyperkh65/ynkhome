@@ -453,7 +453,7 @@ export default function Home() {
 
                 {/* ELECTRONIC CATALOG LIST */}
                 <div style={{ background: 'white', borderRadius: '14px', padding: '18px', border: '1px solid #d2d2d7', height: '200px', display: 'flex', flexDirection: 'column' }}>
-                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                     <h3 style={{ fontSize: '0.95rem', fontWeight: 600, margin: 0, color: '#1d1d1f' }}>📄 Electronic Catalog</h3>
                   </div>
                   <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -461,8 +461,8 @@ export default function Home() {
                       <div style={{ fontSize: '0.75rem', color: '#86868b', textAlign: 'center', padding: '20px' }}>No catalogs available.</div>
                     ) : (
                       eCatalogs.map(cat => (
-                        <div 
-                          key={cat.id} 
+                        <div
+                          key={cat.id}
                           onClick={() => { setSelectedCatalog(cat); setShowCatalogModal(true); }}
                           style={{ padding: '10px 14px', background: '#f5f5f7', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', transition: 'all 0.2s' }}
                           onMouseEnter={(e) => e.currentTarget.style.background = '#e8e8ed'}
@@ -563,11 +563,11 @@ export default function Home() {
 
       {/* Modals */}
       {showLibraryModal && <LibraryModal onClose={() => setShowLibraryModal(false)} />}
-      
+
       {showCatalogModal && selectedCatalog && (
-        <CatalogModal 
-          catalog={selectedCatalog} 
-          onClose={() => { setShowCatalogModal(false); setSelectedCatalog(null); }} 
+        <CatalogModal
+          catalog={selectedCatalog}
+          onClose={() => { setShowCatalogModal(false); setSelectedCatalog(null); }}
         />
       )}
 
@@ -592,7 +592,10 @@ export default function Home() {
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(10px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setShowSettings(false)}>
           <div style={{ background: 'white', maxWidth: '400px', width: '90%', borderRadius: '20px', padding: '24px', border: '1px solid #d2d2d7' }} onClick={e => e.stopPropagation()}>
             <h2 style={{ fontSize: '1.4rem', fontWeight: 600, marginBottom: '20px', color: '#1d1d1f' }}>Settings</h2>
-            <button onClick={() => setDarkMode(!darkMode)}>{darkMode ? 'Light' : 'Dark'}</button>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span>Dark Mode</span>
+              <button onClick={() => setDarkMode(!darkMode)}>{darkMode ? 'ON' : 'OFF'}</button>
+            </div>
           </div>
         </div>
       )}
