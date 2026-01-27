@@ -59,31 +59,32 @@
   </header>
 
   <main class="max-w-[1600px] mx-auto px-6 py-8">
-    <!-- 로그인 (멋지게 바뀜) -->
-    <section id="authPanel" class="hidden">
-      <div class="login-card pb-12">
-        <div class="login-logo mb-10">YNK</div>
-        <div class="text-center mb-10">
-          <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight">Security Portal</h2>
-          <p class="text-sm text-slate-500 mt-3 font-medium">Accessing YNK Intelligent Trade Network</p>
-        </div>
-
-        <form id="loginForm" class="grid gap-6">
-          <div class="space-y-2">
-            <label class="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Work Email</label>
-            <input id="loginEmail" type="email" required class="w-full h-12 bg-slate-50/50"
-              placeholder="name@ynk2014.com" />
+    <!-- 로그인 (초기 안정화 버전 복구) -->
+    <section id="authPanel" class="fixed inset-0 z-[9999] flex items-center justify-center bg-gray-100">
+      <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-sm border border-gray-200">
+        <h2 class="text-2xl font-bold mb-6 text-center text-gray-800 tracking-tight">YNK ERP 로그인</h2>
+        <form id="loginForm" class="space-y-5">
+          <div>
+            <label class="block text-sm font-bold text-gray-700 mb-1">이메일</label>
+            <input id="loginEmail" type="email" required
+              class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+              placeholder="admin@ynk2014.com" />
           </div>
-          <div class="space-y-2">
-            <label class="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Password</label>
-            <input id="loginPassword" type="password" required class="w-full h-12 bg-slate-50/50"
+          <div>
+            <label class="block text-sm font-bold text-gray-700 mb-1">비밀번호</label>
+            <input id="loginPassword" type="password" required
+              class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
               placeholder="••••••••" />
           </div>
-          <button class="btn-primary h-14 mt-4 text-base shadow-xl active:scale-95 transition-transform">Initialize
-            Session</button>
-          <div id="loginMsg" class="text-xs text-center font-bold text-red-500 bg-red-50 py-3 rounded-xl hidden">
-            Authentication identity mismatch.</div>
+          <button type="submit"
+            class="w-full bg-blue-600 text-white font-bold py-3 rounded hover:bg-blue-700 transition shadow-md">
+            로그인
+          </button>
+          <div id="loginMsg" class="text-sm text-red-500 text-center hidden mt-2 bg-red-50 py-2 rounded">
+            인증 정보가 일치하지 않습니다.
+          </div>
         </form>
+        <p class="text-xs text-center text-gray-400 mt-6 font-medium">YNK INTEGRATED SYSTEM</p>
       </div>
     </section>
 
