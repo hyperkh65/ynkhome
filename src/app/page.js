@@ -501,20 +501,36 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Chart */}
-              <div style={{ background: 'white', borderRadius: '14px', padding: '18px', border: '1px solid #d2d2d7', display: 'flex', flexDirection: 'column' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                  <h3 style={{ fontSize: '0.95rem', fontWeight: 600, margin: 0, color: '#1d1d1f' }}>📈 Market Analysis</h3>
+              {/* Charts (Split in two) */}
+              <div style={{ background: 'white', borderRadius: '14px', padding: '18px', border: '1px solid #d2d2d7', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <h3 style={{ fontSize: '0.85rem', fontWeight: 600, margin: 0, color: '#1d1d1f' }}>💱 Exchange Rates</h3>
+                  </div>
+                  <div style={{ flex: 1, minHeight: '180px' }}>
+                    <MarketChart
+                      marketData={marketData}
+                      historyData={historyData}
+                      selectedCurrency={selectedCurrency}
+                      setSelectedCurrency={setSelectedCurrency}
+                      forcedViewType="currency"
+                    />
+                  </div>
                 </div>
-                <div style={{ flex: 1, minHeight: '200px' }}>
-                  <MarketChart
-                    marketData={marketData}
-                    historyData={historyData}
-                    selectedMetal={selectedMetal}
-                    setSelectedMetal={setSelectedMetal}
-                    selectedCurrency={selectedCurrency}
-                    setSelectedCurrency={setSelectedCurrency}
-                  />
+
+                <div style={{ borderTop: '1px solid #f5f5f7', paddingTop: '20px', flex: 1, display: 'flex', flexDirection: 'column' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <h3 style={{ fontSize: '0.85rem', fontWeight: 600, margin: 0, color: '#1d1d1f' }}>🏗️ Raw Materials</h3>
+                  </div>
+                  <div style={{ flex: 1, minHeight: '180px' }}>
+                    <MarketChart
+                      marketData={marketData}
+                      historyData={historyData}
+                      selectedMetal={selectedMetal}
+                      setSelectedMetal={setSelectedMetal}
+                      forcedViewType="metal"
+                    />
+                  </div>
                 </div>
               </div>
             </div>

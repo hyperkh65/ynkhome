@@ -139,7 +139,29 @@ export const saveMarketHistory = async (record) => {
     }
     return data;
 };
+// --- File Upload ---
+export const uploadFile = async (file, bucket = 'library') => {
+    if (!supabase) throw new Error("Database not connected");
+
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
+    const filePath = `${fileName}`;
+
+    const { data, error } = await supabase.storage
+        .from(bucket)
+        .upload(filePath, file);
+
+    if (error) throw error;
+
+    const { data: { publicUrl } } = supabase.storage
+        .from(bucket)
+        .getPublicUrl(filePath);
+
+    return publicUrl;
+};
+
 // --- Electronic Catalogs ---
+// ... (기존 코드 유지)
 export const getCatalogs = async () => {
     if (!supabase) return [];
 

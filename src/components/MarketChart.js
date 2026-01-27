@@ -9,9 +9,14 @@ export default function MarketChart({
     setSelectedMetal,
     selectedCurrency,
     setSelectedCurrency,
-    historyData = []
+    historyData = [],
+    forcedViewType = null // 추가
 }) {
-    const [viewType, setViewType] = useState('currency'); // 'metal' | 'currency'
+    const [viewType, setViewType] = useState(forcedViewType || 'currency'); // 기본값 변경
+
+    useEffect(() => {
+        if (forcedViewType) setViewType(forcedViewType);
+    }, [forcedViewType]);
 
     const currentItem = useMemo(() => {
         if (viewType === 'metal') return selectedMetal;
