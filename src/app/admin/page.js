@@ -5,7 +5,7 @@ import {
     getProducts, saveProduct, deleteProduct,
     getNotices, saveNotice, deleteNotice,
     getCatalogs, saveCatalog, deleteCatalog,
-    uploadFile // 추가
+    uploadFile
 } from '@/utils/storage';
 import styles from './admin.module.css';
 
@@ -23,12 +23,9 @@ export default function AdminPage() {
     const [newNotice, setNewNotice] = useState('');
 
     // Catalog Form State
-    const [catalogForm, setCatalogForm] = useState({
-        name: '',
-        file_url: ''
-    });
+    const [catalogForm, setCatalogForm] = useState({ name: '', file_url: '' });
 
-    // Form State
+    // Product Form State (Full Restore)
     const [formData, setFormData] = useState({
         name: '',
         description: '',
@@ -50,9 +47,7 @@ export default function AdminPage() {
     });
 
     useEffect(() => {
-        if (isAuthenticated) {
-            loadData();
-        }
+        if (isAuthenticated) loadData();
     }, [isAuthenticated]);
 
     const loadData = async () => {
@@ -64,38 +59,21 @@ export default function AdminPage() {
         setCatalogs(catData);
     };
 
-    // Generic Upload Handler
     const handleFileUpload = async (e, field) => {
         const file = e.target.files[0];
         if (!file) return;
-
         setIsUploading(true);
         try {
-            const bucket = field === 'file_url' ? 'library' : 'products';
+            const bucket = (field === 'catalog' || field === 'certificate' || field === 'specSheet') ? 'library' : 'products';
             const url = await uploadFile(file, bucket);
-
-            if (field === 'catalog') {
-                setCatalogForm(prev => ({ ...prev, file_url: url }));
-            } else if (field === 'image') {
-                setFormData(prev => ({ ...prev, image: url }));
-            } else {
-                setFormData(prev => ({ ...prev, [field]: url }));
-            }
-            alert('File uploaded successfully');
+            if (field === 'catalog') setCatalogForm(prev => ({ ...prev, file_url: url }));
+            else if (field === 'image') setFormData(prev => ({ ...prev, image: url }));
+            else setFormData(prev => ({ ...prev, [field]: url }));
+            alert('파일이 성공적으로 업로드되었습니다.');
         } catch (err) {
-            console.error(err);
-            alert('Upload failed: ' + err.message);
+            alert('업로드 실패: ' + err.message);
         } finally {
             setIsUploading(false);
-        }
-    };
-
-    const handleLogin = (e) => {
-        e.preventDefault();
-        if (password === 'ynk2024') {
-            setIsAuthenticated(true);
-        } else {
-            setError('Invalid Access Code');
         }
     };
 
@@ -104,57 +82,23 @@ export default function AdminPage() {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleCatalogSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            await saveCatalog(catalogForm);
-            alert('Catalog Registered');
-            setCatalogForm({ name: '', file_url: '' });
-            await loadData();
-        } catch (err) {
-            alert('Failed to save catalog');
-        }
-    };
-
-    const handleCatalogDelete = async (id) => {
-        if (!window.confirm('Delete this catalog?')) return;
-        try {
-            await deleteCatalog(id);
-            await loadData();
-        } catch (err) {
-            alert('Delete failed');
-        }
-    };
-
     const resetForm = () => {
         setEditingId(null);
         setFormData({
-            name: '',
-            description: '',
-            image: '',
-            partNo: '',
-            modelName: '',
-            colorTemp: '',
-            powerConsumption: '',
-            inputVoltage: '',
-            powerFactor: '',
-            luminousFlux: '',
-            criRa: '',
-            dimensions: '',
-            weight: '',
-            cert: '',
-            remarks: '',
-            certificate: '',
-            specSheet: ''
+            name: '', description: '', image: '',
+            partNo: '', modelName: '', colorTemp: '', powerConsumption: '',
+            inputVoltage: '', powerFactor: '', luminousFlux: '', criRa: '',
+            dimensions: '', weight: '', cert: '', remarks: '',
+            certificate: '', specSheet: ''
         });
     };
 
     const handleEdit = (product) => {
         setEditingId(product.id);
         setFormData({
-            name: product.name,
-            description: product.description,
-            image: product.image,
+            name: product.name || '',
+            description: product.description || '',
+            image: product.image || '',
             partNo: product.specs?.partNo || '',
             modelName: product.specs?.modelName || '',
             colorTemp: product.specs?.colorTemp || '',
@@ -172,39 +116,6 @@ export default function AdminPage() {
         });
     };
 
-    const handleDelete = async (id) => {
-        if (!window.confirm('Are you sure you want to delete this product?')) return;
-        try {
-            await deleteProduct(id);
-            await loadData();
-            if (editingId === id) resetForm();
-        } catch (error) {
-            alert('Delete failed');
-        }
-    };
-
-    const handleNoticeSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            await saveNotice({ content: newNotice });
-            alert('Notice Posted');
-            await loadData();
-            setNewNotice('');
-        } catch (error) {
-            alert('Failed to post notice');
-        }
-    };
-
-    const handleNoticeDelete = async (id) => {
-        if (!window.confirm('Delete this notice?')) return;
-        try {
-            await deleteNotice(id);
-            await loadData();
-        } catch (error) {
-            alert('Delete failed');
-        }
-    };
-
     const handleSubmit = async (e) => {
         e.preventDefault();
         const payload = {
@@ -212,42 +123,45 @@ export default function AdminPage() {
             name: formData.name,
             description: formData.description,
             image: formData.image,
-            specs: {
-                partNo: formData.partNo,
-                modelName: formData.modelName,
-                colorTemp: formData.colorTemp,
-                powerConsumption: formData.powerConsumption,
-                inputVoltage: formData.inputVoltage,
-                powerFactor: formData.powerFactor,
-                luminousFlux: formData.luminousFlux,
-                criRa: formData.criRa,
-                dimensions: formData.dimensions,
-                weight: formData.weight,
-                cert: formData.cert,
-                remarks: formData.remarks,
-                certificate: formData.certificate,
-                specSheet: formData.specSheet
-            }
+            specs: { ...formData }
         };
-
         try {
             await saveProduct(payload);
-            alert(editingId ? 'Updated' : 'Created');
+            alert(editingId ? '수정되었습니다.' : '등록되었습니다.');
             await loadData();
             resetForm();
         } catch (error) {
-            alert('Operation failed');
+            alert('저장 실패');
         }
+    };
+
+    const handleDelete = async (id) => {
+        if (!window.confirm('정말 삭제하시겠습니까?')) return;
+        await deleteProduct(id);
+        await loadData();
+    };
+
+    const handleNoticeSubmit = async (e) => {
+        e.preventDefault();
+        await saveNotice({ content: newNotice });
+        setNewNotice('');
+        await loadData();
+    };
+
+    const handleMarketSave = async () => {
+        const res = await fetch('/api/market/history', { method: 'POST' });
+        const data = await res.json();
+        alert(data.success ? '오늘의 시세가 저장되었습니다.' : '저장 실패');
     };
 
     if (!isAuthenticated) {
         return (
-            <div className={styles.adminContainer} style={{ overflowY: 'auto' }}>
+            <div className={styles.adminContainer}>
                 <div className={styles.loginBox}>
-                    <h2 style={{ fontSize: '1.5rem', marginBottom: '8px' }}>Security Login</h2>
-                    <form onSubmit={handleLogin}>
-                        <input type="password" className={styles.input} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Access Code" />
-                        <button type="submit" className={styles.submitBtn}>Authorize</button>
+                    <h2>YNK Secure Admin</h2>
+                    <form onSubmit={(e) => { e.preventDefault(); if (password === 'ynk2024') setIsAuthenticated(true); else alert('Invalid'); }}>
+                        <input type="password" className={styles.input} onChange={(e) => setPassword(e.target.value)} placeholder="Access Code" />
+                        <button type="submit" className={styles.submitBtn}>Login</button>
                     </form>
                 </div>
             </div>
@@ -255,94 +169,129 @@ export default function AdminPage() {
     }
 
     return (
-        <div className={styles.adminContainer} style={{ alignItems: 'flex-start', overflowY: 'auto', height: '100vh', display: 'block', padding: '20px' }}>
-            <div className={styles.adminDashboard} style={{ margin: '0 auto', maxWidth: '1200px' }}>
+        <div className={styles.adminContainer} style={{ display: 'block', padding: '20px', overflowY: 'auto' }}>
+            <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
-                    <h1 className={styles.title}>YNK Admin Panel</h1>
+                    <h1 className={styles.title}>YNK Intelligent Control Panel</h1>
                     <div style={{ display: 'flex', gap: '10px' }}>
-                        <a href="/" className={styles.logoutBtn} style={{ background: '#f5f5f7', color: '#1d1d1f', textDecoration: 'none' }}>View Site</a>
-                        <button onClick={() => setIsAuthenticated(false)} className={styles.logoutBtn}>Sign Out</button>
+                        <a href="/" className={styles.logoutBtn} style={{ background: '#f5f5f7', color: '#1d1d1f', textDecoration: 'none' }}>Site View</a>
+                        <button onClick={() => setIsAuthenticated(false)} className={styles.logoutBtn}>Logout</button>
                     </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 320px', gap: '24px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(400px, 450px) 1fr 350px', gap: '24px', alignItems: 'start' }}>
 
-                    {/* Left: Product Form */}
-                    <div className={styles.formCard}>
-                        <h3 style={{ marginBottom: '20px', fontSize: '1.1rem', fontWeight: 700 }}>{editingId ? 'Edit Product' : 'Add New Product'}</h3>
+                    {/* 1. Product Form (Full Specifications) */}
+                    <div className={styles.formCard} style={{ background: 'white', padding: '24px', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
+                        <h3 style={{ marginBottom: '20px', fontWeight: 700 }}>{editingId ? 'Edit Product' : 'Register New Item'}</h3>
                         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                            <input name="name" className={styles.input} value={formData.name} onChange={handleInputChange} placeholder="Product Name" required />
-
-                            <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '12px', border: '1px dashed #cbd5e1' }}>
-                                <label style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748b', display: 'block', marginBottom: '8px' }}>Product Image</label>
-                                <input type="file" onChange={(e) => handleFileUpload(e, 'image')} style={{ fontSize: '0.8rem' }} disabled={isUploading} />
-                                {formData.image && <div style={{ marginTop: '10px', height: '100px', width: '100px', borderRadius: '8px', overflow: 'hidden', border: '1px solid #e2e8f0' }}>
-                                    <img src={formData.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                </div>}
+                            <div className={styles.formGroup}>
+                                <label className={styles.label}>Product Name</label>
+                                <input name="name" className={styles.input} value={formData.name} onChange={handleInputChange} required />
                             </div>
 
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                                <input name="modelName" className={styles.input} value={formData.modelName} onChange={handleInputChange} placeholder="Model Name" />
-                                <input name="powerConsumption" className={styles.input} value={formData.powerConsumption} onChange={handleInputChange} placeholder="Power (W)" />
+                                <div className={styles.formGroup}><label className={styles.label}>Part No</label><input name="partNo" className={styles.input} value={formData.partNo} onChange={handleInputChange} /></div>
+                                <div className={styles.formGroup}><label className={styles.label}>Model</label><input name="modelName" className={styles.input} value={formData.modelName} onChange={handleInputChange} /></div>
                             </div>
 
-                            <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '12px', border: '1px dashed #cbd5e1' }}>
-                                <label style={{ fontSize: '0.75rem', fontWeight: 600, color: '#64748b', display: 'block', marginBottom: '8px' }}>Spec Sheet (PDF)</label>
-                                <input type="file" onChange={(e) => handleFileUpload(e, 'specSheet')} style={{ fontSize: '0.8rem' }} disabled={isUploading} />
-                                {formData.specSheet && <div style={{ fontSize: '0.7rem', color: '#10b981', marginTop: '4px' }}>✓ File Uploaded</div>}
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
+                                <div className={styles.formGroup}><label className={styles.label}>Color(K)</label><input name="colorTemp" className={styles.input} value={formData.colorTemp} onChange={handleInputChange} /></div>
+                                <div className={styles.formGroup}><label className={styles.label}>Power(W)</label><input name="powerConsumption" className={styles.input} value={formData.powerConsumption} onChange={handleInputChange} /></div>
+                                <div className={styles.formGroup}><label className={styles.label}>Voltage(V)</label><input name="inputVoltage" className={styles.input} value={formData.inputVoltage} onChange={handleInputChange} /></div>
                             </div>
 
-                            <button type="submit" className={styles.submitBtn} disabled={isUploading}>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                                <div className={styles.formGroup}><label className={styles.label}>Luminous(lm)</label><input name="luminousFlux" className={styles.input} value={formData.luminousFlux} onChange={handleInputChange} /></div>
+                                <div className={styles.formGroup}><label className={styles.label}>CRI(Ra)</label><input name="criRa" className={styles.input} value={formData.criRa} onChange={handleInputChange} /></div>
+                            </div>
+
+                            <div className={styles.formGroup}><label className={styles.label}>Certification</label><input name="cert" className={styles.input} value={formData.cert} onChange={handleInputChange} /></div>
+
+                            <div className={styles.formGroup}>
+                                <label className={styles.label}>Product Image</label>
+                                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                                    <input type="file" onChange={(e) => handleFileUpload(e, 'image')} disabled={isUploading} />
+                                    {formData.image && <img src={formData.image} style={{ width: '40px', height: '40px', borderRadius: '4px', objectFit: 'cover' }} />}
+                                </div>
+                            </div>
+
+                            <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '15px' }}>
+                                <div className={styles.formGroup}><label className={styles.label}>Spec Sheet (PDF)</label><input type="file" onChange={(e) => handleFileUpload(e, 'specSheet')} /></div>
+                                <div className={styles.formGroup}><label className={styles.label}>Certificate</label><input type="file" onChange={(e) => handleFileUpload(e, 'certificate')} /></div>
+                            </div>
+
+                            <button type="submit" className={styles.submitBtn} disabled={isUploading} style={{ background: editingId ? '#3b82f6' : '#10b981', marginTop: '10px' }}>
                                 {isUploading ? 'Uploading...' : editingId ? 'Update Product' : 'Register Product'}
                             </button>
+                            {editingId && <button type="button" onClick={resetForm} className={styles.input} style={{ background: '#f5f5f7', border: 'none', cursor: 'pointer' }}>Cancel Edit</button>}
                         </form>
                     </div>
 
-                    {/* Middle: Product List */}
-                    <div className={styles.card} style={{ maxHeight: '80vh', overflowY: 'auto' }}>
-                        <h3 style={{ marginBottom: '16px' }}>Inventory</h3>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    {/* 2. Product List */}
+                    <div className={styles.card} style={{ height: '80vh', overflowY: 'auto' }}>
+                        <h3 style={{ marginBottom: '16px', fontWeight: 700 }}>Product Inventory ({products.length})</h3>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '16px' }}>
                             {products.map(p => (
-                                <div key={p.id} style={{ display: 'flex', gap: '10px', padding: '10px', border: '1px solid #e5e7eb', borderRadius: '10px', alignItems: 'center' }}>
-                                    <img src={p.image} style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '6px' }} />
-                                    <div style={{ flex: 1, fontSize: '0.85rem', fontWeight: 600 }}>{p.name}</div>
-                                    <button onClick={() => handleEdit(p)} style={{ fontSize: '0.75rem', color: '#3b82f6', border: 'none', background: 'none', cursor: 'pointer' }}>Edit</button>
-                                    <button onClick={() => handleDelete(p.id)} style={{ fontSize: '0.75rem', color: '#ef4444', border: 'none', background: 'none', cursor: 'pointer' }}>Del</button>
+                                <div key={p.id} style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '12px' }}>
+                                    <img src={p.image} style={{ width: '100%', height: '120px', objectFit: 'cover', borderRadius: '8px', marginBottom: '8px' }} onError={(e) => e.target.src = 'https://picsum.photos/400/300?blur=5'} />
+                                    <div style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '4px' }}>{p.name}</div>
+                                    <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '10px' }}>{p.specs?.modelName || 'No Model'}</div>
+                                    <div style={{ display: 'flex', gap: '8px' }}>
+                                        <button onClick={() => handleEdit(p)} style={{ flex: 1, padding: '6px', fontSize: '0.75rem', border: '1px solid #e2e8f0', borderRadius: '6px', background: 'white', cursor: 'pointer' }}>Edit</button>
+                                        <button onClick={() => handleDelete(p.id)} style={{ padding: '6px 10px', fontSize: '0.75rem', border: 'none', borderRadius: '6px', background: '#fee2e2', color: '#b91c1c', cursor: 'pointer' }}>Delete</button>
+                                    </div>
                                 </div>
                             ))}
                         </div>
                     </div>
 
-                    {/* Right: Catalog & Notices */}
+                    {/* 3. System (Market, Notice, Catalog) */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+
+                        {/* Market History */}
                         <div className={styles.card}>
-                            <h3 style={{ fontSize: '0.95rem', marginBottom: '12px' }}>Upload Catalog</h3>
-                            <form onSubmit={handleCatalogSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                <input placeholder="Catalog Name" className={styles.input} value={catalogForm.name} onChange={(e) => setCatalogForm({ ...catalogForm, name: e.target.value })} required />
-                                <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px dashed #cbd5e1' }}>
-                                    <input type="file" onChange={(e) => handleFileUpload(e, 'catalog')} style={{ fontSize: '0.7rem' }} disabled={isUploading} />
-                                </div>
-                                <button type="submit" style={{ padding: '10px', background: '#10b981', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '0.85rem' }} disabled={isUploading || !catalogForm.file_url}>Register PDF</button>
+                            <h3 style={{ fontSize: '1rem', marginBottom: '12px' }}>Market Management</h3>
+                            <button onClick={handleMarketSave} style={{ width: '100%', padding: '12px', background: '#1a1a1a', color: 'white', border: 'none', borderRadius: '10px', fontWeight: 600, cursor: 'pointer' }}>
+                                Sync Daily Market Closing
+                            </button>
+                        </div>
+
+                        {/* Notice Board */}
+                        <div className={styles.card}>
+                            <h3 style={{ fontSize: '1rem', marginBottom: '12px' }}>Notice Board</h3>
+                            <form onSubmit={handleNoticeSubmit} style={{ marginBottom: '16px' }}>
+                                <textarea className={styles.input} style={{ height: '70px', marginBottom: '8px' }} value={newNotice} onChange={(e) => setNewNotice(e.target.value)} placeholder="Type new notice..." required />
+                                <button type="submit" style={{ width: '100%', padding: '10px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>Post Board</button>
                             </form>
-                            <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                {catalogs.map(c => (
-                                    <div key={c.id} style={{ fontSize: '0.75rem', display: 'flex', justifyContent: 'space-between', padding: '6px 10px', background: '#f9fafb', borderRadius: '6px' }}>
-                                        <span>{c.name}</span>
-                                        <button onClick={() => handleCatalogDelete(c.id)} style={{ color: '#ef4444', border: 'none', background: 'none', cursor: 'pointer' }}>×</button>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '200px', overflowY: 'auto' }}>
+                                {notices.map(n => (
+                                    <div key={n.id} style={{ fontSize: '0.8rem', padding: '10px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                                        <div style={{ marginBottom: '4px' }}>{n.content}</div>
+                                        <div style={{ textAlign: 'right' }}><button onClick={async () => { await deleteNotice(n.id); loadData(); }} style={{ fontSize: '0.7rem', color: '#ef4444', border: 'none', background: 'none' }}>Remove</button></div>
                                     </div>
                                 ))}
                             </div>
                         </div>
 
+                        {/* Electronic Catalogs */}
                         <div className={styles.card}>
-                            <h3 style={{ fontSize: '0.95rem', marginBottom: '12px' }}>Notices</h3>
-                            <form onSubmit={handleNoticeSubmit}>
-                                <textarea value={newNotice} onChange={(e) => setNewNotice(e.target.value)} placeholder="Content" style={{ width: '100%', borderRadius: '8px', border: '1px solid #e5e7eb', padding: '10px', fontSize: '0.8rem' }} />
-                                <button type="submit" style={{ width: '100%', padding: '8px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', marginTop: '8px', cursor: 'pointer' }}>Post</button>
+                            <h3 style={{ fontSize: '1rem', marginBottom: '12px' }}>Electronic Catalogs</h3>
+                            <form onSubmit={handleCatalogSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                <input className={styles.input} placeholder="Catalog Title" value={catalogForm.name} onChange={(e) => setCatalogForm({ ...catalogForm, name: e.target.value })} required />
+                                <input type="file" onChange={(e) => handleFileUpload(e, 'catalog')} style={{ fontSize: '0.75rem' }} />
+                                <button type="submit" style={{ padding: '10px', background: '#10b981', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }} disabled={!catalogForm.file_url}>Add Catalog</button>
                             </form>
+                            <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                {catalogs.map(c => (
+                                    <div key={c.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', padding: '8px', background: '#f1f5f9', borderRadius: '6px' }}>
+                                        <span>{c.name}</span>
+                                        <button onClick={async () => { await deleteCatalog(c.id); loadData(); }} style={{ color: '#ef4444', border: 'none', background: 'none' }}>×</button>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     </div>
-
                 </div>
             </div>
         </div>
