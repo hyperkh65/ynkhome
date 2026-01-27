@@ -180,8 +180,9 @@ export default function Home() {
       const noticeList = await getNotices();
       setNotices(noticeList);
 
-      const catalogList = await getCatalogs();
-      setECatalogs(catalogList);
+      const catalogList = await getCatalogs(); // 최신 목록 강제 로드
+      console.log('Fetched Catalogs:', catalogList);
+      setECatalogs([...catalogList]);
 
       const hRes = await fetch('/api/market/history');
       const hData = await hRes.json();
