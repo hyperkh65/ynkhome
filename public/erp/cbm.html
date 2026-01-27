@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CBM 계산기</title>
+  <style>
+    /* Base styling for the page */
+    body {
+      font-family: "Arial", sans-serif;
+      margin: 30px;
+      background: #f6f6f6;
+      color: #333;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 1.8rem;
+    }
+    /* Table styling */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+      background: #fff;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    th, td {
+      border-bottom: 1px solid #ddd;
+      padding: 8px 10px;
+      text-align: center;
+      vertical-align: middle;
+    }
+    th {
+      background: #e6e6e6;
+      font-weight: 600;
+    }
+    tbody tr:nth-child(even) {
+      background: #fafafa;
+    }
+    tbody tr:hover {
+      background: #f0f8ff;
+    }
+    input[type="number"],
+    input[type="text"] {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 4px 6px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 0.9rem;
+    }
+    tfoot td {
+      font-weight: bold;
+      background: #f2f2f2;
+    }
+    /* Button styles */
+    .button {
+      margin: 10px 5px;
+      padding: 10px 15px;
+      background: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+    .button:hover {
+      background: #0056b3;
+    }
+    .button.deleteRowBtn {
+      background: #dc3545;
+    }
+    .button.deleteRowBtn:hover {
+      background: #b52a37;
+    }
+    /* Container visualisation styling */
+    .container-visual {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+    .container-box {
+      flex: 1;
+      min-width: 220px;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 15px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .container-title {
+      font-weight: 600;
+      margin-bottom: 4px;
+      font-size: 1rem;
+    }
+    .bar-background {
+      position: relative;
+      height: 30px;
+      background: #e9ecef;
+      border-radius: 15px;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+    .bar-fill {
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      width: 0%;
+      background: #28a745;
+      border-radius: 15px;
+      transition: width 0.3s ease;
+    }
+    .bar-label {
+      margin-top: 6px;
+      text-align: center;
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>CBM 계산기</h1>
+  <button type="button" class="button" id="addRowBtn">행 추가</button>
+  <table id="cbmTable">
+    <thead>
+      <tr>
+        <th>MODEL</th>
+        <th>가로 (cm)</th>
+        <th>세로 (cm)</th>
+        <th>높이 (cm)</th>
+        <th>CBM/CTN</th>
+        <th>PCS/CTN</th>
+        <th>발주수량 (pcs)</th>
+        <th>CTN</th>
+        <th>CBM</th>
+        <th>삭제</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><input type="text" class="model" placeholder="Model" /></td>
+        <td><input type="number" min="0" step="any" class="length" /></td>
+        <td><input type="number" min="0" step="any" class="width" /></td>
+        <td><input type="number" min="0" step="any" class="height" /></td>
+        <td class="cbmPer"></td>
+        <td><input type="number" min="1" step="any" class="pcs" /></td>
+        <td><input type="number" min="0" step="any" class="orderQty" /></td>
+        <td class="ctn"></td>
+        <td class="cbmTotal"></td>
+        <td><button type="button" class="button deleteRowBtn">삭제</button></td>
+      </tr>
+    </tbody>
+    <tfoot>
+      <tr>
+        <td colspan="7">합계</td>
+        <td id="totalCtn">0</td>
+        <td id="totalCbm">0.00</td>
+        <td></td>
+      </tr>
+    </tfoot>
+  </table>
+
+  <div class="container-visual">
+    <div class="container-box" id="box20">
+      <div class="container-title">20ft 컨테이너</div>
+      <div>용량: 33&nbsp;m³</div>
+      <div class="bar-background"><div class="bar-fill" id="bar20"></div></div>
+      <div class="bar-label" id="label20">0% 사용 (0 / 33&nbsp;m³)</div>
+    </div>
+    <div class="container-box" id="box40">
+      <div class="container-title">40ft 컨테이너</div>
+      <div>용량: 67&nbsp;m³</div>
+      <div class="bar-background"><div class="bar-fill" id="bar40"></div></div>
+      <div class="bar-label" id="label40">0% 사용 (0 / 67&nbsp;m³)</div>
+    </div>
+    <div class="container-box" id="box40hc">
+      <div class="container-title">40ft 하이 큐브</div>
+      <div>용량: 76&nbsp;m³</div>
+      <div class="bar-background"><div class="bar-fill" id="bar40hc"></div></div>
+      <div class="bar-label" id="label40hc">0% 사용 (0 / 76&nbsp;m³)</div>
+    </div>
+  </div>
+
+  <script>
+    // Container capacities in cubic metres
+    const capacities = {
+      '20': 33,
+      '40': 67,
+      '40hc': 76
+    };
+
+    /**
+     * Compute values for a single row: CBM/CTN, CTN quantity and total CBM.
+     * @param {HTMLElement} tr The table row element
+     */
+    function computeRow(tr) {
+      // Retrieve numeric inputs (default to zero if empty)
+      const length = parseFloat(tr.querySelector('.length').value) || 0;
+      const width  = parseFloat(tr.querySelector('.width').value)  || 0;
+      const height = parseFloat(tr.querySelector('.height').value) || 0;
+      const pcs    = parseFloat(tr.querySelector('.pcs').value)    || 0;
+      const orderQty = parseFloat(tr.querySelector('.orderQty').value) || 0;
+
+      // Calculate CBM per carton: convert cm to metres (cm/100)
+      let cbmPerCarton = 0;
+      if (length && width && height) {
+        cbmPerCarton = (length / 100) * (width / 100) * (height / 100);
+      }
+      // Calculate number of cartons (CTN)
+      const ctn = pcs ? orderQty / pcs : 0;
+      // Total CBM for the row
+      const cbmTotal = cbmPerCarton * ctn;
+
+      // Display results with fixed decimal places or empty if zero
+      tr.querySelector('.cbmPer').textContent = cbmPerCarton ? cbmPerCarton.toFixed(5) : '';
+      tr.querySelector('.ctn').textContent    = ctn ? ctn.toFixed(0) : '';
+      tr.querySelector('.cbmTotal').textContent = cbmTotal ? cbmTotal.toFixed(5) : '';
+    }
+
+    /**
+     * Compute totals across all rows and update summary and container bars.
+     */
+    function computeTotals() {
+      const tbody = document.querySelector('#cbmTable tbody');
+      let totalCtn = 0;
+      let totalCbm = 0;
+      tbody.querySelectorAll('tr').forEach(tr => {
+        const ctnVal = parseFloat(tr.querySelector('.ctn').textContent) || 0;
+        const cbmVal = parseFloat(tr.querySelector('.cbmTotal').textContent) || 0;
+        totalCtn += ctnVal;
+        totalCbm += cbmVal;
+      });
+      document.getElementById('totalCtn').textContent = totalCtn.toFixed(0);
+      document.getElementById('totalCbm').textContent = totalCbm.toFixed(5);
+
+      // Update each container bar
+      updateBar('20', totalCbm);
+      updateBar('40', totalCbm);
+      updateBar('40hc', totalCbm);
+    }
+
+    /**
+     * Update bar graph for each container type based on total CBM.
+     * @param {String} type Container key: '20', '40', or '40hc'
+     * @param {Number} totalCbm Total cubic metre value to calculate utilisation
+     */
+    function updateBar(type, totalCbm) {
+      const capacity = capacities[type];
+      const percent = Math.min((totalCbm / capacity) * 100, 100);
+      const bar   = document.getElementById('bar' + type);
+      const label = document.getElementById('label' + type);
+      // Set bar width proportional to utilisation
+      bar.style.width = percent + '%';
+      // Colour coding based on utilisation thresholds
+      let color = '#28a745'; // default green
+      if (percent > 80) color = '#dc3545'; // red when nearly full
+      else if (percent > 50) color = '#ffc107'; // yellow for medium fill
+      bar.style.background = color;
+      // Update descriptive label
+      label.textContent = percent.toFixed(1) + '% 사용 (' + totalCbm.toFixed(2) + ' / ' + capacity + ' m³)';
+    }
+
+    /**
+     * Attach event handlers to inputs and delete button for a row.
+     * @param {HTMLElement} tr The table row element
+     */
+    function attachEvents(tr) {
+      tr.querySelectorAll('input').forEach(input => {
+        input.addEventListener('input', () => {
+          computeRow(tr);
+          computeTotals();
+        });
+      });
+      const delBtn = tr.querySelector('.deleteRowBtn');
+      delBtn.addEventListener('click', () => {
+        // Prevent removing the last row; ensure at least one row remains
+        const tbody = document.querySelector('#cbmTable tbody');
+        if (tbody.rows.length > 1) {
+          tr.remove();
+          computeTotals();
+        } else {
+          // Clear inputs instead of deleting when only one row left
+          tr.querySelectorAll('input').forEach(i => i.value = '');
+          tr.querySelectorAll('.cbmPer, .ctn, .cbmTotal').forEach(td => td.textContent = '');
+          computeTotals();
+        }
+      });
+    }
+
+    // Add row button handler: clone first row, reset values and events
+    document.getElementById('addRowBtn').addEventListener('click', () => {
+      const tbody = document.querySelector('#cbmTable tbody');
+      const newRow = tbody.rows[0].cloneNode(true);
+      // Clear input fields and computed text
+      newRow.querySelectorAll('input').forEach(input => input.value = '');
+      newRow.querySelectorAll('.cbmPer, .ctn, .cbmTotal').forEach(td => td.textContent = '');
+      tbody.appendChild(newRow);
+      attachEvents(newRow);
+    });
+
+    // Attach event handlers to the initial row
+    document.querySelectorAll('#cbmTable tbody tr').forEach(tr => attachEvents(tr));
+    // Perform initial totals calculation on page load
+    computeTotals();
+  </script>
+</body>
+</html>
