@@ -30,6 +30,7 @@ export default function Home() {
 
   const [notices, setNotices] = useState([]);
   const [eCatalogs, setECatalogs] = useState([]);
+  const [catalogPage, setCatalogPage] = useState(0); // Pagination for catalogs
   const [news, setNews] = useState([]);
   const [darkMode, setDarkMode] = useState(false);
 
@@ -452,33 +453,67 @@ export default function Home() {
                   </div>
                 </div>
 
-                {/* ELECTRONIC CATALOG LIST */}
-                <div style={{ background: 'white', borderRadius: '14px', padding: '18px', border: '1px solid #d2d2d7', height: '200px', display: 'flex', flexDirection: 'column' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                    <h3 style={{ fontSize: '0.95rem', fontWeight: 600, margin: 0, color: '#1d1d1f' }}>📄 Electronic Catalog</h3>
+                {/* ELECTRONIC CATALOG BOOKSHELF */}
+                <div style={{ background: 'white', borderRadius: '14px', padding: '18px', border: '1px solid #d2d2d7', height: '240px', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                    <h3 style={{ fontSize: '0.9rem', fontWeight: 600, margin: 0, color: '#1d1d1f', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      📚 <span>Library Shelf</span>
+                    </h3>
+                    <div style={{ display: 'flex', gap: '4px' }}>
+                      {Array.from({ length: Math.ceil(eCatalogs.length / 3) }).map((_, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => setCatalogPage(idx)}
+                          style={{
+                            width: '20px', height: '20px', borderRadius: '50%', border: 'none',
+                            background: catalogPage === idx ? '#007aff' : '#e5e5ea',
+                            color: catalogPage === idx ? 'white' : '#86868b',
+                            fontSize: '0.65rem', cursor: 'pointer', fontWeight: 700
+                          }}
+                        >
+                          {idx + 1}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                  <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+
+                  <div style={{ flex: 1, display: 'flex', gap: '12px', alignItems: 'flex-end', paddingBottom: '10px', overflow: 'hidden' }}>
                     {eCatalogs.length === 0 ? (
-                      <div style={{ fontSize: '0.75rem', color: '#86868b', textAlign: 'center', padding: '20px' }}>No catalogs available.</div>
+                      <div style={{ fontSize: '0.75rem', color: '#86868b', textAlign: 'center', width: '100%', paddingBottom: '40px' }}>No catalogs available.</div>
                     ) : (
-                      eCatalogs.map(cat => (
+                      eCatalogs.slice(catalogPage * 3, (catalogPage * 3) + 3).map((cat, i) => (
                         <div
                           key={cat.id}
                           onClick={() => { setSelectedCatalog(cat); setShowCatalogModal(true); }}
-                          style={{ padding: '10px 14px', background: '#f5f5f7', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', transition: 'all 0.2s' }}
-                          onMouseEnter={(e) => e.currentTarget.style.background = '#e8e8ed'}
-                          onMouseLeave={(e) => e.currentTarget.style.background = '#f5f5f7'}
+                          style={{
+                            flex: 1, height: '140px', background: '#fff', borderRadius: '4px 8px 8px 4px',
+                            cursor: 'pointer', position: 'relative', display: 'flex', flexDirection: 'column',
+                            boxShadow: '4px 4px 10px rgba(0,0,0,0.1), inset 8px 0 10px rgba(0,0,0,0.05)',
+                            transition: 'all 0.3s ease', borderLeft: '12px solid #007aff',
+                            transform: 'perspective(500px) rotateY(-10deg)'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.transform = 'perspective(500px) rotateY(0deg) translateY(-8px)';
+                            e.currentTarget.style.boxShadow = '10px 10px 20px rgba(0,0,0,0.15)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.transform = 'perspective(500px) rotateY(-10deg)';
+                            e.currentTarget.style.boxShadow = '4px 4px 10px rgba(0,0,0,0.1), inset 8px 0 10px rgba(0,0,0,0.05)';
+                          }}
                         >
-                          <span style={{ fontSize: '1.2rem' }}>📗</span>
-                          <div style={{ flex: 1 }}>
-                            <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#1d1d1f' }}>{cat.name}</div>
-                            <div style={{ fontSize: '0.65rem', color: '#86868b' }}>{new Date(cat.created_at).toLocaleDateString()}</div>
+                          <div style={{ padding: '12px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                            <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#1d1d1f', marginBottom: '4px', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' }}>
+                              {cat.name}
+                            </div>
+                            <div style={{ fontSize: '0.55rem', color: '#86868b', marginTop: 'auto' }}>YNK GLOBAL</div>
                           </div>
-                          <span style={{ fontSize: '0.8rem', color: '#86868b' }}>🔐</span>
+                          <div style={{ position: 'absolute', right: '8px', bottom: '8px', fontSize: '1rem' }}>🔐</div>
                         </div>
                       ))
                     )}
                   </div>
+                  {/* Shelf line effect */}
+                  <div style={{ height: '8px', background: '#d2d2d7', borderRadius: '4px', width: '100%', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}></div>
                 </div>
               </div>
 
