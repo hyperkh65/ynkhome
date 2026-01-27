@@ -139,3 +139,37 @@ export const saveMarketHistory = async (record) => {
     }
     return data;
 };
+// --- Electronic Catalogs ---
+export const getCatalogs = async () => {
+    if (!supabase) return [];
+
+    const { data, error } = await supabase
+        .from('catalogs')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error('Error fetching catalogs:', error);
+        return [];
+    }
+    return data || [];
+};
+
+export const saveCatalog = async (catalog) => {
+    if (!supabase) throw new Error("Database not connected");
+    const { data, error } = await supabase
+        .from('catalogs')
+        .upsert(catalog)
+        .select();
+    if (error) throw error;
+    return data;
+};
+
+export const deleteCatalog = async (id) => {
+    if (!supabase) throw new Error("Database not connected");
+    const { error } = await supabase
+        .from('catalogs')
+        .delete()
+        .eq('id', id);
+    if (error) throw error;
+};
