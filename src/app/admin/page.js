@@ -20,6 +20,7 @@ export default function AdminPage() {
     const [notices, setNotices] = useState([]);
     const [catalogs, setCatalogs] = useState([]);
     const [editingId, setEditingId] = useState(null);
+    const [editingCatalogId, setEditingCatalogId] = useState(null);
     const [newNotice, setNewNotice] = useState('');
 
     // Catalog Form State
@@ -158,14 +159,27 @@ export default function AdminPage() {
     const handleCatalogSubmit = async (e) => {
         e.preventDefault();
         try {
-            await saveCatalog(catalogForm);
-            alert('카탈로그가 등록되었습니다.');
-            setCatalogForm({ name: '', file_url: '' });
+            const payload = { ...catalogForm };
+            if (editingCatalogId) payload.id = editingCatalogId;
+
+            await saveCatalog(payload);
+            alert(editingCatalogId ? '카탈로그가 수정되었습니다.' : '카탈로그가 등록되었습니다.');
+            resetCatalogForm();
             await loadData();
         } catch (err) {
             console.error('Catalog Save Error:', err);
             alert('카탈로그 등록 실패: ' + (err.message || 'Unknown error'));
         }
+    };
+
+    const handleCatalogEdit = (cat) => {
+        setEditingCatalogId(cat.id);
+        setCatalogForm({ name: cat.name, file_url: cat.file_url });
+    };
+
+    const resetCatalogForm = () => {
+        setEditingCatalogId(null);
+        setCatalogForm({ name: '', file_url: '' });
     };
 
     if (!isAuthenticated) {
@@ -293,14 +307,23 @@ export default function AdminPage() {
                             <h3 style={{ fontSize: '1rem', marginBottom: '12px' }}>Electronic Catalogs</h3>
                             <form onSubmit={handleCatalogSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                                 <input className={styles.input} placeholder="Catalog Title" value={catalogForm.name} onChange={(e) => setCatalogForm({ ...catalogForm, name: e.target.value })} required />
-                                <input type="file" onChange={(e) => handleFileUpload(e, 'catalog')} style={{ fontSize: '0.75rem' }} />
-                                <button type="submit" style={{ padding: '10px', background: '#10b981', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }} disabled={!catalogForm.file_url}>Add Catalog</button>
+                                <div style={{ background: '#f8fafc', padding: '10px', borderRadius: '8px', border: '1px dashed #cbd5e1' }}>
+                                    <input type="file" onChange={(e) => handleFileUpload(e, 'catalog')} style={{ fontSize: '0.75rem' }} />
+                                    {catalogForm.file_url && <div style={{ fontSize: '0.7rem', color: '#10b981', marginTop: '4px' }}>✓ PDF Ready</div>}
+                                </div>
+                                <button type="submit" style={{ padding: '10px', background: editingCatalogId ? '#3b82f6' : '#10b981', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }} disabled={!catalogForm.file_url}>
+                                    {editingCatalogId ? 'Update Catalog' : 'Add Catalog'}
+                                </button>
+                                {editingCatalogId && <button type="button" onClick={resetCatalogForm} style={{ fontSize: '0.75rem', border: 'none', background: 'none', color: '#64748b', cursor: 'pointer' }}>Cancel</button>}
                             </form>
                             <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
                                 {catalogs.map(c => (
-                                    <div key={c.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', padding: '8px', background: '#f1f5f9', borderRadius: '6px' }}>
-                                        <span>{c.name}</span>
-                                        <button onClick={async () => { await deleteCatalog(c.id); loadData(); }} style={{ color: '#ef4444', border: 'none', background: 'none' }}>×</button>
+                                    <div key={c.id} style={{ display: 'flex', flexDirection: 'column', padding: '10px', background: '#f1f5f9', borderRadius: '8px', gap: '6px' }}>
+                                        <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>{c.name}</div>
+                                        <div style={{ display: 'flex', gap: '10px' }}>
+                                            <button onClick={() => handleCatalogEdit(c)} style={{ fontSize: '0.75rem', color: '#3b82f6', border: 'none', background: 'none', cursor: 'pointer', padding: 0 }}>Edit</button>
+                                            <button onClick={async () => { if (window.confirm('삭제하시겠습니까?')) { await deleteCatalog(c.id); loadData(); } }} style={{ fontSize: '0.75rem', color: '#ef4444', border: 'none', background: 'none', cursor: 'pointer', padding: 0 }}>Delete</button>
+                                        </div>
                                     </div>
                                 ))}
                             </div>
