@@ -89,17 +89,17 @@
 
     <!-- 앱 메인 패널 -->
     <section id="appPanel" class="hidden">
-      <div class="tab-container no-scrollbar">
-        <button data-tab="dashboard" class="tab-btn active">📊 Dashboard</button>
-        <button data-tab="sales-entry" class="tab-btn">✍️ Sales Entry</button>
-        <button data-tab="sales-search" class="tab-btn">🔍 Sales History</button>
-        <button data-tab="products-entry" class="tab-btn">📦 Products</button>
-        <button data-tab="clients" class="tab-btn">🏢 Partners</button>
-        <button data-tab="quotes" class="tab-btn">📄 Create Quote</button>
-        <button data-tab="quotes-search" class="tab-btn">📋 Quote History</button>
-        <button data-tab="po-entry" class="tab-btn">📥 Purchase Order</button>
-        <button data-tab="po-search" class="tab-btn">💾 PO Archive</button>
-        <button data-tab="import-entry" class="tab-btn">🌍 Import Ops</button>
+      <div class="tab-container no-scrollbar flex gap-2 overflow-x-auto pb-2 border-b border-slate-200 mb-6">
+        <button data-tab="dashboard" class="tab-btn active whitespace-nowrap">📊 대시보드</button>
+        <button data-tab="sales-search" class="tab-btn whitespace-nowrap">📈 매출 조회</button>
+        <button data-tab="sales-entry" class="tab-btn whitespace-nowrap">💰 매출 등록</button>
+        <button data-tab="products-entry" class="tab-btn whitespace-nowrap">📦 품목 관리</button>
+        <button data-tab="clients" class="tab-btn whitespace-nowrap">🏢 거래처</button>
+        <button data-tab="quotes-search" class="tab-btn whitespace-nowrap">📋 견적 내역</button>
+        <button data-tab="quotes" class="tab-btn whitespace-nowrap">📄 견적 작성</button>
+        <button data-tab="po-search" class="tab-btn whitespace-nowrap">📑 발주 내역</button>
+        <button data-tab="po-entry" class="tab-btn whitespace-nowrap">🛒 발주 등록</button>
+        <button data-tab="import-entry" class="tab-btn whitespace-nowrap">🌏 수입 관리</button>
       </div>
 
       <!-- 대시보드 탭 -->
@@ -107,85 +107,88 @@
         <div class="space-y-8">
 
           <!-- KPI 카드 그리드 -->
-          <div class="kpi-grid">
-            <!--  이번달 매출 -->
-            <div class="kpi-card shadow-premium group">
-              <div class="flex justify-between items-start mb-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+
+            <!-- 이번달 매출 -->
+            <div
+              class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm hover:border-blue-400 hover:shadow-md transition-all duration-300">
+              <div class="flex justify-between items-start mb-3">
                 <div
-                  class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
-                  ₩</div>
-                <span
-                  class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full uppercase tracking-wider">Revenue</span>
+                  class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-lg">
+                  💰</div>
+                <span class="text-[11px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-md">매출</span>
               </div>
-              <div class="text-xs font-semibold text-slate-400 mb-1">Monthly Sales</div>
-              <div id="dashSales" class="text-2xl font-extrabold text-slate-900 leading-tight">0</div>
-              <div id="dashSalesDetail" class="text-[11px] text-slate-500 mt-2 font-medium">Calculating...</div>
+              <div class="text-xs font-medium text-slate-500 mb-1">이번 달 매출액</div>
+              <div id="dashSales" class="text-2xl font-extrabold text-slate-900 tracking-tight">0</div>
+              <div id="dashSalesDetail" class="text-[11px] text-slate-400 mt-1">집계 중...</div>
             </div>
 
-            <!--  이번달 발주 -->
-            <div class="kpi-card shadow-premium group">
-              <div class="flex justify-between items-start mb-4">
-                <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">🛒
-                </div>
-                <span
-                  class="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-full uppercase tracking-wider">Purchase</span>
+            <!-- 이번달 발주 -->
+            <div
+              class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm hover:border-purple-400 hover:shadow-md transition-all duration-300">
+              <div class="flex justify-between items-start mb-3">
+                <div
+                  class="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold text-lg">
+                  📦</div>
+                <span class="text-[11px] font-bold text-purple-600 bg-purple-50 px-2 py-1 rounded-md">발주</span>
               </div>
-              <div class="text-xs font-semibold text-slate-400 mb-1">Monthly Orders</div>
-              <div id="dashPo" class="text-2xl font-extrabold text-slate-900 leading-tight">0</div>
-              <div id="dashPoDetail" class="text-[11px] text-slate-500 mt-2 font-medium">Calculating...</div>
+              <div class="text-xs font-medium text-slate-500 mb-1">이번 달 발주액</div>
+              <div id="dashPo" class="text-2xl font-extrabold text-slate-900 tracking-tight">0</div>
+              <div id="dashPoDetail" class="text-[11px] text-slate-400 mt-1">집계 중...</div>
             </div>
 
             <!-- 거래처 수 -->
-            <div class="kpi-card shadow-premium group">
-              <div class="flex justify-between items-start mb-4">
+            <div
+              class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm hover:border-emerald-400 hover:shadow-md transition-all duration-300">
+              <div class="flex justify-between items-start mb-3">
                 <div
-                  class="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold">
+                  class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-lg">
                   🏢</div>
-                <span
-                  class="text-[10px] font-bold text-purple-600 bg-purple-50 px-2 py-1 rounded-full uppercase tracking-wider">Network</span>
+                <span class="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md">네트워크</span>
               </div>
-              <div class="text-xs font-semibold text-slate-400 mb-1">Active Partners</div>
-              <div id="dashClients" class="text-2xl font-extrabold text-slate-900 leading-tight">0</div>
-              <div class="text-[11px] text-slate-500 mt-2 font-medium">Global connections</div>
+              <div class="text-xs font-medium text-slate-500 mb-1">총 거래처 수</div>
+              <div id="dashClients" class="text-2xl font-extrabold text-slate-900 tracking-tight">0</div>
+              <div class="text-[11px] text-slate-400 mt-1">등록된 파트너사</div>
             </div>
 
             <!-- CBM 계산기 (Quick Link) -->
             <a href="cbm.html" target="_blank"
-              class="kpi-card shadow-premium hover:border-emerald-200 transition-all group">
-              <div class="flex justify-between items-start mb-4">
+              class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm hover:border-orange-400 hover:shadow-md transition-all duration-300 group cursor-pointer">
+              <div class="flex justify-between items-start mb-3">
                 <div
-                  class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
-                  📦</div>
-                <span
-                  class="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded-full uppercase tracking-wider">Tools</span>
+                  class="w-10 h-10 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center font-bold text-lg">
+                  📐</div>
+                <span class="text-[11px] font-bold text-orange-600 bg-orange-50 px-2 py-1 rounded-md">도구</span>
               </div>
-              <div class="text-xs font-semibold text-slate-400 mb-1">CBM Calculator</div>
-              <div
-                class="text-lg font-bold text-slate-900 leading-tight group-hover:text-emerald-600 transition-colors">
-                Volumetric Logic</div>
-              <div class="text-[11px] text-slate-500 mt-2 font-medium">Open tool →</div>
+              <div class="text-xs font-medium text-slate-500 mb-1">물류 도구</div>
+              <div class="text-lg font-bold text-slate-900 group-hover:text-orange-600 transition-colors">CBM 계산기</div>
+              <div class="text-[11px] text-orange-500 mt-1 font-semibold flex items-center">열기 <span
+                  class="ml-1">→</span></div>
             </a>
           </div>
 
           <!-- 차트 영역 -->
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div class="premium-card shadow-premium">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- 환율 차트 -->
+            <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
               <div class="flex items-center justify-between mb-6">
-                <h4 class="font-bold text-slate-900 flex items-center gap-2">
-                  <span class="w-1.5 h-6 bg-emerald-500 rounded-full"></span>
-                  Exchange Rate Trend
+                <h4 class="font-bold text-slate-800 flex items-center gap-2">
+                  <span class="w-1.5 h-5 bg-emerald-500 rounded-full"></span>
+                  환율 변동 추이
                 </h4>
                 <div class="flex gap-2">
-                  <select id="fxCurrency" class="text-xs font-bold bg-slate-50 border-none px-3 py-1.5">
+                  <select id="fxCurrency"
+                    class="text-xs font-semibold bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 focus:border-emerald-500 focus:ring-emerald-500 outline-none">
                     <option value="USDKRW">USD/KRW</option>
                     <option value="JPYKRW">JPY/KRW</option>
                     <option value="EURKRW">EUR/KRW</option>
                     <option value="CNYKRW">CNY/KRW</option>
                   </select>
-                  <select id="fxPeriod" class="text-xs font-bold bg-slate-50 border-none px-3 py-1.5">
-                    <option value="3">3M</option>
-                    <option value="6">6M</option>
-                    <option value="12" selected>12M</option>
+                  <select id="fxPeriod"
+                    class="text-xs font-semibold bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 focus:border-emerald-500 focus:ring-emerald-500 outline-none">
+                    <option value="3">3개월</option>
+                    <option value="6">6개월</option>
+                    <option value="12" selected>12개월</option>
                   </select>
                 </div>
               </div>
@@ -194,23 +197,26 @@
               </div>
             </div>
 
-            <div class="premium-card shadow-premium">
+            <!-- LME 차트 -->
+            <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
               <div class="flex items-center justify-between mb-6">
-                <h4 class="font-bold text-slate-900 flex items-center gap-2">
-                  <span class="w-1.5 h-6 bg-blue-500 rounded-full"></span>
-                  LME Price History
+                <h4 class="font-bold text-slate-800 flex items-center gap-2">
+                  <span class="w-1.5 h-5 bg-blue-500 rounded-full"></span>
+                  LME 원자재 시세
                 </h4>
                 <div class="flex gap-2">
-                  <select id="lmeMetal" class="text-xs font-bold bg-slate-50 border-none px-3 py-1.5">
-                    <option value="copper">Copper</option>
-                    <option value="aluminum">Aluminum</option>
-                    <option value="nickel">Nickel</option>
-                    <option value="zinc">Zinc</option>
+                  <select id="lmeMetal"
+                    class="text-xs font-semibold bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 focus:border-blue-500 focus:ring-blue-500 outline-none">
+                    <option value="copper">구리 (Copper)</option>
+                    <option value="aluminum">알루미늄 (Aluminum)</option>
+                    <option value="nickel">니켈 (Nickel)</option>
+                    <option value="zinc">아연 (Zinc)</option>
                   </select>
-                  <select id="lmePeriod" class="text-xs font-bold bg-slate-50 border-none px-3 py-1.5">
-                    <option value="1">1M</option>
-                    <option value="3" selected>3M</option>
-                    <option value="6">6M</option>
+                  <select id="lmePeriod"
+                    class="text-xs font-semibold bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 focus:border-blue-500 focus:ring-blue-500 outline-none">
+                    <option value="1">1개월</option>
+                    <option value="3" selected>3개월</option>
+                    <option value="6">6개월</option>
                   </select>
                 </div>
               </div>
