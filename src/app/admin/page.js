@@ -1,7 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getProducts, saveProduct, deleteProduct, getNotices, saveNotice, deleteNotice } from '@/utils/storage';
+import {
+    getProducts, saveProduct, deleteProduct,
+    getNotices, saveNotice, deleteNotice,
+    getCatalogs, saveCatalog, deleteCatalog // 추가
+} from '@/utils/storage';
 import styles from './admin.module.css';
 
 export default function AdminPage() {
@@ -12,8 +16,15 @@ export default function AdminPage() {
     // Data State
     const [products, setProducts] = useState([]);
     const [notices, setNotices] = useState([]);
+    const [catalogs, setCatalogs] = useState([]); // 추가
     const [editingId, setEditingId] = useState(null);
     const [newNotice, setNewNotice] = useState('');
+
+    // Catalog Form State
+    const [catalogForm, setCatalogForm] = useState({
+        name: '',
+        file_url: ''
+    });
 
     // Form State
     const [formData, setFormData] = useState({
@@ -49,6 +60,8 @@ export default function AdminPage() {
         setProducts(prodData);
         const noticeData = await getNotices();
         setNotices(noticeData);
+        const catData = await getCatalogs(); // 추가
+        setCatalogs(catData);
     };
 
     const handleLogin = (e) => {
@@ -63,6 +76,29 @@ export default function AdminPage() {
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    // Catalog Handlers
+    const handleCatalogSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            await saveCatalog(catalogForm);
+            alert('Catalog Registered');
+            setCatalogForm({ name: '', file_url: '' });
+            await loadData();
+        } catch (err) {
+            alert('Failed to save catalog');
+        }
+    };
+
+    const handleCatalogDelete = async (id) => {
+        if (!window.confirm('Delete this catalog?')) return;
+        try {
+            await deleteCatalog(id);
+            await loadData();
+        } catch (err) {
+            alert('Delete failed');
+        }
     };
 
     const handleClearImage = () => {
@@ -382,50 +418,93 @@ export default function AdminPage() {
                         </div>
                     </div>
 
-                    {/* Notice Section - Right */}
-                    <div className={styles.card} style={{ height: 'calc(100vh - 120px)', position: 'sticky', top: '20px', display: 'flex', flexDirection: 'column' }}>
-                        <div style={{ borderBottom: '1px solid #f1f5f9', paddingBottom: '10px', marginBottom: '20px' }}>
-                            <h3 style={{ fontSize: '1.1rem', fontWeight: 600, margin: 0 }}>System Management</h3>
+                    {/* Right Section: System Mgmt + Notice + Catalog */}
+                    <div className={styles.card} style={{ height: 'calc(100vh - 120px)', position: 'sticky', top: '20px', display: 'flex', flexDirection: 'column', gap: '20px', overflowY: 'auto' }}>
+                        <div>
+                            <div style={{ borderBottom: '1px solid #f1f5f9', paddingBottom: '10px', marginBottom: '20px' }}>
+                                <h3 style={{ fontSize: '1.1rem', fontWeight: 600, margin: 0 }}>System Management</h3>
+                            </div>
+
+                            {/* Market Data Trigger */}
+                            <div style={{ marginBottom: '30px', padding: '16px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                                <div style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '4px', color: '#1a1a1a' }}>Market History Sync</div>
+                                <p style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '12px' }}>Save current market rates as closing prices.</p>
+                                <button
+                                    onClick={handleMarketSave}
+                                    style={{ width: '100%', padding: '10px', background: '#1a1a1a', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', fontSize: '0.8rem' }}
+                                >
+                                    Sync Market Prices
+                                </button>
+                            </div>
                         </div>
 
-                        {/* Market Data Trigger */}
-                        <div style={{ marginBottom: '30px', padding: '16px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-                            <div style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '8px', color: '#1a1a1a' }}>Market History Sync</div>
-                            <p style={{ fontSize: '0.8rem', color: '#64748b', marginBottom: '12px' }}>Save current market rates as today's official closing prices.</p>
-                            <button
-                                onClick={handleMarketSave}
-                                style={{ width: '100%', padding: '10px', background: '#1a1a1a', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
-                            >
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v13a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
-                                Save Today's Closing Prices
-                            </button>
-                        </div>
-
-                        <div style={{ borderBottom: '1px solid #f1f5f9', paddingBottom: '10px', marginBottom: '10px' }}>
-                            <h3 style={{ fontSize: '0.95rem', fontWeight: 600, margin: 0 }}>Active Notices</h3>
-                        </div>
-                        <form onSubmit={handleNoticeSubmit} style={{ marginBottom: '20px' }}>
-                            <textarea
-                                value={newNotice}
-                                onChange={(e) => setNewNotice(e.target.value)}
-                                placeholder="Write a new notice..."
-                                style={{ width: '100%', height: '80px', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0', resize: 'none', marginBottom: '8px' }}
-                                required
-                            />
-                            <button type="submit" className={styles.catBtn} style={{ width: '100%', justifyContent: 'center', background: '#3b82f6', color: 'white', border: 'none' }}>
-                                Post Notice
-                            </button>
-                        </form>
-                        <div style={{ flex: 1, overflowY: 'auto' }}>
-                            {notices.map(notice => (
-                                <div key={notice.id} style={{ padding: '10px', borderRadius: '8px', background: 'white', marginBottom: '8px', border: '1px solid #e2e8f0' }}>
-                                    <div style={{ fontSize: '0.9rem', marginBottom: '6px' }}>{notice.content}</div>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>{new Date(notice.created_at).toLocaleDateString()}</span>
-                                        <button onClick={() => handleNoticeDelete(notice.id)} style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.8rem' }}>Delete</button>
+                        {/* E-CATALOG SECTION */}
+                        <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '20px' }}>
+                            <div style={{ borderBottom: '1px solid #f1f5f9', paddingBottom: '10px', marginBottom: '10px' }}>
+                                <h3 style={{ fontSize: '0.95rem', fontWeight: 600, margin: 0 }}>Electronic Catalogs</h3>
+                            </div>
+                            <form onSubmit={handleCatalogSubmit} style={{ marginBottom: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                <input
+                                    type="text"
+                                    placeholder="Catalog Name"
+                                    className={styles.input}
+                                    value={catalogForm.name}
+                                    onChange={(e) => setCatalogForm({ ...catalogForm, name: e.target.value })}
+                                    required
+                                />
+                                <input
+                                    type="text"
+                                    placeholder="PDF/Viewer URL"
+                                    className={styles.input}
+                                    value={catalogForm.file_url}
+                                    onChange={(e) => setCatalogForm({ ...catalogForm, file_url: e.target.value })}
+                                    required
+                                />
+                                <button type="submit" style={{ padding: '10px', background: '#10b981', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', fontSize: '0.8rem' }}>
+                                    Add Catalog
+                                </button>
+                            </form>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                {catalogs.map(cat => (
+                                    <div key={cat.id} style={{ padding: '10px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <div style={{ fontSize: '0.85rem' }}>
+                                            <div style={{ fontWeight: 600 }}>{cat.name}</div>
+                                            <div style={{ fontSize: '0.7rem', color: '#94a3b8' }}>{new Date(cat.created_at).toLocaleDateString()}</div>
+                                        </div>
+                                        <button onClick={() => handleCatalogDelete(cat.id)} style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.75rem' }}>Del</button>
                                     </div>
-                                </div>
-                            ))}
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* NOTICE SECTION */}
+                        <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '20px' }}>
+                            <div style={{ borderBottom: '1px solid #f1f5f9', paddingBottom: '10px', marginBottom: '10px' }}>
+                                <h3 style={{ fontSize: '0.95rem', fontWeight: 600, margin: 0 }}>System Notices</h3>
+                            </div>
+                            <form onSubmit={handleNoticeSubmit} style={{ marginBottom: '20px' }}>
+                                <textarea
+                                    value={newNotice}
+                                    onChange={(e) => setNewNotice(e.target.value)}
+                                    placeholder="New notice..."
+                                    style={{ width: '100%', height: '60px', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0', resize: 'none', marginBottom: '8px', fontSize: '0.85rem' }}
+                                    required
+                                />
+                                <button type="submit" style={{ width: '100%', padding: '10px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}>
+                                    Post Notice
+                                </button>
+                            </form>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                {notices.map(notice => (
+                                    <div key={notice.id} style={{ padding: '10px', borderRadius: '8px', background: 'white', border: '1px solid #e2e8f0' }}>
+                                        <div style={{ fontSize: '0.85rem', marginBottom: '4px' }}>{notice.content}</div>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>{new Date(notice.created_at).toLocaleDateString()}</span>
+                                            <button onClick={() => handleNoticeDelete(notice.id)} style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.75rem' }}>Del</button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 </div>
