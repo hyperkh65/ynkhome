@@ -154,6 +154,18 @@ export default function AdminPage() {
         alert(data.success ? '오늘의 시세가 저장되었습니다.' : '저장 실패');
     };
 
+    const handleCatalogSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            await saveCatalog(catalogForm);
+            alert('카탈로그가 등록되었습니다.');
+            setCatalogForm({ name: '', file_url: '' });
+            await loadData();
+        } catch (err) {
+            alert('등록 실패');
+        }
+    };
+
     if (!isAuthenticated) {
         return (
             <div className={styles.adminContainer}>
