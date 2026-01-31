@@ -316,7 +316,7 @@ export default function Home() {
         </div>
 
         <a
-          href="/erp"
+          href="https://erp.ynk2014.com"
           target="_blank"
           rel="noopener noreferrer"
           className={styles.navItem}
