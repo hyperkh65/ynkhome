@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/utils/supabase';
+import { uploadFile } from '@/utils/storage';
 import styles from './admin.module.css';
 
 export default function AdminLibrary() {
@@ -53,20 +54,9 @@ export default function AdminLibrary() {
 
             // 파일 업로드 (새 파일이 있는 경우)
             if (file) {
-                // 한글 및 특수문자가 포함된 파일명은 스토리지 키로 부적합할 수 있으므로 안전하게 변환
-                const extension = file.name.split('.').pop();
-                const safeBaseName = file.name.replace(`.${extension}`, '').replace(/[^a-zA-Z0-9]/g, '_');
-                const storagePath = `${Date.now()}_${safeBaseName}.${extension}`;
-
-                // 1️⃣ Storage에 파일 업로드
-                const { error: uploadErr } = await supabase.storage
-                    .from('library')
-                    .upload(storagePath, file);
-
-                if (uploadErr) throw uploadErr;
-
-                fileUrl = supabase.storage.from('library').getPublicUrl(storagePath).data.publicUrl;
-                fileName = file.name; // DB에는 원래 한글 이름을 저장
+                // storage.js의 uploadFile 유틸리티 사용 (버켓 자동 처리 및 에러 핸들링 포함)
+                fileUrl = await uploadFile(file, 'library');
+                fileName = file.name;
                 fileSize = file.size;
             }
 

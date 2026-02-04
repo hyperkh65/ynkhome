@@ -146,17 +146,27 @@ export const uploadFile = async (file, bucket = 'library') => {
     const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
     const filePath = `${fileName}`;
 
-    const { data, error } = await supabase.storage
-        .from(bucket)
-        .upload(filePath, file);
+    try {
+        const { data, error } = await supabase.storage
+            .from(bucket)
+            .upload(filePath, file);
 
-    if (error) throw error;
+        if (error) {
+            if (error.message.includes('Bucket not found')) {
+                throw new Error(`Supabase에 '${bucket}' 버켓이 없습니다. 스토리지 설정에서 버켓을 생성해주세요.`);
+            }
+            throw error;
+        }
 
-    const { data: { publicUrl } } = supabase.storage
-        .from(bucket)
-        .getPublicUrl(filePath);
+        const { data: { publicUrl } } = supabase.storage
+            .from(bucket)
+            .getPublicUrl(filePath);
 
-    return publicUrl;
+        return publicUrl;
+    } catch (err) {
+        console.error(`Upload error to bucket ${bucket}:`, err);
+        throw err;
+    }
 };
 
 // --- Electronic Catalogs ---
