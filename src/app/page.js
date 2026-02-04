@@ -610,14 +610,79 @@ export default function Home() {
 
       {selectedProduct && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(10px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setSelectedProduct(null)}>
-          <div style={{ background: 'white', maxWidth: '600px', width: '90%', maxHeight: '90vh', overflowY: 'auto', borderRadius: '20px', border: '1px solid #d2d2d7' }} onClick={e => e.stopPropagation()}>
-            <div style={{ padding: '24px', borderBottom: '1px solid #f5f5f7', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h2 style={{ fontSize: '1.5rem', fontWeight: 600, margin: 0, color: '#1d1d1f' }}>{selectedProduct.name}</h2>
-              <button onClick={() => setSelectedProduct(null)} style={{ background: '#f5f5f7', border: 'none', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', fontSize: '1.3rem' }}>×</button>
+          <div style={{ background: 'white', maxWidth: '800px', width: '95%', maxHeight: '95vh', overflowY: 'auto', borderRadius: '24px', border: '1px solid #d2d2d7', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)' }} onClick={e => e.stopPropagation()}>
+            <div style={{ padding: '24px 32px', borderBottom: '1px solid #f5f5f7', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, background: 'white', zIndex: 10 }}>
+              <div>
+                <h2 style={{ fontSize: '1.5rem', fontWeight: 700, margin: 0, color: '#1d1d1f' }}>{selectedProduct.name}</h2>
+                <p style={{ fontSize: '0.9rem', color: '#86868b', margin: '4px 0 0 0' }}>{selectedProduct.specs?.partNo || 'No Part Number'}</p>
+              </div>
+              <button onClick={() => setSelectedProduct(null)} style={{ background: '#f5f5f7', border: 'none', width: '40px', height: '40px', borderRadius: '50%', cursor: 'pointer', fontSize: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.2s' }}>×</button>
             </div>
-            <div style={{ padding: '24px' }}>
-              <div style={{ width: '100%', height: '280px', background: '#f5f5f7', borderRadius: '12px', marginBottom: '24px', overflow: 'hidden' }}>
-                <img src={selectedProduct.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+
+            <div style={{ padding: '32px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(300px, 1fr) 1fr', gap: '32px' }}>
+                {/* Left: Product Image */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  <div style={{ width: '100%', aspectRatio: '1/1', background: '#f5f5f7', borderRadius: '16px', overflow: 'hidden', border: '1px solid #f0f0f0' }}>
+                    <img src={selectedProduct.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                  </div>
+
+                  {/* Download Buttons */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    {selectedProduct.specs?.specSheet && (
+                      <a href={selectedProduct.specs.specSheet} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', background: '#007aff', color: 'white', borderRadius: '12px', textDecoration: 'none', fontWeight: 600, fontSize: '0.9rem' }}>
+                        📄 Download Spec Sheet
+                      </a>
+                    )}
+                    {selectedProduct.specs?.certificate && (
+                      <a href={selectedProduct.specs.certificate} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', background: '#34c759', color: 'white', borderRadius: '12px', textDecoration: 'none', fontWeight: 600, fontSize: '0.9rem' }}>
+                        ✅ Download Certificate
+                      </a>
+                    )}
+                  </div>
+                </div>
+
+                {/* Right: Specifications Table */}
+                <div>
+                  <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '16px', color: '#1d1d1f' }}>Specifications</h3>
+                  <div style={{ border: '1px solid #f0f0f0', borderRadius: '12px', overflow: 'hidden' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
+                      <tbody>
+                        {[
+                          { label: 'Model', value: selectedProduct.specs?.modelName },
+                          { label: 'Color Temp', value: selectedProduct.specs?.colorTemp, unit: 'K' },
+                          { label: 'Power', value: selectedProduct.specs?.powerConsumption, unit: 'W' },
+                          { label: 'Input Voltage', value: selectedProduct.specs?.inputVoltage, unit: 'V' },
+                          { label: 'Power Factor', value: selectedProduct.specs?.powerFactor },
+                          { label: 'Luminous Flux', value: selectedProduct.specs?.luminousFlux, unit: 'lm' },
+                          { label: 'CRI', value: selectedProduct.specs?.criRa, unit: 'Ra' },
+                          { label: 'Dimensions', value: selectedProduct.specs?.dimensions },
+                          { label: 'Weight', value: selectedProduct.specs?.weight },
+                          { label: 'Certification', value: selectedProduct.specs?.cert }
+                        ].map((spec, i) => (
+                          <tr key={i} style={{ borderBottom: i === 9 ? 'none' : '1px solid #f5f5f7', background: i % 2 === 0 ? '#fafafa' : 'white' }}>
+                            <td style={{ padding: '12px 16px', fontWeight: 600, color: '#86868b', width: '40%' }}>{spec.label}</td>
+                            <td style={{ padding: '12px 16px', color: '#1d1d1f' }}>
+                              {spec.value ? `${spec.value}${spec.unit ? ` ${spec.unit}` : ''}` : '—'}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  {selectedProduct.description && (
+                    <div style={{ marginTop: '24px' }}>
+                      <h4 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '8px', color: '#1d1d1f' }}>Description</h4>
+                      <p style={{ fontSize: '0.9rem', color: '#424245', lineHeight: '1.5', margin: 0 }}>{selectedProduct.description}</p>
+                    </div>
+                  )}
+                  {selectedProduct.specs?.remarks && (
+                    <div style={{ marginTop: '16px', padding: '12px', background: '#fff9e6', borderRadius: '8px', border: '1px solid #ffeeba' }}>
+                      <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#856404', display: 'block', marginBottom: '4px' }}>Remarks</span>
+                      <p style={{ fontSize: '0.85rem', color: '#856404', margin: 0 }}>{selectedProduct.specs.remarks}</p>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
