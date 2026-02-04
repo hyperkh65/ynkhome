@@ -30,7 +30,7 @@ export default function Home() {
 
   const [notices, setNotices] = useState([]);
   const [eCatalogs, setECatalogs] = useState([]);
-  const [catalogPage, setCatalogPage] = useState(0);
+  const [catalogPage, setCatalogPage] = useState(0); // Pagination for catalogs
   const [news, setNews] = useState([]);
   const [darkMode, setDarkMode] = useState(false);
 
@@ -181,8 +181,9 @@ export default function Home() {
       const noticeList = await getNotices();
       setNotices(noticeList);
 
-      const catalogList = await getCatalogs();
-      setECatalogs(catalogList);
+      const catalogList = await getCatalogs(); // 최신 목록 강제 로드
+      console.log('Fetched Catalogs:', catalogList);
+      setECatalogs([...catalogList]);
 
       const hRes = await fetch('/api/market/history');
       const hData = await hRes.json();
@@ -266,7 +267,6 @@ export default function Home() {
   return (
     <div className={styles.layout} style={{ background: '#f5f5f7' }}>
       {/* Sidebar */}
-      {/* Sidebar */}
       <nav className={styles.sidebar} style={{ background: '#1d1d1f', borderRight: 'none' }}>
         <div className={styles.logoIcon} style={{ background: 'white', color: '#1d1d1f', fontWeight: 700 }}>Y</div>
 
@@ -316,7 +316,7 @@ export default function Home() {
         </div>
 
         <a
-          href="/erp"
+          href="https://erp.ynk2014.com"
           target="_blank"
           rel="noopener noreferrer"
           className={styles.navItem}
@@ -364,14 +364,12 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Dashboard Grid */}
         {/* Dashboard Content */}
         {activeTab === 'Overview' ? (
           <div style={{ flex: 1, padding: '18px', display: 'flex', flexDirection: 'column', gap: '14px', overflow: 'hidden' }}>
 
             {/* Row 1: Market + Notices + News */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr) 200px 200px', gap: '10px', height: '110px' }}>
-              {/* Market Cards */}
               <div style={{ background: 'white', borderRadius: '10px', padding: '14px', border: '1px solid #d2d2d7', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                 <div style={{ fontSize: '0.65rem', color: '#86868b', fontWeight: 500 }}>🇺🇸 USD/KRW</div>
                 <div style={{ fontSize: '1.15rem', fontWeight: 700, color: '#1d1d1f' }}>{marketData.usd.toFixed(2)}</div>
@@ -432,7 +430,7 @@ export default function Home() {
             {/* Row 2: Port + Chart + Products */}
             <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '280px 1fr 280px', gap: '14px', overflow: 'hidden' }}>
 
-              {/* Incheon Port + Library Shelf */}
+              {/* Incheon Port + E-Catalog */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 <div style={{ background: 'white', borderRadius: '14px', padding: '18px', border: '1px solid #d2d2d7', flex: 1, display: 'flex', flexDirection: 'column' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
@@ -514,6 +512,7 @@ export default function Home() {
                       ))
                     )}
                   </div>
+                  {/* Shelf line effect */}
                   <div style={{ height: '8px', background: '#d2d2d7', borderRadius: '4px', width: '100%', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}></div>
                 </div>
               </div>
@@ -538,20 +537,36 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Chart */}
-              <div style={{ background: 'white', borderRadius: '14px', padding: '18px', border: '1px solid #d2d2d7', display: 'flex', flexDirection: 'column' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                  <h3 style={{ fontSize: '0.95rem', fontWeight: 600, margin: 0, color: '#1d1d1f' }}>📈 Market Analysis</h3>
+              {/* Charts (Split in two) */}
+              <div style={{ background: 'white', borderRadius: '14px', padding: '12px', border: '1px solid #d2d2d7', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                    <h3 style={{ fontSize: '0.75rem', fontWeight: 600, margin: 0, color: '#1d1d1f' }}>💱 Exchange Rates</h3>
+                  </div>
+                  <div style={{ flex: 1, minHeight: '130px' }}>
+                    <MarketChart
+                      marketData={marketData}
+                      historyData={historyData}
+                      selectedCurrency={selectedCurrency}
+                      setSelectedCurrency={setSelectedCurrency}
+                      forcedViewType="currency"
+                    />
+                  </div>
                 </div>
-                <div style={{ flex: 1, minHeight: '200px' }}>
-                  <MarketChart
-                    marketData={marketData}
-                    historyData={historyData}
-                    selectedMetal={selectedMetal}
-                    setSelectedMetal={setSelectedMetal}
-                    selectedCurrency={selectedCurrency}
-                    setSelectedCurrency={setSelectedCurrency}
-                  />
+
+                <div style={{ borderTop: '1px solid #f5f5f7', paddingTop: '10px', flex: 1, display: 'flex', flexDirection: 'column' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                    <h3 style={{ fontSize: '0.75rem', fontWeight: 600, margin: 0, color: '#1d1d1f' }}>🏗️ Raw Materials</h3>
+                  </div>
+                  <div style={{ flex: 1, minHeight: '130px' }}>
+                    <MarketChart
+                      marketData={marketData}
+                      historyData={historyData}
+                      selectedMetal={selectedMetal}
+                      setSelectedMetal={setSelectedMetal}
+                      forcedViewType="metal"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -581,31 +596,15 @@ export default function Home() {
                 <h2 style={{ fontSize: '1.6rem', fontWeight: 700, margin: 0, color: '#1d1d1f' }}>Product Catalog</h2>
                 <p style={{ fontSize: '0.9rem', color: '#86868b', marginTop: '4px' }}>Explore our full inventory of high-quality products.</p>
               </div>
-              <div style={{ display: 'flex', gap: '10px' }}>
-                {/* Search/Filter UI could go here */}
-              </div>
             </div>
-
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '24px' }}>
               {catalogData.map(p => (
                 <div key={p.id} onClick={() => setSelectedProduct(p)} style={{ background: 'white', borderRadius: '18px', border: '1px solid #d2d2d7', overflow: 'hidden', cursor: 'pointer', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 20px 25px -5px rgb(0 0 0 / 0.1)'; }}>
                   <div style={{ width: '100%', height: '180px', background: '#f5f5f7', position: 'relative' }}>
                     <img src={p.image} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => e.target.src = 'https://picsum.photos/600/400?blur=5'} />
-                    {p.specs?.powerConsumption && (
-                      <div style={{ position: 'absolute', bottom: '12px', right: '12px', background: 'rgba(255,255,255,0.9)', padding: '4px 10px', borderRadius: '20px', fontSize: '0.7rem', fontWeight: 700, color: '#1d1d1f' }}>
-                        {p.specs.powerConsumption}W
-                      </div>
-                    )}
                   </div>
                   <div style={{ padding: '16px' }}>
                     <div style={{ fontSize: '0.9rem', fontWeight: 700, color: '#1d1d1f', marginBottom: '4px' }}>{p.name}</div>
-                    <div style={{ fontSize: '0.75rem', color: '#86868b', marginBottom: '12px', display: 'flex', gap: '4px' }}>
-                      <span>Mode: {p.specs?.modelName || '—'}</span>
-                    </div>
-                    <div style={{ fontSize: '0.7rem', fontStyle: 'italic', color: '#1d1d1f', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span>View Specs</span>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
-                    </div>
                   </div>
                 </div>
               ))}
@@ -624,171 +623,6 @@ export default function Home() {
         />
       )}
 
-      {/* CBM Tool Modal */}
-      {showToolModal === 'cbm' && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(10px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setShowToolModal(null)}>
-          <div style={{ background: 'white', width: '500px', maxHeight: '80vh', borderRadius: '20px', padding: '24px', border: '1px solid #d2d2d7', display: 'flex', flexDirection: 'column' }} onClick={e => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <h2 style={{ fontSize: '1.3rem', fontWeight: 600, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span>📐</span> CBM Calculator
-              </h2>
-              <button onClick={() => setShowToolModal(null)} style={{ background: '#f5f5f7', border: 'none', width: '30px', height: '30px', borderRadius: '50%', cursor: 'pointer', fontSize: '1.2rem' }}>×</button>
-            </div>
-            <div style={{ flex: 1, overflowY: 'auto', marginBottom: '16px' }}>
-              {products.map(p => (
-                <div key={p.id} style={{ marginBottom: '12px', paddingBottom: '12px', borderBottom: '1px solid #f0f0f0' }}>
-                  <div style={{ fontSize: '0.75rem', fontWeight: 500, marginBottom: '6px', color: '#86868b' }}>{p.name}</div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
-                    <input type="number" placeholder="Length" style={{ padding: '8px', border: '1px solid #d2d2d7', borderRadius: '8px', fontSize: '0.8rem' }} value={p.length} onChange={(e) => handleInputChange(p.id, 'length', e.target.value)} />
-                    <input type="number" placeholder="Width" style={{ padding: '8px', border: '1px solid #d2d2d7', borderRadius: '8px', fontSize: '0.8rem' }} value={p.width} onChange={(e) => handleInputChange(p.id, 'width', e.target.value)} />
-                    <input type="number" placeholder="Height" style={{ padding: '8px', border: '1px solid #d2d2d7', borderRadius: '8px', fontSize: '0.8rem' }} value={p.height} onChange={(e) => handleInputChange(p.id, 'height', e.target.value)} />
-                    <input type="number" placeholder="Qty" style={{ padding: '8px', border: '1px solid #d2d2d7', borderRadius: '8px', fontSize: '0.8rem' }} value={p.qty} onChange={(e) => handleInputChange(p.id, 'qty', e.target.value)} />
-                  </div>
-                </div>
-              ))}
-            </div>
-            <button onClick={addProduct} style={{ width: '100%', padding: '10px', background: '#f5f5f7', border: 'none', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 500, color: '#86868b', cursor: 'pointer', marginBottom: '16px' }}>+ Add Item</button>
-            <div style={{ padding: '16px', background: '#f5f5f7', borderRadius: '12px', textAlign: 'center' }}>
-              <div style={{ fontSize: '0.75rem', color: '#86868b', marginBottom: '4px' }}>Total Volume</div>
-              <div style={{ fontSize: '2rem', fontWeight: 700, color: '#1d1d1f' }}>{calculateCBM()} m³</div>
-              <div style={{ fontSize: '0.7rem', color: '#86868b', marginTop: '4px' }}>
-                20ft Container: {((calculateCBM() / 28) * 100).toFixed(1)}% | 40ft Container: {((calculateCBM() / 56) * 100).toFixed(1)}%
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Tracking Tool Modal */}
-      {showToolModal === 'tracking' && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(10px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setShowToolModal(null)}>
-          <div style={{ background: 'white', width: '700px', maxHeight: '85vh', borderRadius: '20px', border: '1px solid #d2d2d7', display: 'flex', flexDirection: 'column' }} onClick={e => e.stopPropagation()}>
-            <div style={{ padding: '20px 24px', borderBottom: '1px solid #f0f0f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h2 style={{ fontSize: '1.25rem', fontWeight: 600, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span>🔍</span> Shipment Tracking
-              </h2>
-              <button onClick={() => setShowToolModal(null)} style={{ background: '#f5f5f7', border: 'none', width: '30px', height: '30px', borderRadius: '50%', cursor: 'pointer', fontSize: '1.2rem' }}>×</button>
-            </div>
-
-            <div style={{ padding: '20px 24px', overflowY: 'auto', flex: 1 }}>
-              <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
-                <input
-                  type="text"
-                  placeholder="Enter B/L or Container Number"
-                  value={trackingNo}
-                  onChange={(e) => setTrackingNo(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleTrack()}
-                  style={{ flex: 1, padding: '10px 12px', borderRadius: '10px', border: '1px solid #d2d2d7', fontSize: '0.85rem' }}
-                />
-                <button
-                  onClick={handleTrack}
-                  disabled={isTracking}
-                  style={{ padding: '0 20px', background: '#1a1a1a', color: 'white', borderRadius: '10px', border: 'none', cursor: 'pointer', fontWeight: 500, fontSize: '0.85rem' }}
-                >
-                  {isTracking ? '...' : 'Track'}
-                </button>
-              </div>
-
-              {trackResult && (
-                <div>
-                  {trackResult.error ? (
-                    <div style={{ padding: '14px', background: '#fef2f2', borderRadius: '10px', border: '1px solid #fecaca' }}>
-                      <div style={{ fontWeight: 500, color: '#dc2626', fontSize: '0.85rem' }}>{trackResult.error}</div>
-                    </div>
-                  ) : (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                      {/* Header Status */}
-                      <div style={{ padding: '14px', background: '#f0fdf4', borderRadius: '10px', border: '1px solid #d1fae5' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                          <span style={{ fontSize: '0.7rem', color: '#065f46', fontWeight: 600 }}>
-                            {trackResult.type === 'IMPORT' ? '📥 IMPORT' : '📤 EXPORT'}
-                          </span>
-                          <span style={{ fontSize: '0.7rem', padding: '3px 10px', background: '#d1fae5', color: '#065f46', borderRadius: '6px', fontWeight: 600 }}>
-                            {trackResult.data?.prgsStts || trackResult.data?.csclPrgsStts || 'In Progress'}
-                          </span>
-                        </div>
-                        <div style={{ fontSize: '1rem', fontWeight: 700, color: '#065f46' }}>
-                          {trackResult.data?.shipNm || trackResult.data?.sanm || 'Vessel/Flight'}
-                        </div>
-                        {trackResult.data?.vydf && (
-                          <div style={{ fontSize: '0.7rem', color: '#047857', marginTop: '2px' }}>Voyage: {trackResult.data.vydf}</div>
-                        )}
-                      </div>
-
-                      {/* Cargo Info */}
-                      <div style={{ background: '#fafafa', borderRadius: '10px', padding: '12px' }}>
-                        <h3 style={{ fontSize: '0.8rem', fontWeight: 600, marginBottom: '10px', color: '#1d1d1f' }}>📦 Cargo Information</h3>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '0.7rem' }}>
-                          {trackResult.data?.mblNo && (<div><span style={{ color: '#86868b' }}>MBL:</span> <span style={{ fontWeight: 600, color: '#1d1d1f' }}>{trackResult.data.mblNo}</span></div>)}
-                          {trackResult.data?.hblNo && (<div><span style={{ color: '#86868b' }}>HBL:</span> <span style={{ fontWeight: 600, color: '#1d1d1f' }}>{trackResult.data.hblNo}</span></div>)}
-                          {trackResult.data?.blNo && (<div><span style={{ color: '#86868b' }}>B/L:</span> <span style={{ fontWeight: 600, color: '#1d1d1f' }}>{trackResult.data.blNo}</span></div>)}
-                          {trackResult.data?.cargMtNo && (<div><span style={{ color: '#86868b' }}>Cargo No:</span> <span style={{ fontWeight: 600, color: '#1d1d1f' }}>{trackResult.data.cargMtNo}</span></div>)}
-                          {trackResult.data?.prnm && (<div style={{ gridColumn: 'span 2' }}><span style={{ color: '#86868b' }}>Cargo:</span> <span style={{ fontWeight: 600, color: '#1d1d1f' }}>{trackResult.data.prnm}</span></div>)}
-                          {trackResult.data?.pckGcnt && (<div><span style={{ color: '#86868b' }}>Packages:</span> <span style={{ fontWeight: 600, color: '#1d1d1f' }}>{trackResult.data.pckGcnt} {trackResult.data.pckUt || ''}</span></div>)}
-                          {trackResult.data?.ttwg && (<div><span style={{ color: '#86868b' }}>Weight:</span> <span style={{ fontWeight: 600, color: '#1d1d1f' }}>{trackResult.data.ttwg} {trackResult.data.wghtUt || 'KG'}</span></div>)}
-                        </div>
-                      </div>
-
-                      {/* Route Info */}
-                      <div style={{ background: '#fafafa', borderRadius: '10px', padding: '12px' }}>
-                        <h3 style={{ fontSize: '0.8rem', fontWeight: 600, marginBottom: '10px', color: '#1d1d1f' }}>🚢 Route</h3>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '0.7rem' }}>
-                          {trackResult.data?.ldprNm && (<div><span style={{ color: '#86868b' }}>From:</span> <span style={{ fontWeight: 600, color: '#1d1d1f' }}>{trackResult.data.ldprNm}</span></div>)}
-                          {trackResult.data?.dsprNm && (<div><span style={{ color: '#86868b' }}>To:</span> <span style={{ fontWeight: 600, color: '#1d1d1f' }}>{trackResult.data.dsprNm}</span></div>)}
-                          {trackResult.data?.etprDt && (<div><span style={{ color: '#86868b' }}>Arrival:</span> <span style={{ fontWeight: 600, color: '#1d1d1f' }}>{trackResult.data.etprDt}</span></div>)}
-                          {trackResult.data?.tkofDt && (<div><span style={{ color: '#86868b' }}>Departure:</span> <span style={{ fontWeight: 600, color: '#1d1d1f' }}>{trackResult.data.tkofDt}</span></div>)}
-                          {trackResult.data?.etprCstm && (<div><span style={{ color: '#86868b' }}>Customs:</span> <span style={{ fontWeight: 600, color: '#1d1d1f' }}>{trackResult.data.etprCstm}</span></div>)}
-                          {trackResult.data?.shpmAirptPortNm && (<div><span style={{ color: '#86868b' }}>Port:</span> <span style={{ fontWeight: 600, color: '#1d1d1f' }}>{trackResult.data.shpmAirptPortNm}</span></div>)}
-                        </div>
-                      </div>
-
-                      {/* Customs Progress */}
-                      {trackResult.data?.csclPrgsStts && (
-                        <div style={{ background: '#fafafa', borderRadius: '10px', padding: '12px' }}>
-                          <h3 style={{ fontSize: '0.8rem', fontWeight: 600, marginBottom: '10px', color: '#1d1d1f' }}>📋 Customs Progress</h3>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px', background: '#f0fdf4', borderRadius: '8px', border: '1px solid #d1fae5' }}>
-                            <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#065f46' }}>{trackResult.data.csclPrgsStts}</div>
-                            {trackResult.data?.prcsDttm && trackResult.data.prcsDttm.length >= 12 && (
-                              <div style={{ fontSize: '0.65rem', color: '#047857', marginLeft: 'auto' }}>
-                                {trackResult.data.prcsDttm.substring(0, 8)} {trackResult.data.prcsDttm.substring(8, 10)}:{trackResult.data.prcsDttm.substring(10, 12)}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Timeline */}
-                      {trackResult.details && Array.isArray(trackResult.details) && trackResult.details.length > 0 && (
-                        <div style={{ background: '#fafafa', borderRadius: '10px', padding: '12px' }}>
-                          <h3 style={{ fontSize: '0.8rem', fontWeight: 600, marginBottom: '10px', color: '#1d1d1f' }}>📍 Timeline</h3>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                            {trackResult.details.map((detail, idx) => (
-                              <div key={idx} style={{ padding: '8px', background: 'white', borderRadius: '8px', border: '1px solid #e5e5ea' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3px' }}>
-                                  <span style={{ fontSize: '0.7rem', fontWeight: 600, color: '#1d1d1f' }}>{detail?.cargTrcnRelaBsopTpcd || 'Activity'}</span>
-                                  {detail?.prcsDttm && detail.prcsDttm.length >= 12 && (
-                                    <span style={{ fontSize: '0.65rem', color: '#86868b' }}>
-                                      {detail.prcsDttm.substring(0, 8)} {detail.prcsDttm.substring(8, 10)}:{detail.prcsDttm.substring(10, 12)}
-                                    </span>
-                                  )}
-                                </div>
-                                {detail?.rlbrCn && (<div style={{ fontSize: '0.65rem', color: '#6b7280' }}>{detail.rlbrCn}</div>)}
-                                {detail?.shedNm && (<div style={{ fontSize: '0.65rem', color: '#86868b', marginTop: '2px' }}>📍 {detail.shedNm}</div>)}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Product Detail Modal */}
       {selectedProduct && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(10px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setSelectedProduct(null)}>
           <div style={{ background: 'white', maxWidth: '600px', width: '90%', maxHeight: '90vh', overflowY: 'auto', borderRadius: '20px', border: '1px solid #d2d2d7' }} onClick={e => e.stopPropagation()}>
@@ -799,27 +633,6 @@ export default function Home() {
             <div style={{ padding: '24px' }}>
               <div style={{ width: '100%', height: '280px', background: '#f5f5f7', borderRadius: '12px', marginBottom: '24px', overflow: 'hidden' }}>
                 <img src={selectedProduct.image} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-              </div>
-              <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginBottom: '12px', color: '#1d1d1f' }}>Specifications</h3>
-              <div style={{ border: '1px solid #d2d2d7', borderRadius: '10px', overflow: 'hidden' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
-                  <tbody>
-                    {[
-                      { label: 'Part No', key: 'partNo' },
-                      { label: 'Model', key: 'modelName' },
-                      { label: 'Color Temp', key: 'colorTemp', unit: 'K' },
-                      { label: 'Power', key: 'powerConsumption', unit: 'W' },
-                      { label: 'CRI', key: 'criRa', unit: 'Ra' }
-                    ].map((row, i) => (
-                      <tr key={row.key} style={{ borderBottom: i === 4 ? 'none' : '1px solid #f5f5f7' }}>
-                        <td style={{ padding: '12px 16px', fontWeight: 500, color: '#86868b', width: '35%', background: '#fafafa' }}>{row.label}</td>
-                        <td style={{ padding: '12px 16px', color: '#1d1d1f' }}>
-                          {selectedProduct.specs?.[row.key] ? `${selectedProduct.specs[row.key]}${row.unit ? ` ${row.unit}` : ''}` : '—'}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
               </div>
             </div>
           </div>
@@ -832,47 +645,8 @@ export default function Home() {
           <div style={{ background: 'white', maxWidth: '400px', width: '90%', borderRadius: '20px', padding: '24px', border: '1px solid #d2d2d7' }} onClick={e => e.stopPropagation()}>
             <h2 style={{ fontSize: '1.4rem', fontWeight: 600, marginBottom: '20px', color: '#1d1d1f' }}>Settings</h2>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '0.9rem' }}>Dark Mode</span>
-              <button onClick={() => setDarkMode(!darkMode)} style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid #d2d2d7', background: darkMode ? '#1d1d1f' : 'white', color: darkMode ? 'white' : '#1d1d1f', cursor: 'pointer', fontWeight: 500 }}>{darkMode ? 'ON' : 'OFF'}</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Market Modal with full chart */}
-      {showMarketModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(10px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => setShowMarketModal(false)}>
-          <div style={{ background: 'white', maxWidth: '1000px', width: '95%', maxHeight: '90vh', borderRadius: '24px', padding: '32px', border: '1px solid #d2d2d7', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)' }} onClick={e => e.stopPropagation()}>
-            <div style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <h2 style={{ fontSize: '1.5rem', fontWeight: 600, margin: 0, color: '#1d1d1f' }}>Market Analysis Dashboard</h2>
-                <p style={{ fontSize: '0.9rem', color: '#86868b', margin: '4px 0 0 0' }}>Real-time currency and metal market trends</p>
-              </div>
-              <button onClick={() => setShowMarketModal(false)} style={{ background: '#f5f5f7', border: 'none', width: '40px', height: '40px', borderRadius: '50%', cursor: 'pointer', fontSize: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.2s' }} onMouseEnter={e => e.target.style.background = '#e8e8ed'} onMouseLeave={e => e.target.style.background = '#f5f5f7'}>×</button>
-            </div>
-            <div style={{ height: '500px', minHeight: '400px' }}>
-              <MarketChart
-                marketData={marketData}
-                historyData={historyData}
-                selectedMetal={selectedMetal}
-                setSelectedMetal={setSelectedMetal}
-                selectedCurrency={selectedCurrency}
-                setSelectedCurrency={setSelectedCurrency}
-              />
-            </div>
-            <div style={{ marginTop: '24px', padding: '20px', background: '#f5f5f7', borderRadius: '16px', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: '0.75rem', color: '#86868b', marginBottom: '4px' }}>Market Status</div>
-                <div style={{ fontSize: '1rem', fontWeight: 600, color: '#34c759' }}>● Active</div>
-              </div>
-              <div style={{ textAlign: 'center', borderLeft: '1px solid #d2d2d7', borderRight: '1px solid #d2d2d7' }}>
-                <div style={{ fontSize: '0.75rem', color: '#86868b', marginBottom: '4px' }}>Data Latency</div>
-                <div style={{ fontSize: '1rem', fontWeight: 600 }}>&lt; 500ms</div>
-              </div>
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: '0.75rem', color: '#86868b', marginBottom: '4px' }}>Last Updated</div>
-                <div style={{ fontSize: '1rem', fontWeight: 600 }}>{new Date().toLocaleTimeString()}</div>
-              </div>
+              <span>Dark Mode</span>
+              <button onClick={() => setDarkMode(!darkMode)}>{darkMode ? 'ON' : 'OFF'}</button>
             </div>
           </div>
         </div>

@@ -1,212 +1,230 @@
-<!doctype html>
-<html lang="ko">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>YNK INTELLIGENT ERP</title>
 
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>YNK Mini ERP (Notion 연동 풀버전)</title>
+<!-- Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-  <!-- Tailwind -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- SheetJS for Excel export -->
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<!-- Tailwind -->
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- Modern ERP CSS -->
+<link rel="stylesheet" href="css/modern-erp.css">
+<!-- SheetJS for Excel export -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
-  <style>
-    .btn {
-      padding: .5rem .75rem;
-      border-radius: .75rem;
-      transition: .2s
-    }
+<style>
+  /* Compatibility layer for legacy components */
+  .tab-btn {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
 
-    .btn:hover {
-      opacity: .9
-    }
+  .status-badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
 
-    td,
-    th {
-      white-space: nowrap;
-      text-align: center
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse
-    }
-
-    th {
-      background: #f9fafb;
-      font-weight: 600
-    }
-
-    .shadow-card {
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05)
-    }
-
-    .note {
-      font-size: .75rem;
-      color: #6b7280
-    }
-  </style>
+  .shadow-premium {
+    box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.04), 0 4px 10px -5px rgba(0, 0, 0, 0.02);
+  }
+</style>
 </head>
 
 <body class="bg-gray-50 text-gray-900">
 
-  <header class="bg-white border-b border-gray-200 sticky top-0 z-30">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <div class="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold">ERP</div>
-        <h1 class="text-lg font-semibold">YNK Mini ERP · Notion Full</h1>
+  <header>
+    <div class="max-w-[1600px] mx-auto px-6 h-20 flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <div
+          class="w-10 h-10 rounded-[14px] bg-[#0f172a] text-white flex items-center justify-center font-black shadow-lg">
+          YNK</div>
+        <div>
+          <h1 class="text-base font-bold tracking-tight text-slate-900 leading-none">INTELLIGENT ERP</h1>
+          <span class="text-[11px] font-semibold text-emerald-600 uppercase tracking-widest mt-1 block">Global Trading
+            Hub</span>
+        </div>
       </div>
-      <div id="userBadge" class="hidden items-center gap-3">
-        <span id="userName" class="text-sm text-gray-700"></span>
-        <button id="btnLogout" class="text-sm text-red-600 hover:underline">로그아웃</button>
+      <div id="userBadge" class="hidden items-center gap-6">
+        <div class="flex items-center gap-2">
+          <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+          <span id="userName" class="text-sm font-semibold text-slate-700"></span>
+        </div>
+        <button id="btnLogout"
+          class="text-xs font-bold text-slate-400 hover:text-red-500 transition-colors uppercase tracking-widest">Logout</button>
       </div>
     </div>
   </header>
 
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-    <!-- 로그인 -->
-    <section id="authPanel" class="max-w-md mx-auto bg-white rounded-2xl shadow p-6">
-      <h2 class="text-xl font-semibold">로그인</h2>
-      <p class="text-sm text-gray-600 mt-1">Notion Users DB 의 Email + Password(평문)로 인증합니다.</p>
-      <form id="loginForm" class="mt-4 grid gap-3">
-        <div>
-          <label class="text-sm">이메일</label>
-          <input id="loginEmail" type="email" required class="mt-1 w-full border rounded-xl px-3 py-2"
-            placeholder="you@company.com" />
-        </div>
-        <div>
-          <label class="text-sm">비밀번호</label>
-          <input id="loginPassword" type="password" required class="mt-1 w-full border rounded-xl px-3 py-2"
-            placeholder="••••••••" />
-        </div>
-        <button class="mt-2 btn bg-emerald-600 text-white">로그인</button>
-        <div id="loginMsg" class="text-sm text-red-600 hidden">이메일 또는 비밀번호가 올바르지 않습니다.</div>
-      </form>
+  <main class="max-w-[1600px] mx-auto px-6 py-8">
+    <!-- 로그인 (초기 안정화 버전 복구) -->
+    <section id="authPanel" class="fixed inset-0 z-[9999] flex items-center justify-center bg-gray-100">
+      <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-sm border border-gray-200">
+        <h2 class="text-2xl font-bold mb-6 text-center text-gray-800 tracking-tight">YNK ERP 로그인</h2>
+        <form id="loginForm" class="space-y-5">
+          <div>
+            <label class="block text-sm font-bold text-gray-700 mb-1">이메일</label>
+            <input id="loginEmail" type="email" required
+              class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+              placeholder="admin@ynk2014.com" />
+          </div>
+          <div>
+            <label class="block text-sm font-bold text-gray-700 mb-1">비밀번호</label>
+            <input id="loginPassword" type="password" required
+              class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+              placeholder="••••••••" />
+          </div>
+          <button type="submit"
+            class="w-full bg-blue-600 text-white font-bold py-3 rounded hover:bg-blue-700 transition shadow-md">
+            로그인
+          </button>
+          <div id="loginMsg" class="text-sm text-red-500 text-center hidden mt-2 bg-red-50 py-2 rounded">
+            인증 정보가 일치하지 않습니다.
+          </div>
+        </form>
+        <p class="text-xs text-center text-gray-400 mt-6 font-medium">YNK INTEGRATED SYSTEM</p>
+      </div>
     </section>
 
-    <!-- 앱 -->
+    <!-- 앱 메인 패널 -->
     <section id="appPanel" class="hidden">
-      <div class="flex flex-wrap gap-2 mb-4">
-        <!-- 새로 추가된 대시보드 탭 버튼 -->
-        <button data-tab="dashboard" class="tab-btn btn bg-emerald-600 text-white">대시보드</button>
-        <!-- 나머지 탭 버튼은 기본색 -->
-        <button data-tab="sales-entry" class="tab-btn btn bg-white border">매출 입력</button>
-        <button data-tab="sales-search" class="tab-btn btn bg-white border">매출 조회</button>
-        <button data-tab="products-entry" class="tab-btn btn bg-white border">상품 입력</button>
-        <button data-tab="clients" class="tab-btn btn bg-white border">거래처</button>
-        <button data-tab="quotes" class="tab-btn btn bg-white border">견적서 작성</button>
-        <button data-tab="quotes-search" class="tab-btn btn bg-white border">견적서 조회</button>
-        <button data-tab="po-entry" class="tab-btn btn bg-white border">발주 입력</button>
-        <button data-tab="po-search" class="tab-btn btn bg-white border">발주 조회</button>
-        <button data-tab="import-entry" class="tab-btn btn bg-white border">수입업무</button>
+      <div class="tab-container no-scrollbar flex gap-2 overflow-x-auto pb-2 border-b border-slate-200 mb-6">
+        <button data-tab="dashboard" class="tab-btn active whitespace-nowrap">📊 대시보드</button>
+        <button data-tab="sales-search" class="tab-btn whitespace-nowrap">📈 매출 조회</button>
+        <button data-tab="sales-entry" class="tab-btn whitespace-nowrap">💰 매출 등록</button>
+        <button data-tab="products-entry" class="tab-btn whitespace-nowrap">📦 품목 관리</button>
+        <button data-tab="clients" class="tab-btn whitespace-nowrap">🏢 거래처</button>
+        <button data-tab="quotes-search" class="tab-btn whitespace-nowrap">📋 견적 내역</button>
+        <button data-tab="quotes" class="tab-btn whitespace-nowrap">📄 견적 작성</button>
+        <button data-tab="po-search" class="tab-btn whitespace-nowrap">📑 발주 내역</button>
+        <button data-tab="po-entry" class="tab-btn whitespace-nowrap">🛒 발주 등록</button>
+        <button data-tab="import-entry" class="tab-btn whitespace-nowrap">🌏 수입 관리</button>
       </div>
 
       <!-- 대시보드 탭 -->
       <div id="tab-dashboard" class="tab">
-        <div class="bg-white p-6 rounded-2xl shadow-card space-y-6">
-          <h3 class="text-xl font-semibold"> 대시보드</h3>
+        <div class="space-y-8">
 
-          <!-- KPI 카드 -->
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <!--  이번달 발주 -->
-            <div class="bg-blue-50 border border-blue-200 p-5 rounded-2xl">
-              <div class="text-sm text-blue-700 font-semibold mb-1">이번달 발주</div>
-              <div id="dashPo" class="text-2xl font-bold text-blue-800">0</div>
-              <div class="text-xs text-gray-500 mt-1">이번달 발주 금액</div>
-              <div id="dashPoDetail" class="text-xs text-gray-600 mt-1"></div>
+          <!-- KPI 카드 그리드 -->
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+
+            <!-- 이번달 매출 -->
+            <div
+              class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm hover:border-blue-400 hover:shadow-md transition-all duration-300">
+              <div class="flex justify-between items-start mb-3">
+                <div
+                  class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-lg">
+                  💰</div>
+                <span class="text-[11px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-md">매출</span>
+              </div>
+              <div class="text-xs font-medium text-slate-500 mb-1">이번 달 매출액</div>
+              <div id="dashSales" class="text-2xl font-extrabold text-slate-900 tracking-tight">0</div>
+              <div id="dashSalesDetail" class="text-[11px] text-slate-400 mt-1">집계 중...</div>
             </div>
 
-            <!--  올해 누적 발주(YTD) -->
-            <div class="bg-blue-50 border border-blue-200 p-5 rounded-2xl">
-              <div class="text-sm text-blue-700 font-semibold mb-1">올해 누적 발주 (YTD)</div>
-              <div id="dashPoYtd" class="text-xl font-bold text-blue-800">0</div>
-              <div class="text-xs text-gray-500 mt-1">올해 총 발주 금액</div>
-              <div id="dashPoYtdDetail" class="text-xs text-gray-600 mt-1"></div>
+            <!-- 이번달 발주 -->
+            <div
+              class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm hover:border-purple-400 hover:shadow-md transition-all duration-300">
+              <div class="flex justify-between items-start mb-3">
+                <div
+                  class="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold text-lg">
+                  📦</div>
+                <span class="text-[11px] font-bold text-purple-600 bg-purple-50 px-2 py-1 rounded-md">발주</span>
+              </div>
+              <div class="text-xs font-medium text-slate-500 mb-1">이번 달 발주액</div>
+              <div id="dashPo" class="text-2xl font-extrabold text-slate-900 tracking-tight">0</div>
+              <div id="dashPoDetail" class="text-[11px] text-slate-400 mt-1">집계 중...</div>
             </div>
 
-            <!--  이번달 매출 -->
-            <div class="bg-green-50 border border-green-200 p-5 rounded-2xl">
-              <div class="text-sm text-green-700 font-semibold mb-1">이번달 매출</div>
-              <div id="dashSales" class="text-2xl font-bold text-green-800">0</div>
-              <div class="text-xs text-gray-500 mt-1">이번달 매출 금액</div>
-              <div id="dashSalesDetail" class="text-xs text-gray-600 mt-1"></div>
+            <!-- 거래처 수 -->
+            <div
+              class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm hover:border-emerald-400 hover:shadow-md transition-all duration-300">
+              <div class="flex justify-between items-start mb-3">
+                <div
+                  class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-lg">
+                  🏢</div>
+                <span class="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md">네트워크</span>
+              </div>
+              <div class="text-xs font-medium text-slate-500 mb-1">총 거래처 수</div>
+              <div id="dashClients" class="text-2xl font-extrabold text-slate-900 tracking-tight">0</div>
+              <div class="text-[11px] text-slate-400 mt-1">등록된 파트너사</div>
             </div>
 
-            <!--  올해 누적 매출(YTD) -->
-            <div class="bg-green-50 border border-green-200 p-5 rounded-2xl">
-              <div class="text-sm text-green-700 font-semibold mb-1">올해 누적 매출 (YTD)</div>
-              <div id="dashSalesYtd" class="text-xl font-bold text-green-800">0</div>
-              <div class="text-xs text-gray-500 mt-1">올해 총 매출 금액</div>
-              <div id="dashSalesYtdDetail" class="text-xs text-gray-600 mt-1"></div>
-            </div>
-
-            <div class="bg-purple-50 border border-purple-200 p-5 rounded-2xl">
-              <div class="text-sm text-purple-700 font-semibold mb-1">등록된 거래처</div>
-              <div id="dashClients" class="text-2xl font-bold text-purple-800">0</div>
-              <div class="text-xs text-gray-500 mt-1">전체 거래처 수</div>
-            </div>
-            <!-- CBM 계산기 -->
+            <!-- CBM 계산기 (Quick Link) -->
             <a href="cbm.html" target="_blank"
-              class="bg-indigo-50 border border-indigo-200 p-5 rounded-2xl block hover:opacity-90 transition">
-              <div class="text-sm text-indigo-700 font-semibold mb-1">CBM 계산기</div>
-              <div class="text-xl font-bold text-indigo-800">CBM Calculator</div>
-              <div class="text-xs text-gray-500 mt-1">박스/팔레트 CBM 자동 계산</div>
+              class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm hover:border-orange-400 hover:shadow-md transition-all duration-300 group cursor-pointer">
+              <div class="flex justify-between items-start mb-3">
+                <div
+                  class="w-10 h-10 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center font-bold text-lg">
+                  📐</div>
+                <span class="text-[11px] font-bold text-orange-600 bg-orange-50 px-2 py-1 rounded-md">도구</span>
+              </div>
+              <div class="text-xs font-medium text-slate-500 mb-1">물류 도구</div>
+              <div class="text-lg font-bold text-slate-900 group-hover:text-orange-600 transition-colors">CBM 계산기</div>
+              <div class="text-[11px] text-orange-500 mt-1 font-semibold flex items-center">열기 <span
+                  class="ml-1">→</span></div>
             </a>
-
-            <!-- FOB → DDP 계산기 -->
-            <a href="fobddp.html" target="_blank"
-              class="bg-rose-50 border border-rose-200 p-5 rounded-2xl block hover:opacity-90 transition">
-              <div class="text-sm text-rose-700 font-semibold mb-1">FOB → DDP 계산기</div>
-              <div class="text-xl font-bold text-rose-800">FOB → DDP Converter</div>
-              <div class="text-xs text-gray-500 mt-1">수입원가/관세/부대비 자동 계산</div>
-            </a>
-
           </div>
 
-          <!-- 향후 지표 영역 -->
-          <div class="bg-white border p-4 rounded-xl">
-            <h4 class="font-semibold mb-3">환율 (최근)</h4>
-
-            <div class="flex items-center gap-3 mb-4">
-              <select id="fxCurrency" class="border p-1 rounded text-sm">
-                <option value="USDKRW">USD/KRW</option>
-                <option value="JPYKRW">JPY/KRW</option>
-                <option value="EURKRW">EUR/KRW</option>
-                <option value="CNYKRW">CNY/KRW</option>
-              </select>
-
-              <select id="fxPeriod" class="border p-1 rounded text-sm">
-                <option value="3">3개월</option>
-                <option value="6">6개월</option>
-                <option value="12" selected>12개월</option>
-                <option value="24">24개월</option>
-              </select>
+          <!-- 차트 영역 -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- 환율 차트 -->
+            <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+              <div class="flex items-center justify-between mb-6">
+                <h4 class="font-bold text-slate-800 flex items-center gap-2">
+                  <span class="w-1.5 h-5 bg-emerald-500 rounded-full"></span>
+                  환율 변동 추이
+                </h4>
+                <div class="flex gap-2">
+                  <select id="fxCurrency"
+                    class="text-xs font-semibold bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 focus:border-emerald-500 focus:ring-emerald-500 outline-none">
+                    <option value="USDKRW">USD/KRW</option>
+                    <option value="JPYKRW">JPY/KRW</option>
+                    <option value="EURKRW">EUR/KRW</option>
+                    <option value="CNYKRW">CNY/KRW</option>
+                  </select>
+                  <select id="fxPeriod"
+                    class="text-xs font-semibold bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 focus:border-emerald-500 focus:ring-emerald-500 outline-none">
+                    <option value="3">3개월</option>
+                    <option value="6">6개월</option>
+                    <option value="12" selected>12개월</option>
+                  </select>
+                </div>
+              </div>
+              <div class="h-[300px]">
+                <canvas id="chartFx" style="width:100%; height:100%"></canvas>
+              </div>
             </div>
 
-            <canvas id="chartFx" height="100"></canvas>
-          </div>
-          <div>
-            <div class="bg-white border p-4 rounded-xl">
-              <h4 class="font-semibold mb-3"> LME (최근)</h4>
-
-              <select id="lmeMetal">
-                <option value="copper">Copper</option>
-                <option value="aluminum">Aluminum</option>
-                <option value="nickel">Nickel</option>
-                <option value="zinc">Zinc</option>
-              </select>
-
-              <select id="lmePeriod">
-                <option value="1">1개월</option>
-                <option value="3" selected>3개월</option>
-                <option value="6">6개월</option>
-                <option value="12">12개월</option>
-              </select>
-
-              <canvas id="chartLME" height="100"></canvas>
+            <!-- LME 차트 -->
+            <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+              <div class="flex items-center justify-between mb-6">
+                <h4 class="font-bold text-slate-800 flex items-center gap-2">
+                  <span class="w-1.5 h-5 bg-blue-500 rounded-full"></span>
+                  LME 원자재 시세
+                </h4>
+                <div class="flex gap-2">
+                  <select id="lmeMetal"
+                    class="text-xs font-semibold bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 focus:border-blue-500 focus:ring-blue-500 outline-none">
+                    <option value="copper">구리 (Copper)</option>
+                    <option value="aluminum">알루미늄 (Aluminum)</option>
+                    <option value="nickel">니켈 (Nickel)</option>
+                    <option value="zinc">아연 (Zinc)</option>
+                  </select>
+                  <select id="lmePeriod"
+                    class="text-xs font-semibold bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5 focus:border-blue-500 focus:ring-blue-500 outline-none">
+                    <option value="1">1개월</option>
+                    <option value="3" selected>3개월</option>
+                    <option value="6">6개월</option>
+                  </select>
+                </div>
+              </div>
+              <div class="h-[300px]">
+                <canvas id="chartLME" style="width:100%; height:100%"></canvas>
+              </div>
             </div>
-
           </div>
         </div>
       </div>
@@ -215,85 +233,103 @@
 
       <!-- 매출 입력 -->
       <div id="tab-sales-entry" class="tab hidden">
-        <div class="bg-white p-6 rounded-2xl shadow-card space-y-5">
-          <h3 class="font-semibold text-lg">매출 입력</h3>
-          <div class="text-sm text-gray-600">
-            매출번호: <span id="saleCodeEl" class="font-semibold text-emerald-700">자동생성됨</span>
-          </div>
-          <div class="grid md:grid-cols-4 gap-4">
+        <div class="premium-card shadow-premium space-y-8">
+          <div class="flex justify-between items-end">
             <div>
-              <label class="text-sm">거래처명</label>
-              <div class="mt-1 flex gap-2">
-                <input id="saleCustomer" class="w-full border rounded-xl px-3 py-2 bg-gray-50" placeholder="거래처 선택"
-                  readonly />
-                <button type="button" id="btnPickClient" class="btn bg-gray-200">선택</button>
-              </div>
-              <p class="note mt-1">※ 거래처 DB와 연동됩니다. 목록에 없으면 먼저 거래처 탭에서 등록하세요.</p>
+              <h3 class="font-bold text-xl text-slate-900">New Sales Transaction</h3>
+              <p class="text-sm text-slate-500 mt-1">Register a new sales record in the Notion database</p>
             </div>
-            <div>
-              <label class="text-sm">매출유형</label>
-              <select id="saleType" class="mt-1 w-full border rounded-xl px-3 py-2">
-                <option value="내자" selected>내자</option>
-                <option value="외자">외자</option>
-              </select>
-            </div>
-            <div>
-              <label class="text-sm">통화</label>
-              <select id="saleCurrency" class="mt-1 w-full border rounded-xl px-3 py-2">
-                <option value="KRW">KRW</option>
-                <option value="USD">USD</option>
-                <option value="RMB">RMB</option>
-              </select>
-            </div>
-            <div>
-              <label class="text-sm">환율</label>
-              <input type="number" id="saleRate" class="mt-1 w-full border rounded-xl px-3 py-2" value="1" />
-              <p class="text-xs text-gray-500 mt-1" id="rateHint">내자는 환율 1로 고정됩니다.</p>
-            </div>
-            <div>
-              <label class="text-sm">날짜</label>
-              <input type="date" id="saleDate" class="mt-1 w-full border rounded-xl px-3 py-2" />
-            </div>
-            <!-- 발주 번호 선택 -->
-            <div>
-              <label class="text-sm">발주번호 (PoNo)</label>
-              <div class="mt-1 flex gap-2">
-                <input id="salePoNo" class="w-full border rounded-xl px-3 py-2 bg-gray-50" placeholder="발주 선택"
-                  readonly />
-                <button type="button" id="btnPickPoNo" class="btn bg-gray-200">선택</button>
-              </div>
-              <p class="note mt-1">※ 발주 입력(Purchase Order)에서 생성된 PoNo 중 선택하세요.</p>
+            <div class="text-right">
+              <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Transaction
+                ID</span>
+              <span id="saleCodeEl"
+                class="text-lg font-black text-emerald-600 font-mono tracking-tighter">AUTOMATIC</span>
             </div>
           </div>
-          <div class="bg-gray-50 rounded-xl p-4">
-            <div class="flex items-center justify-between mb-2">
-              <h4 class="font-semibold text-sm">상품 항목</h4>
-              <button id="addItem" type="button" class="text-sm text-emerald-600 underline">+ 행 추가</button>
+
+          <div class="grid md:grid-cols-4 gap-6 p-6 bg-slate-50 rounded-2xl border border-slate-100">
+            <div class="space-y-1.5">
+              <label class="text-[12px] font-bold text-slate-700 ml-1">Client Partner</label>
+              <div class="flex gap-2">
+                <input id="saleCustomer" class="w-full bg-white font-semibold text-slate-700"
+                  placeholder="Choose Client" readonly />
+                <button type="button" id="btnPickClient"
+                  class="px-3 py-2 bg-slate-200 rounded-xl hover:bg-slate-300 transition-colors">📂</button>
+              </div>
             </div>
-            <div class="overflow-auto">
-              <table class="text-sm" id="itemsTable">
+            <div class="space-y-1.5">
+              <label class="text-[12px] font-bold text-slate-700 ml-1">Sales Classification</label>
+              <select id="saleType" class="w-full bg-white font-semibold">
+                <option value="내자" selected>Internal (KR)</option>
+                <option value="외자">Export/Global</option>
+              </select>
+            </div>
+            <div class="space-y-1.5 flex gap-4">
+              <div class="w-1/2 space-y-1.5">
+                <label class="text-[12px] font-bold text-slate-700 ml-1">Currency</label>
+                <select id="saleCurrency" class="w-full bg-white font-semibold">
+                  <option value="KRW">KRW</option>
+                  <option value="USD">USD</option>
+                  <option value="RMB">RMB</option>
+                </select>
+              </div>
+              <div class="w-1/2 space-y-1.5">
+                <label class="text-[12px] font-bold text-slate-700 ml-1">Ex. Rate</label>
+                <input type="number" id="saleRate" class="w-full bg-white font-semibold" value="1" />
+              </div>
+            </div>
+            <div class="space-y-1.5">
+              <label class="text-[12px] font-bold text-slate-700 ml-1">Transaction Date</label>
+              <input type="date" id="saleDate" class="w-full bg-white font-semibold" />
+            </div>
+
+            <div class="md:col-span-1 space-y-1.5 ">
+              <label class="text-[12px] font-bold text-slate-700 ml-1">Reference PO</label>
+              <div class="flex gap-2">
+                <input id="salePoNo" class="w-full bg-white font-semibold" placeholder="Reference PO" readonly />
+                <button type="button" id="btnPickPoNo"
+                  class="px-3 py-2 bg-slate-200 rounded-xl hover:bg-slate-300 transition-colors">📦</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="border border-slate-200 rounded-2xl overflow-hidden shadow-sm bg-white">
+            <div class="flex items-center justify-between p-4 bg-slate-50 border-bottom border-slate-200">
+              <h4 class="font-bold text-sm text-slate-700">Line Items</h4>
+              <button id="addItem" type="button"
+                class="text-xs font-bold bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition shadow-md">+
+                Add New Row</button>
+            </div>
+            <div class="overflow-auto max-h-[400px]">
+              <table class="w-full text-sm border-none" id="itemsTable">
                 <thead>
-                  <tr class="border-b bg-white">
-                    <th class="py-2 px-2">제품코드</th>
-                    <th class="py-2 px-2">상품명</th>
-                    <th class="py-2 px-2">규격</th>
-                    <th class="py-2 px-2">수량</th>
-                    <th class="py-2 px-2">단가</th>
-                    <th class="py-2 px-2">금액</th>
-                    <th></th>
+                  <tr class="border-b bg-slate-100/50">
+                    <th class="w-40">Product Code</th>
+                    <th>Product Name</th>
+                    <th>Specs</th>
+                    <th class="w-24">Qty</th>
+                    <th class="w-32">Unit Price</th>
+                    <th class="w-32">Total Amount</th>
+                    <th class="w-16"></th>
                   </tr>
                 </thead>
-                <tbody></tbody>
+                <tbody class="divide-y divide-slate-100"></tbody>
               </table>
             </div>
-            <div class="text-right mt-3 text-gray-700 font-medium">
-              총액: <span id="saleTotal" class="font-semibold text-emerald-700">₩0</span>
+            <div class="bg-slate-900 p-6 flex justify-between items-center text-white">
+              <div class="text-slate-400 text-sm font-medium">Grand Total Value</div>
+              <div id="saleTotal" class="text-3xl font-black tracking-tighter">₩0</div>
             </div>
           </div>
-          <div class="flex justify-end items-center gap-3">
-            <button id="btnSaveSale" class="btn bg-emerald-600 text-white px-5">등록</button>
-            <button id="btnPrintStatement" class="btn bg-blue-600 text-white px-5 hidden">거래명세표 출력</button>
-            <span id="saleMsg" class="text-sm text-green-600 hidden">등록됨</span>
+
+          <div class="flex justify-end items-center gap-4 pt-4">
+            <button id="btnPrintStatement"
+              class="px-6 py-3 bg-slate-100 text-slate-900 font-bold rounded-xl hover:bg-slate-200 transition hidden">🖨️
+              Transaction Statement</button>
+            <button id="btnSaveSale" class="btn-primary px-10">Register Final Transaction</button>
+            <span id="saleMsg"
+              class="absolute right-6 bottom-6 bg-emerald-500 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-lg transform translate-y-2 opacity-0 transition-all">Success
+              Saved!</span>
           </div>
         </div>
       </div>
@@ -366,96 +402,167 @@
 
       <!-- 상품 입력 + 조회 -->
       <div id="tab-products-entry" class="tab hidden">
-        <div class="bg-white p-6 rounded-2xl shadow-card space-y-5">
+        <div class="premium-card shadow-premium space-y-8">
           <div class="flex items-center justify-between">
-            <h3 class="font-semibold text-lg">상품 입력</h3>
-            <button id="btnViewProducts" type="button"
-              class="btn bg-blue-50 border border-blue-200 text-blue-700 text-sm">상품 조회</button>
-          </div>
-          <form id="productForm" class="space-y-4">
-            <div class="grid md:grid-cols-4 gap-4">
-              <div><label class="text-sm font-medium">제품 구분</label><input id="prodCategory"
-                  class="mt-1 w-full border rounded-xl px-3 py-2" /></div>
-              <div><label class="text-sm font-medium">제품명</label><input id="prodName"
-                  class="mt-1 w-full border rounded-xl px-3 py-2" /></div>
-              <div><label class="text-sm font-medium">제조사</label><input id="prodMaker"
-                  class="mt-1 w-full border rounded-xl px-3 py-2" /></div>
-              <div><label class="text-sm font-medium">판매사</label><input id="prodClient"
-                  class="mt-1 w-full border rounded-xl px-3 py-2" /></div>
-            </div>
-            <div class="grid md-grid-cols-4 gap-4">
-              <div><label class="text-sm font-medium">제품 원가</label><input type="number" id="prodCost"
-                  class="mt-1 w-full border rounded-xl px-3 py-2 text-right" /></div>
-              <div><label class="text-sm font-medium">입력전류</label><input id="prodInputA"
-                  class="mt-1 w-full border rounded-xl px-3 py-2" /></div>
-              <div><label class="text-sm font-medium">출력전압</label><input id="prodOutputV"
-                  class="mt-1 w-full border rounded-xl px-3 py-2" /></div>
-              <div><label class="text-sm font-medium">출력전류</label><input id="prodOutputA"
-                  class="mt-1 w-full border rounded-xl px-3 py-2" /></div>
-            </div>
-            <div class="grid md-grid-cols-3 gap-4">
-              <div><label class="text-sm font-medium">재질</label><input id="prodMaterial"
-                  class="mt-1 w-full border rounded-xl px-3 py-2" /></div>
-              <div><label class="text-sm font-medium">크기</label><input id="prodSize"
-                  class="mt-1 w-full border rounded-xl px-3 py-2" /></div>
-              <div><label class="text-sm font-medium">컨버터 포함</label><input id="prodConverter"
-                  class="mt-1 w-full border rounded-xl px-3 py-2" /></div>
-            </div>
-            <div><label class="text-sm font-medium">제품 세부 스펙</label><textarea id="prodDetail" rows="5"
-                class="mt-1 w-full border rounded-xl px-3 py-2 text-sm"></textarea></div>
             <div>
-              <label class="text-sm font-medium">첨부파일</label>
-              <div class="grid md-grid-cols-3 gap-3 mt-2">
-                <div><span class="text-xs text-gray-600">제품 사양서</span><input type="file" id="fileSpec"
-                    class="block w-full mt-1 text-sm" /></div>
-                <div><span class="text-xs text-gray-600">KS/KC 인증서</span><input type="file" id="fileKSKC"
-                    class="block w-full mt-1 text-sm" /></div>
-                <div><span class="text-xs text-gray-600">전자파 인증서</span><input type="file" id="fileEMI"
-                    class="block w-full mt-1 text-sm" /></div>
-                <div><span class="text-xs text-gray-600">효율등급서</span><input type="file" id="fileEfficiency"
-                    class="block w-full mt-1 text-sm" /></div>
-                <div class="md-col-span-2"><span class="text-xs text-gray-600">기타 파일 (zip)</span><input type="file"
-                    id="fileEtc" class="block w-full mt-1 text-sm" accept=".zip,.rar" /></div>
+              <h3 class="font-bold text-xl text-slate-900">Inventory Catalog</h3>
+              <p class="text-sm text-slate-500 mt-1">Manage technical specifications and product master records</p>
+            </div>
+            <button id="btnViewProducts" type="button"
+              class="px-5 py-2.5 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition-all flex items-center gap-2">
+              📂 <span>Catalog Archive</span>
+            </button>
+          </div>
+
+          <form id="productForm" class="space-y-6">
+            <div class="bg-slate-50 p-6 rounded-2xl border border-slate-100 grid md:grid-cols-4 gap-6">
+              <div class="space-y-1.5">
+                <label
+                  class="text-[12px] font-bold text-slate-400 uppercase tracking-widest ml-1">Classification</label>
+                <input id="prodCategory" class="w-full bg-white font-bold" placeholder="e.g. LED Driver" />
+              </div>
+              <div class="md:col-span-2 space-y-1.5">
+                <label class="text-[12px] font-bold text-slate-400 uppercase tracking-widest ml-1">Product Designation
+                  (Name)</label>
+                <input id="prodName" class="w-full bg-white font-black text-slate-900"
+                  placeholder="Official Model Name" />
+              </div>
+              <div class="space-y-1.5">
+                <label class="text-[12px] font-bold text-slate-400 uppercase tracking-widest ml-1">Cost Base</label>
+                <input type="number" id="prodCost" class="w-full bg-white font-bold text-emerald-600 text-right"
+                  placeholder="0.00" />
               </div>
             </div>
-            <div class="flex justify-end mt-4 gap-3">
-              <button id="btnSaveProduct" type="button" class="btn bg-emerald-600 text-white px-5">등록</button>
-              <span id="prodMsg" class="text-sm text-green-600 hidden">등록 완료!</span>
+
+            <div class="grid md:grid-cols-2 gap-6">
+              <!-- Technical Parameters -->
+              <div class="bg-slate-50 p-6 rounded-2xl border border-slate-100 space-y-4">
+                <h4
+                  class="text-[11px] font-black text-slate-900 uppercase tracking-widest flex items-center gap-2 mb-4">
+                  <span class="w-1 h-3 bg-blue-500 rounded-full"></span> Tech Specs
+                </h4>
+                <div class="grid grid-cols-2 gap-4">
+                  <div class="space-y-1.5">
+                    <label class="text-[10px] font-bold text-slate-500">Input Amperage</label>
+                    <input id="prodInputA" class="w-full bg-white text-xs" placeholder="e.g. 0.5A" />
+                  </div>
+                  <div class="space-y-1.5">
+                    <label class="text-[10px] font-bold text-slate-500">Output Voltage</label>
+                    <input id="prodOutputV" class="w-full bg-white text-xs font-bold" placeholder="e.g. 12V DC" />
+                  </div>
+                  <div class="space-y-1.5">
+                    <label class="text-[10px] font-bold text-slate-500">Output Current</label>
+                    <input id="prodOutputA" class="w-full bg-white text-xs font-bold" placeholder="e.g. 5.0A" />
+                  </div>
+                  <div class="space-y-1.5">
+                    <label class="text-[10px] font-bold text-slate-500">Material / Alloy</label>
+                    <input id="prodMaterial" class="w-full bg-white text-xs" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Manufacturing -->
+              <div class="bg-slate-50 p-6 rounded-2xl border border-slate-100 space-y-4">
+                <h4
+                  class="text-[11px] font-black text-slate-900 uppercase tracking-widest flex items-center gap-2 mb-4">
+                  <span class="w-1 h-3 bg-purple-500 rounded-full"></span> Supply Chain
+                </h4>
+                <div class="grid grid-cols-2 gap-4">
+                  <div class="space-y-1.5">
+                    <label class="text-[10px] font-bold text-slate-500">Origin Manufacturer</label>
+                    <input id="prodMaker" class="w-full bg-white text-xs" />
+                  </div>
+                  <div class="space-y-1.5">
+                    <label class="text-[10px] font-bold text-slate-500">Primary Vendor</label>
+                    <input id="prodClient" class="w-full bg-white text-xs" />
+                  </div>
+                  <div class="space-y-1.5">
+                    <label class="text-[10px] font-bold text-slate-500">Physical Dimensions</label>
+                    <input id="prodSize" class="w-full bg-white text-xs" placeholder="W x H x D" />
+                  </div>
+                  <div class="space-y-1.5">
+                    <label class="text-[10px] font-bold text-slate-500">Converter Inclusion</label>
+                    <input id="prodConverter" class="w-full bg-white text-xs" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-slate-50 p-6 rounded-2xl border border-slate-100 space-y-4">
+              <label class="text-[11px] font-black text-slate-900 uppercase tracking-widest">Detail Description &
+                Remarks</label>
+              <textarea id="prodDetail" rows="3" class="w-full bg-white text-sm"
+                placeholder="Detailed engineering notes..."></textarea>
+            </div>
+
+            <div class="bg-[#0f172a] p-8 rounded-2xl text-white space-y-6">
+              <h4 class="text-[11px] font-black text-slate-400 uppercase tracking-widest">Technical Documents
+                (Certification)</h4>
+              <div class="grid md:grid-cols-5 gap-6">
+                <div class="space-y-2">
+                  <label class="text-[10px] font-bold text-slate-400">Spec Sheet</label>
+                  <input type="file" id="fileSpec"
+                    class="text-[10px] block w-full text-slate-300 file:bg-slate-700 file:border-none file:text-white file:rounded-lg file:px-2 file:py-1" />
+                </div>
+                <div class="space-y-2">
+                  <label class="text-[10px] font-bold text-slate-400">KS/KC Cert</label>
+                  <input type="file" id="fileKSKC"
+                    class="text-[10px] block w-full text-slate-300 file:bg-slate-700 file:border-none file:text-white file:rounded-lg file:px-2 file:py-1" />
+                </div>
+                <div class="space-y-2">
+                  <label class="text-[10px] font-bold text-slate-400">EMI Cert</label>
+                  <input type="file" id="fileEMI"
+                    class="text-[10px] block w-full text-slate-300 file:bg-slate-700 file:border-none file:text-white file:rounded-lg file:px-2 file:py-1" />
+                </div>
+                <div class="space-y-2">
+                  <label class="text-[10px] font-bold text-slate-400">Efficiency</label>
+                  <input type="file" id="fileEfficiency"
+                    class="text-[10px] block w-full text-slate-300 file:bg-slate-700 file:border-none file:text-white file:rounded-lg file:px-2 file:py-1" />
+                </div>
+                <div class="space-y-2">
+                  <label class="text-[10px] font-bold text-slate-400">Archive (ZIP)</label>
+                  <input type="file" id="fileEtc"
+                    class="text-[10px] block w-full text-slate-300 file:bg-slate-700 file:border-none file:text-white file:rounded-lg file:px-2 file:py-1"
+                    accept=".zip,.rar" />
+                </div>
+              </div>
+            </div>
+
+            <div class="flex justify-end gap-4 pt-4">
+              <span id="prodMsg" class="text-emerald-500 font-bold text-sm hidden self-center">✓ Data transmission
+                successful</span>
+              <button id="btnSaveProduct" type="button" class="btn-primary px-16">Commit to Master DB</button>
             </div>
           </form>
 
           <!-- 상품 조회 리스트 -->
-          <div id="productListPanel" class="mt-6 hidden">
-            <div class="flex items-center justify-between mb-2">
-              <h4 class="font-semibold text-sm">상품 등록 현황</h4>
-              <input id="productListSearch" class="border rounded-xl px-2 py-1 text-xs" placeholder="코드/제품명 검색" />
+          <div id="productListPanel" class="mt-12 hidden space-y-6">
+            <div class="flex items-center justify-between">
+              <h4
+                class="font-black text-slate-900 uppercase tracking-tighter text-lg underline decoration-blue-500 decoration-4 underline-offset-4">
+                Inventory Records</h4>
+              <div class="relative">
+                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
+                <input id="productListSearch"
+                  class="pl-9 pr-4 py-2 border rounded-xl text-sm focus:w-80 transition-all font-semibold"
+                  placeholder="Filter by Name, Maker, or Code..." />
+              </div>
             </div>
-            <div class="overflow-auto max-h-80 border rounded-xl">
-              <table class="min-w-full text-xs">
+
+            <div class="overflow-auto border border-slate-200 rounded-2xl shadow-sm max-h-[500px]">
+              <table class="w-full text-xs">
                 <thead>
-                  <tr class="bg-gray-50 border-b">
-                    <th class="py-1 px-2">코드</th>
-                    <th class="py-1 px-2">제품 구분</th>
-                    <th class="py-1 px-2">제품명</th>
-                    <th class="py-1 px-2">제조사</th>
-                    <th class="py-1 px-2">판매사</th>
-                    <th class="py-1 px-2">제품 원가</th>
-                    <th class="py-1 px-2">입력전류(Input A)</th>
-                    <th class="py-1 px-2">출력전압(Output V)</th>
-                    <th class="py-1 px-2">출력전류(Output A)</th>
-                    <th class="py-1 px-2">재질</th>
-                    <th class="py-1 px-2">크기</th>
-                    <th class="py-1 px-2">컨버터 포함</th>
-                    <th class="py-1 px-2">세부 스펙</th>
-                    <th class="py-1 px-2">파일 (사양서)</th>
-                    <th class="py-1 px-2">파일 (KS/KC)</th>
-                    <th class="py-1 px-2">파일 (EMI)</th>
-                    <th class="py-1 px-2">파일 (효율)</th>
-                    <th class="py-1 px-2">기타 파일</th>
+                  <tr class="bg-slate-50 border-b sticky top-0 z-10">
+                    <th class="p-4 text-left">Internal Code</th>
+                    <th class="p-4 text-left">Designation</th>
+                    <th class="p-4">Manufacturer</th>
+                    <th class="p-4">Primary Source</th>
+                    <th class="p-4">Base Cost</th>
+                    <th class="p-4">Tech Config</th>
+                    <th class="p-4">Material</th>
                   </tr>
                 </thead>
-
-                <tbody id="productListBody"></tbody>
+                <tbody id="productListBody" class="divide-y divide-slate-100 bg-white"></tbody>
               </table>
             </div>
           </div>
@@ -464,145 +571,173 @@
 
       <!-- 거래처 등록 + 조회 -->
       <div id="tab-clients" class="tab hidden">
-        <div class="bg-white p-6 rounded-2xl shadow-card space-y-5">
+        <div class="premium-card shadow-premium space-y-8">
           <div class="flex items-center justify-between">
-            <h3 class="font-semibold text-lg">거래처 등록</h3>
-            <button id="btnViewClients" type="button"
-              class="btn bg-blue-50 border border-blue-200 text-blue-700 text-sm">거래처 조회</button>
-          </div>
-          <form id="clientForm" class="space-y-4">
-            <div class="grid md-grid-cols-4 gap-4">
-              <div class="md-col-span-2">
-                <label class="text-sm font-medium">거래처명 *</label>
-                <input id="cName" class="mt-1 w-full border rounded-xl px-3 py-2" required />
-              </div>
-              <div>
-                <label class="text-sm font-medium">거래처 구분</label>
-                <select id="cType" class="mt-1 w-full border rounded-xl px-3 py-2">
-                  <option value="고객">고객</option>
-                  <option value="공급처">공급처</option>
-                  <option value="겸용" selected>겸용</option>
-                </select>
-              </div>
-              <div>
-                <label class="text-sm font-medium">대표자</label>
-                <input id="cCEO" class="mt-1 w-full border rounded-xl px-3 py-2" />
-              </div>
+            <div>
+              <h3 class="font-bold text-xl text-slate-900">Partner Management</h3>
+              <p class="text-sm text-slate-500 mt-1">Register and maintain your global business partners</p>
             </div>
-            <div class="grid md-grid-cols-4 gap-4">
-              <div>
-                <label class="text-sm font-medium">사업자등록번호</label>
-                <input id="cBizNo" class="mt-1 w-full border rounded-xl px-3 py-2" placeholder="10자리" />
-              </div>
-              <div>
-                <label class="text-sm font-medium">업태</label>
-                <input id="cIndustry" class="mt-1 w-full border rounded-xl px-3 py-2" />
-              </div>
-              <div class="md-col-span-2">
-                <label class="text-sm font-medium">주소</label>
-                <input id="cAddress" class="mt-1 w-full border rounded-xl px-3 py-2" />
-              </div>
-              <div class="md-col-span-2">
-                <label class="text-sm font-medium">주소 2</label>
-                <input id="cAddress2" class="mt-1 w-full border rounded-xl px-3 py-2" />
+            <button id="btnViewClients" type="button"
+              class="px-5 py-2.5 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition-all flex items-center gap-2">
+              📂 <span>Partner Archive</span>
+            </button>
+          </div>
+
+          <form id="clientForm" class="space-y-10">
+            <div class="space-y-6">
+              <!-- Group 1: Basic Identity -->
+              <div class="bg-slate-50 p-6 rounded-2xl border border-slate-100 grid md:grid-cols-4 gap-6">
+                <div class="md:col-span-2 space-y-1.5">
+                  <label class="text-[12px] font-bold text-slate-400 uppercase tracking-widest ml-1">Company Name
+                    *</label>
+                  <input id="cName" class="w-full bg-white font-bold text-slate-900" placeholder="Legal Entity Name"
+                    required />
+                </div>
+                <div class="space-y-1.5">
+                  <label class="text-[12px] font-bold text-slate-400 uppercase tracking-widest ml-1">Partner
+                    Type</label>
+                  <select id="cType" class="w-full bg-white font-semibold">
+                    <option value="고객">Customer</option>
+                    <option value="공급처">Supplier</option>
+                    <option value="겸용" selected>Dual Role</option>
+                  </select>
+                </div>
+                <div class="space-y-1.5">
+                  <label class="text-[12px] font-bold text-slate-400 uppercase tracking-widest ml-1">Representative
+                    (CEO)</label>
+                  <input id="cCEO" class="w-full bg-white font-semibold" placeholder="Full Name" />
+                </div>
               </div>
 
-            </div>
-            <div class="grid md-grid-cols-4 gap-4">
-              <div><label class="text-sm font-medium">전화</label><input id="cTel"
-                  class="mt-1 w-full border rounded-xl px-3 py-2" /></div>
-              <div><label class="text-sm font-medium">팩스</label><input id="cFax"
-                  class="mt-1 w-full border rounded-xl px-3 py-2" /></div>
-              <div><label class="text-sm font-medium">이메일</label><input type="email" id="cEmail"
-                  class="mt-1 w-full border rounded-xl px-3 py-2" /></div>
-              <div>
-                <label class="text-sm font-medium">통화</label>
-                <select id="cCurrency" class="mt-1 w-full border rounded-xl px-3 py-2">
-                  <option value="KRW" selected>KRW</option>
-                  <option value="USD">USD</option>
-                  <option value="JPY">JPY</option>
-                  <option value="RMB">RMB</option>
-                </select>
+              <!-- Group 2: Business Details -->
+              <div class="bg-slate-50 p-6 rounded-2xl border border-slate-100 grid md:grid-cols-4 gap-6">
+                <div class="space-y-1.5">
+                  <label class="text-[12px] font-bold text-slate-400 uppercase tracking-widest ml-1">Business
+                    Registration #</label>
+                  <input id="cBizNo" class="w-full bg-white font-mono" placeholder="000-00-00000" />
+                </div>
+                <div class="space-y-1.5">
+                  <label class="text-[12px] font-bold text-slate-400 uppercase tracking-widest ml-1">Industry
+                    Type</label>
+                  <input id="cIndustry" class="w-full bg-white" placeholder="Trading / Mfg" />
+                </div>
+                <div class="md:col-span-2 space-y-1.5">
+                  <label class="text-[12px] font-bold text-slate-400 uppercase tracking-widest ml-1">Registered
+                    Address</label>
+                  <input id="cAddress" class="w-full bg-white text-sm" placeholder="Street Address" />
+                </div>
+                <div class="md:col-span-2 space-y-1.5">
+                  <label class="text-[12px] font-bold text-slate-400 uppercase tracking-widest ml-1">Sub Address /
+                    Building</label>
+                  <input id="cAddress2" class="w-full bg-white text-sm" placeholder="Apt, Suite, Room" />
+                </div>
+                <div class="space-y-1.5">
+                  <label class="text-[12px] font-bold text-slate-400 uppercase tracking-widest ml-1">Primary
+                    Email</label>
+                  <input type="email" id="cEmail" class="w-full bg-white" placeholder="billing@partner.com" />
+                </div>
+                <div class="space-y-1.5 flex gap-4">
+                  <div class="w-1/2 space-y-1.5">
+                    <label class="text-[12px] font-bold text-slate-400 uppercase tracking-widest ml-1">Phone</label>
+                    <input id="cTel" class="w-full bg-white text-xs" />
+                  </div>
+                  <div class="w-1/2 space-y-1.5">
+                    <label class="text-[12px] font-bold text-slate-400 uppercase tracking-widest ml-1">Fax</label>
+                    <input id="cFax" class="w-full bg-white text-xs" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Group 3: Financials & Files -->
+              <div class="bg-slate-50 p-6 rounded-2xl border border-slate-100 grid md:grid-cols-4 gap-6">
+                <div class="space-y-1.5">
+                  <label class="text-[12px] font-bold text-slate-400 uppercase tracking-widest ml-1">Settlement
+                    Currency</label>
+                  <select id="cCurrency" class="w-full bg-white font-bold">
+                    <option value="KRW" selected>KRW</option>
+                    <option value="USD">USD</option>
+                    <option value="JPY">JPY</option>
+                    <option value="RMB">RMB</option>
+                  </select>
+                </div>
+                <div class="space-y-1.5">
+                  <label class="text-[12px] font-bold text-slate-400 uppercase tracking-widest ml-1">Bank Name</label>
+                  <input id="cBank" class="w-full bg-white" placeholder="Standard Chartered" />
+                </div>
+                <div class="space-y-1.5">
+                  <label class="text-[12px] font-bold text-slate-400 uppercase tracking-widest ml-1">Account
+                    Number</label>
+                  <input id="cAccountNo" class="w-full bg-white font-mono" />
+                </div>
+                <div class="space-y-1.5">
+                  <label class="text-[12px] font-bold text-slate-400 uppercase tracking-widest ml-1">Account
+                    Holder</label>
+                  <input id="cAccountHolder" class="w-full bg-white" />
+                </div>
+
+                <div class="space-y-2">
+                  <label class="text-[11px] font-black text-slate-400 uppercase">Biz Certificate (PDF/IMG)</label>
+                  <input type="file" id="cBizFile"
+                    class="text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300" />
+                </div>
+                <div class="space-y-2">
+                  <label class="text-[11px] font-black text-slate-400 uppercase">Bank Copy</label>
+                  <input type="file" id="cBankFile"
+                    class="text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300" />
+                </div>
+
+                <div class="space-y-1.5">
+                  <label class="text-[12px] font-bold text-slate-400 uppercase tracking-widest ml-1">VAT Status</label>
+                  <select id="cTaxType" class="w-full bg-white font-semibold">
+                    <option value="과세" selected>Taxable</option>
+                    <option value="면세">Exempt</option>
+                  </select>
+                </div>
+                <div class="space-y-1.5">
+                  <label class="text-[12px] font-bold text-slate-400 uppercase tracking-widest ml-1">Reg. Date</label>
+                  <input type="date" id="cRegDate" class="w-full bg-white" />
+                </div>
               </div>
             </div>
-            <div class="grid md-grid-cols-4 gap-4">
-              <div><label class="text-sm font-medium">은행명</label><input id="cBank"
-                  class="mt-1 w-full border rounded-xl px-3 py-2" /></div>
-              <div><label class="text-sm font-medium">계좌번호</label><input id="cAccountNo"
-                  class="mt-1 w-full border rounded-xl px-3 py-2" /></div>
-              <div><label class="text-sm font-medium">예금주</label><input id="cAccountHolder"
-                  class="mt-1 w-full border rounded-xl px-3 py-2" /></div>
-              <div>
-                <label class="text-sm font-medium">부가세</label>
-                <select id="cTaxType" class="mt-1 w-full border rounded-xl px-3 py-2">
-                  <option value="과세" selected>과세</option>
-                  <option value="면세">면세</option>
-                </select>
+
+            <div class="flex justify-end pt-4 border-t border-slate-100">
+              <div class="flex items-center gap-4">
+                <span id="clientMsg" class="text-emerald-600 font-bold text-sm hidden">✓ Profile updated
+                  successfully</span>
+                <button id="btnSaveClient" type="button" class="btn-primary px-16">Save Partner Profile</button>
               </div>
-            </div>
-            <div class="grid md-grid-cols-4 gap-4">
-              <div>
-                <label class="text-sm font-medium">상태</label>
-                <select id="cStatus" class="mt-1 w-full border rounded-xl px-3 py-2">
-                  <option value="정상" selected>정상</option>
-                  <option value="거래중단">거래중단</option>
-                </select>
-              </div>
-              <div>
-                <label class="text-sm font-medium">등록일자</label>
-                <input type="date" id="cRegDate" class="mt-1 w-full border rounded-xl px-3 py-2" />
-              </div>
-            </div>
-            <div>
-              <label class="text-sm font-medium">첨부파일</label>
-              <div class="grid md-grid-cols-3 gap-3 mt-2">
-                <div><span class="text-xs text-gray-600">사업자등록증</span><input type="file" id="cBizFile"
-                    class="block w-full mt-1 text-sm" /></div>
-                <div><span class="text-xs text-gray-600">통장사본</span><input type="file" id="cBankFile"
-                    class="block w-full mt-1 text-sm" /></div>
-                <div class="md-col-span-1"></div>
-              </div>
-            </div>
-            <div class="flex justify-end mt-4 gap-3">
-              <button id="btnSaveClient" type="button" class="btn bg-emerald-600 text-white px-5">등록</button>
-              <span id="clientMsg" class="text-sm text-green-600 hidden">등록 완료!</span>
             </div>
           </form>
 
           <!-- 거래처 조회 리스트 -->
-          <div id="clientListPanel" class="mt-6 hidden">
-            <div class="flex items-center justify-between mb-2">
-              <h4 class="font-semibold text-sm">거래처 등록 현황</h4>
-              <input id="clientListSearch" class="border rounded-xl px-2 py-1 text-xs" placeholder="업체명 검색" />
+          <div id="clientListPanel" class="mt-12 hidden space-y-6">
+            <div class="flex items-center justify-between">
+              <h4
+                class="font-black text-slate-900 uppercase tracking-tighter text-lg underline decoration-emerald-500 decoration-4 underline-offset-4">
+                Active Directory</h4>
+              <div class="relative">
+                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
+                <input id="clientListSearch"
+                  class="pl-9 pr-4 py-2 border rounded-xl text-sm focus:w-80 transition-all font-semibold"
+                  placeholder="Search by name, CEO or ID..." />
+              </div>
             </div>
-            <div class="overflow-auto max-h-80 border rounded-xl">
-              <table class="min-w-full text-xs">
+
+            <div class="overflow-auto border border-slate-200 rounded-2xl shadow-sm">
+              <table class="w-full text-xs">
                 <thead>
-                  <tr class="bg-gray-50 border-b">
-                    <th class="py-1 px-2">거래처명</th>
-                    <th class="py-1 px-2">구분</th>
-                    <th class="py-1 px-2">대표자</th>
-                    <th class="py-1 px-2">사업자등록번호</th>
-                    <th class="py-1 px-2">업태</th>
-                    <th class="py-1 px-2">주소</th>
-                    <th class="py-1 px-2">주소2</th>
-                    <th class="py-1 px-2">전화</th>
-                    <th class="py-1 px-2">팩스</th>
-                    <th class="py-1 px-2">이메일</th>
-                    <th class="py-1 px-2">통화</th>
-                    <th class="py-1 px-2">은행명</th>
-                    <th class="py-1 px-2">계좌번호</th>
-                    <th class="py-1 px-2">예금주</th>
-                    <th class="py-1 px-2">부가세</th>
-                    <th class="py-1 px-2">상태</th>
-                    <th class="py-1 px-2">등록일</th>
-                    <th class="py-1 px-2">사업자등록증</th>
-                    <th class="py-1 px-2">통장사본</th>
-                    <th class="py-1 px-2">수정</th>
+                  <tr class="bg-slate-50 border-b">
+                    <th class="p-4 text-left">Entity Name</th>
+                    <th class="p-4">Type</th>
+                    <th class="p-4">Represent.</th>
+                    <th class="p-4">Biz ID</th>
+                    <th class="p-4 text-left">Contact Point</th>
+                    <th class="p-4">Finance</th>
+                    <th class="p-4">Status</th>
+                    <th class="p-4 w-10"></th>
                   </tr>
                 </thead>
-
-                <tbody id="clientListBody"></tbody>
+                <tbody id="clientListBody" class="divide-y divide-slate-100 bg-white"></tbody>
               </table>
             </div>
           </div>
@@ -611,74 +746,98 @@
 
       <!-- 견적서 작성 -->
       <div id="tab-quotes" class="tab hidden">
-        <div class="bg-white p-6 rounded-2xl shadow-card space-y-5">
-          <h3 class="font-semibold text-lg">견적서 작성</h3>
-          <div class="text-sm text-gray-600">
-            견적번호: <span id="quoteNo" class="font-semibold text-emerald-700">자동생성됨</span>
-          </div>
-          <div class="grid md-grid-cols-4 gap-4">
+        <div class="premium-card shadow-premium space-y-8">
+          <div class="flex justify-between items-end">
             <div>
-              <label class="text-sm">거래처명</label>
-              <div class="mt-1 flex gap-2">
-                <input id="quoteClient" class="w-full border rounded-xl px-3 py-2 bg-gray-50" placeholder="거래처 선택"
+              <h3 class="font-bold text-xl text-slate-900">Commercial Quotation</h3>
+              <p class="text-sm text-slate-500 mt-1">Generate formal business estimates for verified partners</p>
+            </div>
+            <div class="text-right">
+              <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Quote ID</span>
+              <span id="quoteNo"
+                class="text-lg font-black text-emerald-600 font-mono tracking-tighter italic">DRAFTING...</span>
+            </div>
+          </div>
+
+          <div class="grid md:grid-cols-4 gap-6 p-6 bg-slate-50 rounded-2xl border border-slate-100">
+            <div class="md:col-span-2 space-y-1.5">
+              <label class="text-[12px] font-bold text-slate-700 ml-1 uppercase tracking-wider">Recipient Entity</label>
+              <div class="flex gap-2">
+                <input id="quoteClient" class="w-full bg-white font-bold" placeholder="Select Target Partner"
                   readonly />
-                <button type="button" id="btnPickClientQuote" class="btn bg-gray-200">선택</button>
+                <button type="button" id="btnPickClientQuote"
+                  class="px-3 py-2 bg-slate-200 rounded-xl hover:bg-slate-300 transition-colors">🏢</button>
               </div>
             </div>
-            <div>
-              <label class="text-sm">날짜</label>
-              <input type="date" id="quoteDate" class="mt-1 w-full border rounded-xl px-3 py-2" />
+            <div class="space-y-1.5">
+              <label class="text-[12px] font-bold text-slate-700 ml-1 uppercase tracking-wider">Validity Date</label>
+              <input type="date" id="quoteDate" class="w-full bg-white font-semibold" />
             </div>
-            <div class="md-col-span-2">
-              <label class="text-sm">조건(Terms)</label>
-              <input id="quoteTerms" class="mt-1 w-full border rounded-xl px-3 py-2" placeholder="납기, 결제, FOB 등" />
+            <div class="space-y-1.5">
+              <label class="text-[12px] font-bold text-slate-700 ml-1 uppercase tracking-wider">Primary
+                Condition</label>
+              <input id="quoteTerms" class="w-full bg-white font-semibold" placeholder="FOB, Net 30, etc." />
             </div>
           </div>
-          <div class="bg-gray-50 rounded-xl p-4">
-            <div class="flex items-center justify-between mb-2">
-              <h4 class="font-semibold text-sm">견적 항목</h4>
-              <button id="btnAddQuoteItem" type="button" class="text-sm text-emerald-600 underline">+ 행 추가</button>
+
+          <div class="border border-slate-200 rounded-2xl overflow-hidden shadow-sm bg-white">
+            <div class="flex items-center justify-between p-4 bg-slate-50 border-bottom border-slate-200">
+              <h4 class="font-bold text-sm text-slate-700 uppercase tracking-tighter">Line-Item Valuation</h4>
+              <button id="btnAddQuoteItem" type="button"
+                class="text-xs font-bold bg-[#0f172a] text-white px-4 py-2 rounded-lg hover:opacity-90 transition shadow-md">+
+                Add Valuation Row</button>
             </div>
-            <div class="overflow-auto">
-              <table class="min-w-full text-sm">
+            <div class="overflow-auto max-h-[500px]">
+              <table class="w-full text-[11px] border-none" id="quoteItems">
                 <thead>
-                  <tr class="border-b bg-white">
-                    <th class="py-2 px-2">제품선택</th>
-                    <th class="py-2 px-2">제품명</th>
-                    <th class="py-2 px-2">설명</th>
-                    <th class="py-2 px-2">전압</th>
-                    <th class="py-2 px-2">전력</th>
-                    <th class="py-2 px-2">효율</th>
-                    <th class="py-2 px-2">루멘</th>
-                    <th class="py-2 px-2">CCT</th>
-                    <th class="py-2 px-2">통화</th>
-                    <th class="py-2 px-2">단가</th>
-                    <th class="py-2 px-2">수량</th>
-                    <th class="py-2 px-2">금액</th>
-                    <th class="py-2 px-2">비고(제품코드)</th>
-                    <th class="py-2 px-2">금액</th>
+                  <tr class="border-b bg-slate-100/50">
+                    <th class="w-12">Search</th>
+                    <th class="w-48 text-left">Product / Model</th>
+                    <th class="text-left">Tech Spec / Description</th>
+                    <th class="w-16">Volt</th>
+                    <th class="w-16">Watt</th>
+                    <th class="w-16">Eff.</th>
+                    <th class="w-16">Lumen</th>
+                    <th class="w-16">CCT</th>
+                    <th class="w-20">Unit</th>
+                    <th class="w-24">Price</th>
+                    <th class="w-16">Qty</th>
+                    <th class="w-28">Amount</th>
+                    <th class="w-10"></th>
                   </tr>
                 </thead>
-                <tbody id="quoteItems"></tbody>
+                <tbody class="divide-y divide-slate-100"></tbody>
               </table>
             </div>
-            <div id="quoteSummary" class="text-right mt-3 text-gray-700 font-medium">총 수량: 0 / 총 금액: 0</div>
-          </div>
-          <div class="grid md-grid-cols-2 gap-4">
-            <div>
-              <label class="text-sm font-medium">일반사항 (General)</label>
-              <textarea id="quoteGeneral" rows="4" class="mt-1 w-full border rounded-xl px-3 py-2 text-sm"
-                placeholder="납기, 포장, 운송 등"></textarea>
-            </div>
-            <div>
-              <label class="text-sm font-medium">특기사항 (Special)</label>
-              <textarea id="quoteSpecial" rows="4" class="mt-1 w-full border rounded-xl px-3 py-2 text-sm"
-                placeholder="특별 조건, 유의사항 등"></textarea>
+            <div class="bg-emerald-600 p-4 flex justify-between items-center text-white">
+              <div class="text-emerald-100 text-xs font-bold uppercase tracking-widest">Aggregate Quote Value</div>
+              <div id="quoteSummary" class="text-xl font-black tracking-tight">Total: ₩0</div>
             </div>
           </div>
-          <div class="flex justify-end items-center gap-3">
-            <button id="btnSaveQuote" class="btn bg-emerald-600 text-white px-5">등록</button>
-            <button id="btnPrintQuote" class="btn bg-blue-600 text-white px-5 hidden">견적서 출력</button>
+
+          <div class="grid md:grid-cols-2 gap-8">
+            <div class="space-y-2">
+              <label class="text-[12px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                <span class="w-1 h-3 bg-slate-300 rounded-full"></span> General Stipulations
+              </label>
+              <textarea id="quoteGeneral" rows="4" class="w-full bg-slate-50 border-slate-200 text-sm font-medium"
+                placeholder="Shipping, Lead-time & Logistics..."></textarea>
+            </div>
+            <div class="space-y-2">
+              <label class="text-[12px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                <span class="w-1 h-3 bg-emerald-500 rounded-full"></span> Exclusive Provisions
+              </label>
+              <textarea id="quoteSpecial" rows="4" class="w-full bg-slate-50 border-slate-200 text-sm font-medium"
+                placeholder="Warranty, Support & Special Waivers..."></textarea>
+            </div>
+          </div>
+
+          <div class="flex justify-end items-center gap-4 pt-6 border-t border-slate-100">
+            <button id="btnPrintQuote"
+              class="px-8 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition shadow-lg hidden flex items-center gap-2">
+              <span>🖨️ Generate PDF Official</span>
+            </button>
+            <button id="btnSaveQuote" class="btn-primary px-12">Finalize & Lock Quote</button>
           </div>
         </div>
       </div>
@@ -1398,23 +1557,28 @@
 
       document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', () => {
-          document.querySelectorAll('.tab-btn').forEach(x => x.classList.remove('bg-emerald-600', 'text-white'));
-          btn.classList.add('bg-emerald-600', 'text-white');
+          document.querySelectorAll('.tab-btn').forEach(x => x.classList.remove('active'));
+          btn.classList.add('active');
           document.querySelectorAll('.tab').forEach(t => t.classList.add('hidden'));
-          document.getElementById('tab-' + btn.dataset.tab).classList.remove('hidden');
+          const targetTab = document.getElementById('tab-' + btn.dataset.tab);
+          if (targetTab) targetTab.classList.remove('hidden');
         });
       });
 
       return {
         showApp(mail) {
-          authPanel.classList.add('hidden');
+          authPanel.style.display = 'none'; // Ensure it doesn't flex center
           appPanel.classList.remove('hidden');
           userBadge.classList.remove('hidden');
           userName.textContent = mail;
+          document.body.style.background = 'var(--bg-main)';
         },
         showLogin() {
           appPanel.classList.add('hidden');
           authPanel.classList.remove('hidden');
+          authPanel.style.display = 'flex'; // Enable centered flex layout
+          userBadge.classList.add('hidden');
+          document.body.style.background = 'radial-gradient(circle at top right, #ecfdf5, #f8fafc)';
         }
       };
     }
@@ -1442,19 +1606,20 @@
 
     function addItemRow(code = "", name = "", spec = "", qty = 1, price = 0) {
       const tr = document.createElement('tr');
+      tr.className = "hover:bg-slate-50 transition-colors";
       tr.innerHTML = `
-    <td>
+    <td class="p-3">
       <div class="flex gap-1 items-center">
-        <input class="border rounded-xl px-2 py-1 w-28 item-code bg-gray-50 text-xs" readonly value="${code}">
-        <button type="button" class="btn bg-emerald-600 text-white px-2 py-1 text-xs btnProdSel">선택</button>
+        <input class="w-full bg-slate-50 font-mono item-code text-xs" readonly value="${code}">
+        <button type="button" class="btnProdSel text-emerald-600 font-bold p-1 hover:bg-emerald-50 rounded">🔍</button>
       </div>
     </td>
-    <td><input class="border rounded-xl px-2 py-1 w-full item-name bg-gray-50 text-xs" readonly value="${name}"></td>
-    <td><input class="border rounded-xl px-2 py-1 w-full item-spec text-xs" value="${spec}"></td>
-    <td><input type="number" class="border rounded-xl px-2 py-1 w-20 text-right item-qty" value="${qty}"></td>
-    <td><input type="number" class="border rounded-xl px-2 py-1 w-24 text-right item-price" value="${price}"></td>
-    <td class="item-total text-right pr-2 text-gray-700">0</td>
-    <td><button type="button" class="text-red-500 text-sm btnDel">✕</button></td>`;
+    <td class="p-3"><input class="w-full bg-slate-50 item-name text-xs" readonly value="${name}"></td>
+    <td class="p-3"><input class="w-full item-spec text-xs" value="${spec}"></td>
+    <td class="p-3"><input type="number" class="w-full text-right item-qty font-bold" value="${qty}"></td>
+    <td class="p-3"><input type="number" class="w-full text-right item-price font-bold" value="${price}"></td>
+    <td class="p-3 item-total text-right font-black text-slate-700">0</td>
+    <td class="p-3 text-center"><button type="button" class="text-slate-300 hover:text-red-500 transition-colors btnDel">✕</button></td>`;
       tr.querySelector('.btnDel').onclick = () => { tr.remove(); calcTotal(); };
       tr.querySelectorAll('input').forEach(i => i.addEventListener('input', calcTotal));
       tr.querySelector('.btnProdSel').onclick = () => openProductPicker(tr);
@@ -1844,14 +2009,29 @@
     function renderClientListView() {
       const kw = (document.getElementById('clientListSearch').value || '').toLowerCase();
       clientListBody.innerHTML = clients.filter(c => !kw || c.name.toLowerCase().includes(kw)).map(c => `
-    <tr class="border-b">
-      <td class="py-1 px-2 text-left">${c.name}</td>
-      <td class="py-1 px-2">${c.ceo || ''}</td>
-      <td class="py-1 px-2">${c.bizNo || ''}</td>
-      <td class="py-1 px-2">${c.tel || ''}</td>
-      <td class="py-1 px-2 text-left">${c.email || ''}</td>
+    <tr class="group hover:bg-slate-50 transition-colors">
+      <td class="p-4 text-left">
+        <div class="font-bold text-slate-900">${c.name}</div>
+        <div class="text-[10px] text-slate-400 font-medium uppercase mt-0.5">${c.address ? c.address.substring(0, 20) + '...' : 'Location Unknown'}</div>
+      </td>
+      <td class="p-4 text-center">
+        <span class="status-badge bg-emerald-50 text-emerald-600">Active</span>
+      </td>
+      <td class="p-4 text-center font-semibold text-slate-600">${c.ceo || '—'}</td>
+      <td class="p-4 text-center font-mono text-slate-500">${c.bizNo || '—'}</td>
+      <td class="p-4 text-left">
+        <div class="font-semibold text-slate-700 text-xs">${c.email || 'No email'}</div>
+        <div class="text-[11px] text-slate-400 mt-0.5">${c.tel || 'No contact'}</div>
+      </td>
+      <td class="p-4 text-center text-slate-400">—</td>
+      <td class="p-4 text-center">
+        <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 mx-auto"></div>
+      </td>
+      <td class="p-4 text-center">
+        <button class="text-slate-300 hover:text-emerald-600 transition-colors">✎</button>
+      </td>
     </tr>`).join('') || `
-    <tr><td colspan="5" class="text-center text-gray-400 py-3">등록된 거래처가 없습니다.</td></tr>`;
+    <tr><td colspan="8" class="text-center text-slate-400 py-12 px-4 italic font-medium">No partners found matching your search criteria.</td></tr>`;
     }
 
     /* PRODUCT SAVE */
@@ -1924,15 +2104,23 @@
       productListBody.innerHTML = src.filter(p => {
         return !kw || p.code.toLowerCase().includes(kw) || p.name.toLowerCase().includes(kw);
       }).map(p => `
-    <tr class="border-b">
-      <td class="py-1 px-2">${p.code}</td>
-      <td class="py-1 px-2 text-left">${p.name}</td>
-      <td class="py-1 px-2">${p.maker || ''}</td>
-      <td class="py-1 px-2">${p.supplier || ''}</td>
-      <td class="py-1 px-2">${p.voltage || ''}</td>
-      <td class="py-1 px-2">${p.watts || ''}</td>
+    <tr class="group hover:bg-slate-50 transition-colors">
+      <td class="p-4 text-left font-mono font-bold text-blue-600">${p.code}</td>
+      <td class="p-4 text-left">
+        <div class="font-bold text-slate-900">${p.name}</div>
+        <div class="text-[10px] text-slate-400 font-medium uppercase mt-0.5">${p.material || 'Generic Material'}</div>
+      </td>
+      <td class="p-4 text-center font-semibold text-slate-600">${p.maker || '—'}</td>
+      <td class="p-4 text-center text-slate-500">${p.supplier || '—'}</td>
+      <td class="p-4 text-center font-black text-emerald-600">₩${(p.cost || 0).toLocaleString()}</td>
+      <td class="p-4 text-center">
+        <div class="inline-flex items-center gap-1 bg-slate-100 px-2 py-1 rounded text-[10px] font-bold text-slate-600">
+            <span>${p.voltage || '—'}</span> / <span>${p.watts || '—'}</span>
+        </div>
+      </td>
+       <td class="p-4 text-center text-slate-400">${p.material || '—'}</td>
     </tr>`).join('') || `
-    <tr><td colspan="6" class="text-center text-gray-400 py-3">등록된 상품이 없습니다.</td></tr>`;
+    <tr><td colspan="7" class="text-center text-slate-400 py-12 italic font-medium">No items matched your catalog search.</td></tr>`;
     }
 
     /* SALES SEARCH */
@@ -2069,27 +2257,29 @@
 
     function addQuoteRow(prefill = {}) {
       const tr = document.createElement('tr');
+      tr.className = "hover:bg-slate-50 transition-colors group";
       tr.innerHTML = `
-    <td><button type="button" class="btnPickProduct text-emerald-600 underline text-sm">선택</button></td>
-    <td><input class="item-name border rounded-xl px-2 py-1 w-full" value="${prefill.name || ''}"></td>
-    <td><input class="item-desc border rounded-xl px-2 py-1 w-full" value="${prefill.desc || ''}"></td>
-    <td><input class="item-vol border rounded-xl px-2 py-1 w-20 text-center" value="${prefill.voltage || ''}"></td>
-    <td><input class="item-watt border rounded-xl px-2 py-1 w-20 text-center" value="${prefill.watts || ''}"></td>
-    <td><input class="item-eff border rounded-xl px-2 py-1 w-20 text-center" value="${prefill.eff || ''}"></td>
-    <td><input class="item-lumen border rounded-xl px-2 py-1 w-20 text-center" value="${prefill.lumen || ''}"></td>
-    <td><input class="item-cct border rounded-xl px-2 py-1 w-20 text-center" value="${prefill.cct || ''}"></td>
-    <td>
-      <select class="item-unit border rounded-xl px-2 py-1">
+    <td class="p-2 text-center"><button type="button" class="btnPickProduct text-emerald-600 font-bold p-1 hover:bg-emerald-50 rounded transition-colors">🔍</button></td>
+    <td class="p-2"><input class="item-name w-full bg-slate-50 font-bold text-slate-800" value="${prefill.name || ''}"></td>
+    <td class="p-2"><input class="item-desc w-full bg-transparent text-slate-500" value="${prefill.desc || ''}" placeholder="..."></td>
+    <td class="p-2"><input class="item-vol w-full text-center bg-transparent" value="${prefill.voltage || ''}"></td>
+    <td class="p-2"><input class="item-watt w-full text-center bg-transparent" value="${prefill.watts || ''}"></td>
+    <td class="p-2"><input class="item-eff w-full text-center bg-transparent" value="${prefill.eff || ''}"></td>
+    <td class="p-2"><input class="item-lumen w-full text-center bg-transparent" value="${prefill.lumen || ''}"></td>
+    <td class="p-2"><input class="item-cct w-full text-center bg-transparent" value="${prefill.cct || ''}"></td>
+    <td class="p-2">
+      <select class="item-unit w-full bg-transparent font-bold text-slate-500">
         <option value="KRW">KRW</option>
         <option value="USD">USD</option>
         <option value="RMB">RMB</option>
       </select>
     </td>
-    <td><input type="number" class="item-price border rounded-xl px-2 py-1 w-24 text-right" value="${prefill.price || ''}"></td>
-    <td><input type="number" class="item-qty border rounded-xl px-2 py-1 w-20 text-right" value="${prefill.qty || ''}"></td>
-    <td class="item-amount text-right px-2">0</td>
-    <td class="item-remark text-gray-600 text-sm px-2">${prefill.code || ''}</td>
-    <td><button type="button" class="btnDel text-red-500 text-sm">✕</button></td>`;
+    <td class="p-2"><input type="number" class="item-price w-full text-right bg-slate-50 font-bold text-slate-900" value="${prefill.price || ''}"></td>
+    <td class="p-2"><input type="number" class="item-qty w-full text-right bg-slate-50 font-bold text-emerald-600" value="${prefill.qty || ''}"></td>
+    <td class="p-2 item-amount text-right font-black text-slate-900 pr-4">0</td>
+    <td class="p-2 text-center"><button type="button" class="btnDel text-slate-300 hover:text-red-500 transition-colors">✕</button>
+        <span class="item-remark hidden">${prefill.code || ''}</span>
+    </td>`;
       quoteTable.appendChild(tr);
       calcQuoteTotal();
     }

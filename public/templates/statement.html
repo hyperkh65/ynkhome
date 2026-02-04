@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="utf-8" />
+    <title>거래명세표 (공급자용)</title>
+    <style>
+        body {
+            font-family: 'Pretendard', 'Malgun Gothic', sans-serif;
+            margin: 40px;
+            background: #fff;
+            color: #222;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 22px;
+            color: #333;
+            font-weight: 700;
+            margin: 25px 0 20px 0;
+            letter-spacing: 1px;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            font-size: 13px;
+        }
+
+        th,
+        td {
+            border: 1.8px solid #bfc4c9;
+            padding: 6px 8px;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        th {
+            background: #f2f4f6;
+            font-weight: 600;
+        }
+
+        .section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .info-table td {
+            text-align: left;
+            padding-left: 10px;
+        }
+
+        .logo {
+            height: 50px;
+            display: block;
+            margin: 0 auto;
+            object-fit: contain;
+        }
+
+        .logo-cell {
+            height: 60px;
+            text-align: center;
+            background: #fafafa;
+        }
+
+        .top-info {
+            width: 100%;
+            margin-bottom: 15px;
+        }
+
+        .top-info th,
+        .top-info td {
+            border: 1.8px solid #bfc4c9;
+            padding: 6px 8px;
+            background: #f8f8f8;
+        }
+
+        .summary-table {
+            width: 100%;
+            margin-top: 15px;
+            border: 1.8px solid #bfc4c9;
+        }
+
+        .summary-table td,
+        .summary-table th {
+            border: 1.8px solid #bfc4c9;
+            padding: 6px 8px;
+        }
+
+        .summary-table th {
+            background: #f2f4f6;
+        }
+
+        .print-btn {
+            display: inline-block;
+            background: #4b5563;
+            color: #fff;
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            text-decoration: none;
+            margin-bottom: 20px;
+        }
+
+        @media print {
+            .print-btn {
+                display: none;
+            }
+
+            body {
+                margin: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <a href="javascript:window.print()" class="print-btn">인쇄하기</a>
+
+    <!-- 상단: 거래일자 / 명세표번호 -->
+    <table class="top-info">
+        <tr>
+            <th style="width:20%;">거래일자</th>
+            <td style="width:30%;"><span id="field-date"></span></td>
+            <th style="width:25%;">거래명세표번호</th>
+            <td style="width:25%;"><span id="field-no"></span></td>
+        </tr>
+        <tr>
+            <th>페이지</th>
+            <td colspan="3">1 / 1</td>
+        </tr>
+    </table>
+
+    <h1>거래명세표 (공급자용)</h1>
+
+    <div class="section">
+        <!-- 공급받는자 -->
+        <table class="info-table">
+            <tr>
+                <th colspan="4">공급받는자</th>
+            </tr>
+            <tr>
+                <td colspan="4" class="logo-cell"></td>
+            </tr>
+            <tr>
+                <th>상호</th>
+                <td colspan="3"><span id="cust-name"></span></td>
+            </tr>
+            <tr>
+                <th>사업자등록번호</th>
+                <td colspan="3"><span id="cust-bizno"></span></td>
+            </tr>
+            <tr>
+                <th>주소</th>
+                <td colspan="3"><span id="cust-addr"></span></td>
+            </tr>
+            <tr>
+                <th>대표자</th>
+                <td><span id="cust-ceo"></span></td>
+                <th>전화</th>
+                <td><span id="cust-tel"></span></td>
+            </tr>
+            <tr>
+                <th>팩스</th>
+                <td colspan="3"><span id="cust-fax"></span></td>
+            </tr>
+        </table>
+
+        <!-- 공급자 -->
+        <table class="info-table">
+            <tr>
+                <th colspan="4">공급자</th>
+            </tr>
+            <tr>
+                <td colspan="4" class="logo-cell">
+                    <!-- 필요시 경로 조정 -->
+                    <img src="/erp/templates/logo.png" class="logo" alt="YNK 로고">
+                </td>
+            </tr>
+            <tr>
+                <th>상호</th>
+                <td colspan="3">주식회사 와이앤케이</td>
+            </tr>
+            <tr>
+                <th>사업자등록번호</th>
+                <td colspan="3">131-86-67779</td>
+            </tr>
+            <tr>
+                <th>주소</th>
+                <td colspan="3">인천시 미추홀구 석정로271</td>
+            </tr>
+            <tr>
+                <th>대표자</th>
+                <td>유성택</td>
+                <th>전화</th>
+                <td>032-862-1350</td>
+            </tr>
+            <tr>
+                <th>팩스</th>
+                <td colspan="3">032-861-1351</td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- 거래내역 테이블 -->
+    <table>
+        <thead>
+            <tr>
+                <th>일자</th>
+                <th>품목</th>
+                <th>규격</th>
+                <th>수량</th>
+                <th>단가</th>
+                <th>공급가액</th>
+                <th>세액</th>
+            </tr>
+        </thead>
+        <tbody id="items-body">
+            <!-- JS로 행 삽입 -->
+        </tbody>
+    </table>
+
+    <!-- 합계 테이블 -->
+    <table class="summary-table">
+        <tr>
+            <th>공급가액</th>
+            <td id="sum-supply"></td>
+            <th>세액(10%)</th>
+            <td id="sum-tax"></td>
+            <th>총합계</th>
+            <td id="sum-total"></td>
+        </tr>
+    </table>
+
+    <p style="text-align:right; color:#555; font-size:12px; margin-top:10px;">
+        거래일자: <span id="field-date-bottom"></span>
+    </p>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = {};
+            location.search.substring(1).split('&').forEach(p => {
+                if (!p) return;
+                const [k, v] = p.split('=');
+                params[k] = decodeURIComponent(v || '');
+            });
+
+            if (!params.data) {
+                alert('거래 데이터가 전달되지 않았습니다.');
+                return;
+            }
+
+            let data = {};
+            try {
+                data = JSON.parse(params.data);
+            } catch (e) {
+                alert('거래 데이터 파싱 오류');
+                return;
+            }
+
+            // 상단 기본 정보
+            document.getElementById('field-date').textContent = data.date || '';
+            document.getElementById('field-no').textContent = data.no || '';
+            document.getElementById('field-date-bottom').textContent = data.date || '';
+
+            // 공급받는자 정보
+            document.getElementById('cust-name').textContent = data.customer || '';
+            document.getElementById('cust-bizno').textContent = data.bizNo || '';
+            document.getElementById('cust-addr').textContent = data.address || '';
+            document.getElementById('cust-ceo').textContent = data.ceo || '';
+            document.getElementById('cust-tel').textContent = data.tel || '';
+            document.getElementById('cust-fax').textContent = data.fax || '';
+
+            const tbody = document.getElementById('items-body');
+            const rows = Array.isArray(data.rows) ? data.rows : [];
+
+            let supplyTotal = 0;
+            let taxTotal = 0;
+
+            rows.forEach(r => {
+                const qty = Number(r.Qty || 0);
+                const price = Number(r.UnitPrice || 0);
+                // JS 쪽에서 r.Amount 만들어서 보내지만, 안전하게 다시 계산
+                const supply = qty * price;
+                const tax = Math.round(supply * 0.1);
+
+                supplyTotal += supply;
+                taxTotal += tax;
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+      <td>${data.date || ''}</td>
+      <td>${r.Product || ''}</td>
+      <td>${r.Spec || ''}</td>
+      <td>${qty.toLocaleString('ko-KR')}</td>
+      <td>${price.toLocaleString('ko-KR')}</td>
+      <td>${supply.toLocaleString('ko-KR')}</td>
+      <td>${tax.toLocaleString('ko-KR')}</td>
+    `;
+                tbody.appendChild(tr);
+            });
+
+            const grandTotal = supplyTotal + taxTotal;
+
+            document.getElementById('sum-supply').textContent = supplyTotal.toLocaleString('ko-KR');
+            document.getElementById('sum-tax').textContent = taxTotal.toLocaleString('ko-KR');
+            document.getElementById('sum-total').textContent = grandTotal.toLocaleString('ko-KR');
+        });
+    </script>
+
+</body>
+
+</html>

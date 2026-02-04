@@ -48,18 +48,14 @@ export default function CatalogModal({ catalog, onClose }) {
                         </div>
                     ) : (
                         <div className={styles.viewer}>
-                            {catalog.file_url && catalog.file_url !== '#' ? (
+                            {catalog.file_url ? (
                                 <iframe
                                     src={`${catalog.file_url}#toolbar=0&navpanes=0`}
                                     className={styles.iframe}
                                     title="Catalog Viewer"
                                 />
                             ) : (
-                                <div className={styles.noFile}>
-                                    <div style={{ fontSize: '3rem', marginBottom: '20px' }}>📄</div>
-                                    <div>파일 내용을 표시할 수 없습니다. (URL 미지정)</div>
-                                    <div style={{ marginTop: '10px', fontSize: '0.8rem', color: '#86868b' }}>데모 버전에서는 실제 PDF 경로가 필요합니다.</div>
-                                </div>
+                                <div className={styles.noFile}>파일 엔드포인트를 찾을 수 없습니다.</div>
                             )}
                         </div>
                     )}

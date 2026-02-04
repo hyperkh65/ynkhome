@@ -1,85 +1,85 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap');
 
 :root {
-  --bg-main: #f0f2f5;
-  --bg-card: #ffffff;
-  --bg-sidebar: #ffffff;
-  --sidebar-icon-active: #1a1a1a;
-  --sidebar-icon-muted: #9ba0ab;
-  --accent-primary: #7c3aed;
-  /* Purple */
-  --accent-orange: #f97316;
-  --accent-blue: #3b82f6;
-  --accent-green: #10b981;
-  --text-main: #1a1a1a;
-  --text-muted: #71717a;
-  --border-light: #e4e4e7;
-  --shadow-soft: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
-  --radius-lg: 32px;
-  --radius-md: 20px;
-  --font-main: 'Inter', sans-serif;
-  --font-display: 'Outfit', sans-serif;
+    --bg-main: #f0f2f5;
+    --bg-card: #ffffff;
+    --bg-sidebar: #ffffff;
+    --sidebar-icon-active: #1a1a1a;
+    --sidebar-icon-muted: #9ba0ab;
+    --accent-primary: #7c3aed;
+    /* Purple */
+    --accent-orange: #f97316;
+    --accent-blue: #3b82f6;
+    --accent-green: #10b981;
+    --text-main: #1a1a1a;
+    --text-muted: #71717a;
+    --border-light: #e4e4e7;
+    --shadow-soft: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+    --radius-lg: 32px;
+    --radius-md: 20px;
+    --font-main: 'Inter', sans-serif;
+    --font-display: 'Outfit', sans-serif;
 }
 
 body.dark-mode {
-  --bg-main: #0f172a;
-  --bg-card: #1e293b;
-  --bg-sidebar: #0f172a;
-  --text-main: #f8fafc;
-  --text-muted: #94a3b8;
-  --border-light: #334155;
-  --sidebar-icon-muted: #64748b;
-  --sidebar-icon-active: #ffffff;
-  --shadow-soft: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+    --bg-main: #0f172a;
+    --bg-card: #1e293b;
+    --bg-sidebar: #0f172a;
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --border-light: #334155;
+    --sidebar-icon-muted: #64748b;
+    --sidebar-icon-active: #ffffff;
+    --shadow-soft: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
 }
 
 * {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
 }
 
 body {
-  background-color: var(--bg-main);
-  color: var(--text-dark);
-  font-family: var(--font-main);
-  overflow-x: hidden;
+    background-color: var(--bg-main);
+    color: var(--text-dark);
+    font-family: var(--font-main);
+    overflow-x: hidden;
 }
 
 h1,
 h2,
 h3,
 h4 {
-  font-family: var(--font-display);
-  font-weight: 600;
+    font-family: var(--font-display);
+    font-weight: 600;
 }
 
 .premium-card {
-  background: var(--card-bg);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-sm);
-  transition: transform 0.2s, box-shadow 0.2s;
+    background: var(--card-bg);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .premium-card:hover {
-  box-shadow: var(--shadow-md);
+    box-shadow: var(--shadow-md);
 }
 
 /* Custom Scrollbar for clean look */
 ::-webkit-scrollbar {
-  width: 6px;
+    width: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+    background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 10px;
+    background: #cbd5e1;
+    border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+    background: #94a3b8;
 }
