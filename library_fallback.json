@@ -1,0 +1,20 @@
+[
+    {
+        "id": "leaf-1",
+        "title": "YNK V2 리플렛 (국문)",
+        "content": "YNK Terminal V2의 핵심 기능인 스마트 관제 시스템과 자동화 워크플로우를 소개하는 국문 리플렛입니다.",
+        "file_name": "YNK_V2_Leaflet_KR.pdf",
+        "file_url": "https://example.com/leaflets/ynk_v2_kr.pdf",
+        "file_size": 2457600,
+        "created_at": "2026-02-01T10:00:00Z"
+    },
+    {
+        "id": "leaf-2",
+        "title": "YNK Series Brochure (EN)",
+        "content": "A comprehensive guide to YNK series hardware specifications and logistics integration modules.",
+        "file_name": "YNK_Brochure_EN.pdf",
+        "file_url": "https://example.com/brochures/ynk_en.pdf",
+        "file_size": 5242880,
+        "created_at": "2026-02-02T14:30:00Z"
+    }
+]

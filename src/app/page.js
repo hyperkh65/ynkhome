@@ -5,7 +5,8 @@ import { useState, useEffect } from 'react';
 import styles from './page.module.css';
 import LibraryModal from '@/components/LibraryModal';
 import MarketChart from '@/components/MarketChart';
-import { getProducts, getNotices } from '@/utils/storage';
+import CatalogModal from '@/components/CatalogModal';
+import { getProducts, getNotices, getCatalogs } from '@/utils/storage';
 
 export default function Home() {
   const router = useRouter();
@@ -23,9 +24,13 @@ export default function Home() {
   const [showMarketModal, setShowMarketModal] = useState(false);
   const [showTrackingModal, setShowTrackingModal] = useState(false);
   const [showLibraryModal, setShowLibraryModal] = useState(false);
+  const [showCatalogModal, setShowCatalogModal] = useState(false);
+  const [selectedCatalog, setSelectedCatalog] = useState(null);
   const [showToolModal, setShowToolModal] = useState(null); // 'cbm' | 'tracking' | null
 
   const [notices, setNotices] = useState([]);
+  const [eCatalogs, setECatalogs] = useState([]);
+  const [catalogPage, setCatalogPage] = useState(0);
   const [news, setNews] = useState([]);
   const [darkMode, setDarkMode] = useState(false);
 
@@ -175,6 +180,9 @@ export default function Home() {
 
       const noticeList = await getNotices();
       setNotices(noticeList);
+
+      const catalogList = await getCatalogs();
+      setECatalogs(catalogList);
 
       const hRes = await fetch('/api/market/history');
       const hData = await hRes.json();
@@ -424,25 +432,89 @@ export default function Home() {
             {/* Row 2: Port + Chart + Products */}
             <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '280px 1fr 280px', gap: '14px', overflow: 'hidden' }}>
 
-              {/* Incheon Port */}
-              <div style={{ background: 'white', borderRadius: '14px', padding: '18px', border: '1px solid #d2d2d7', display: 'flex', flexDirection: 'column' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                  <h3 style={{ fontSize: '0.95rem', fontWeight: 600, margin: 0, color: '#1d1d1f' }}>🚢 Incheon Port</h3>
-                  {portLastUpdated && <span style={{ fontSize: '0.65rem', color: '#86868b' }}>{portLastUpdated}</span>}
+              {/* Incheon Port + Library Shelf */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <div style={{ background: 'white', borderRadius: '14px', padding: '18px', border: '1px solid #d2d2d7', flex: 1, display: 'flex', flexDirection: 'column' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                    <h3 style={{ fontSize: '0.95rem', fontWeight: 600, margin: 0, color: '#1d1d1f' }}>🚢 Incheon Port</h3>
+                    {portLastUpdated && <span style={{ fontSize: '0.65rem', color: '#86868b' }}>{portLastUpdated}</span>}
+                  </div>
+                  <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {hubs.map(hub => (
+                      <div key={hub.id} style={{ padding: '10px', background: '#fafafa', borderRadius: '8px', border: '1px solid #f0f0f0' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                          <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#1d1d1f' }}>{hub.name}</span>
+                          <span style={{ fontSize: '0.65rem', fontWeight: 700, padding: '2px 8px', borderRadius: '4px', background: hub.color, color: hub.textColor }}>{hub.status}</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.65rem', color: '#86868b' }}>
+                          <span>Trend: <span style={{ fontWeight: 600, color: '#1d1d1f' }}>{hub.trend}</span></span>
+                          <span>Capacity: <span style={{ fontWeight: 600, color: '#1d1d1f' }}>{hub.cargo}</span></span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  {hubs.map(hub => (
-                    <div key={hub.id} style={{ padding: '10px', background: '#fafafa', borderRadius: '8px', border: '1px solid #f0f0f0' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                        <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#1d1d1f' }}>{hub.name}</span>
-                        <span style={{ fontSize: '0.65rem', fontWeight: 700, padding: '2px 8px', borderRadius: '4px', background: hub.color, color: hub.textColor }}>{hub.status}</span>
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.65rem', color: '#86868b' }}>
-                        <span>Trend: <span style={{ fontWeight: 600, color: '#1d1d1f' }}>{hub.trend}</span></span>
-                        <span>Capacity: <span style={{ fontWeight: 600, color: '#1d1d1f' }}>{hub.cargo}</span></span>
-                      </div>
+
+                {/* ELECTRONIC CATALOG BOOKSHELF */}
+                <div style={{ background: 'white', borderRadius: '14px', padding: '18px', border: '1px solid #d2d2d7', height: '240px', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                    <h3 style={{ fontSize: '0.9rem', fontWeight: 600, margin: 0, color: '#1d1d1f', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      📚 <span>Library Shelf</span>
+                    </h3>
+                    <div style={{ display: 'flex', gap: '4px' }}>
+                      {Array.from({ length: Math.ceil(eCatalogs.length / 3) }).map((_, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => setCatalogPage(idx)}
+                          style={{
+                            width: '20px', height: '20px', borderRadius: '50%', border: 'none',
+                            background: catalogPage === idx ? '#007aff' : '#e5e5ea',
+                            color: catalogPage === idx ? 'white' : '#86868b',
+                            fontSize: '0.65rem', cursor: 'pointer', fontWeight: 700
+                          }}
+                        >
+                          {idx + 1}
+                        </button>
+                      ))}
                     </div>
-                  ))}
+                  </div>
+
+                  <div style={{ flex: 1, display: 'flex', gap: '12px', alignItems: 'flex-end', paddingBottom: '10px', overflow: 'hidden' }}>
+                    {eCatalogs.length === 0 ? (
+                      <div style={{ fontSize: '0.75rem', color: '#86868b', textAlign: 'center', width: '100%', paddingBottom: '40px' }}>No catalogs available.</div>
+                    ) : (
+                      eCatalogs.slice(catalogPage * 3, (catalogPage * 3) + 3).map((cat, i) => (
+                        <div
+                          key={cat.id}
+                          onClick={() => { setSelectedCatalog(cat); setShowCatalogModal(true); }}
+                          style={{
+                            flex: 1, height: '140px', background: '#fff', borderRadius: '4px 8px 8px 4px',
+                            cursor: 'pointer', position: 'relative', display: 'flex', flexDirection: 'column',
+                            boxShadow: '4px 4px 10px rgba(0,0,0,0.1), inset 8px 0 10px rgba(0,0,0,0.05)',
+                            transition: 'all 0.3s ease', borderLeft: '12px solid #007aff',
+                            transform: 'perspective(500px) rotateY(-10deg)'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.transform = 'perspective(500px) rotateY(0deg) translateY(-8px)';
+                            e.currentTarget.style.boxShadow = '10px 10px 20px rgba(0,0,0,0.15)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.transform = 'perspective(500px) rotateY(-10deg)';
+                            e.currentTarget.style.boxShadow = '4px 4px 10px rgba(0,0,0,0.1), inset 8px 0 10px rgba(0,0,0,0.05)';
+                          }}
+                        >
+                          <div style={{ padding: '12px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                            <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#1d1d1f', marginBottom: '4px', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' }}>
+                              {cat.name}
+                            </div>
+                            <div style={{ fontSize: '0.55rem', color: '#86868b', marginTop: 'auto' }}>YNK GLOBAL</div>
+                          </div>
+                          <div style={{ position: 'absolute', right: '8px', bottom: '8px', fontSize: '1rem' }}>🔐</div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                  <div style={{ height: '8px', background: '#d2d2d7', borderRadius: '4px', width: '100%', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}></div>
                 </div>
               </div>
 
@@ -544,6 +616,13 @@ export default function Home() {
 
       {/* Modals */}
       {showLibraryModal && <LibraryModal onClose={() => setShowLibraryModal(false)} />}
+
+      {showCatalogModal && selectedCatalog && (
+        <CatalogModal
+          catalog={selectedCatalog}
+          onClose={() => { setShowCatalogModal(false); setSelectedCatalog(null); }}
+        />
+      )}
 
       {/* CBM Tool Modal */}
       {showToolModal === 'cbm' && (

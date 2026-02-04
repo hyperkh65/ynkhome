@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/utils/supabase';
 import styles from './LibraryModal.module.css';
+import libraryFallback from '../../library_fallback.json';
 
 export default function LibraryModal({ onClose }) {
     const [view, setView] = useState('list'); // 'list' | 'detail'
@@ -15,6 +16,12 @@ export default function LibraryModal({ onClose }) {
         async function loadPosts() {
             setLoading(true);
             try {
+                if (!supabase) {
+                    console.log("Using local library fallback");
+                    setPosts(libraryFallback || []);
+                    return;
+                }
+
                 // 1) library_posts 테이블 조회 시도
                 const { data, error } = await supabase
                     .from('library_posts')
@@ -41,12 +48,13 @@ export default function LibraryModal({ onClose }) {
                             created_at: f.uploaded_at
                         }));
                         setPosts(mapped);
-                    } else if (data) {
-                        setPosts(data); // 데이터가 정말 0개인 경우
+                    } else {
+                        setPosts(libraryFallback || []); // 정말 아무것도 없으면 리플렛 모크라도 표시
                     }
                 }
             } catch (err) {
                 console.error("Library Load Error:", err);
+                setPosts(libraryFallback || []);
             } finally {
                 setLoading(false);
             }

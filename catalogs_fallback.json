@@ -1,0 +1,20 @@
+[
+    {
+        "id": "cat-1",
+        "name": "YNK V2 Smart Terminal Catalog",
+        "file_url": "https://example.com/catalogs/v2_smart.pdf",
+        "created_at": "2026-02-01T09:00:00Z"
+    },
+    {
+        "id": "cat-2",
+        "name": "2024 Industrial Automation Guide",
+        "file_url": "https://example.com/catalogs/automation_2024.pdf",
+        "created_at": "2026-02-02T10:30:00Z"
+    },
+    {
+        "id": "cat-3",
+        "name": "YNK Series Hardware manual",
+        "file_url": "#",
+        "created_at": "2026-02-03T11:00:00Z"
+    }
+]
