@@ -12,7 +12,7 @@ const noticesFallback = [
 
 export const getProducts = async () => {
     if (!supabase) {
-        console.log("Using local products fallback");
+        console.log("Using local products fallback (Offline)");
         return productsFallback || [];
     }
 
@@ -23,9 +23,9 @@ export const getProducts = async () => {
 
     if (error) {
         console.error('Error fetching products:', error);
-        return productsFallback || [];
+        return [];
     }
-    return data && data.length > 0 ? data : productsFallback;
+    return data || []; // Return real data (empty if none) when online
 };
 
 export const saveProduct = async (product) => {
@@ -76,9 +76,9 @@ export const getNotices = async () => {
 
     if (error) {
         console.error('Error fetching notices:', error);
-        return noticesFallback;
+        return [];
     }
-    return data && data.length > 0 ? data : noticesFallback;
+    return data || [];
 };
 
 export const saveNotice = async (notice) => {
@@ -107,7 +107,7 @@ export const deleteNotice = async (id) => {
 // --- Market History ---
 export const getMarketHistory = async () => {
     if (!supabase) {
-        console.log("Using local market history fallback");
+        console.log("Using local market history fallback (Offline)");
         return historyFallback || [];
     }
 
@@ -118,9 +118,9 @@ export const getMarketHistory = async () => {
 
     if (error) {
         console.error('Error fetching market history:', error);
-        return historyFallback || [];
+        return [];
     }
-    return data && data.length > 0 ? data : historyFallback;
+    return data || [];
 };
 
 export const saveMarketHistory = async (record) => {
@@ -172,7 +172,7 @@ export const uploadFile = async (file, bucket = 'library') => {
 // --- Electronic Catalogs ---
 export const getCatalogs = async () => {
     if (!supabase) {
-        console.log("Using local catalogs fallback");
+        console.log("Using local catalogs fallback (Offline)");
         return catalogsFallback || [];
     }
 
@@ -183,9 +183,9 @@ export const getCatalogs = async () => {
 
     if (error) {
         console.error('Error fetching catalogs:', error);
-        return catalogsFallback || [];
+        return [];
     }
-    return data && data.length > 0 ? data : catalogsFallback;
+    return data || [];
 };
 
 export const saveCatalog = async (catalog) => {

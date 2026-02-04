@@ -119,16 +119,38 @@ export default function AdminPage() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        // Validation
+        if (!formData.name.trim()) {
+            return alert('제품 명칭(Product Name)을 입력해주세요.');
+        }
+
         const payload = {
             id: editingId,
             name: formData.name,
             description: formData.description,
             image: formData.image,
-            specs: { ...formData }
+            specs: {
+                partNo: formData.partNo,
+                modelName: formData.modelName,
+                colorTemp: formData.colorTemp,
+                powerConsumption: formData.powerConsumption,
+                inputVoltage: formData.inputVoltage,
+                powerFactor: formData.powerFactor,
+                luminousFlux: formData.luminousFlux,
+                criRa: formData.criRa,
+                dimensions: formData.dimensions,
+                weight: formData.weight,
+                cert: formData.cert,
+                remarks: formData.remarks,
+                certificate: formData.certificate,
+                specSheet: formData.specSheet
+            }
         };
+
         try {
             await saveProduct(payload);
-            alert(editingId ? '수정되었습니다.' : '등록되었습니다.');
+            alert(editingId ? '성공적으로 수정되었습니다.' : '성공적으로 등록되었습니다.');
             await loadData();
             resetForm();
         } catch (error) {
