@@ -93,111 +93,96 @@ export default function Home() {
 
   const fetchData = async () => {
     try {
-      const mRes = await fetch('/api/market', { cache: 'no-store' });
-      const mData = await mRes.json();
-      if (mData.success) {
-        setMarketData(prev => {
-          const newTrends = { ...prev.trends };
-          if (mData.rates?.usd) newTrends.usd = mData.rates.usd >= prev.usd ? 'up' : 'down';
-          if (mData.rates?.cny) newTrends.cny = mData.rates.cny >= prev.cny ? 'up' : 'down';
+      // Parallelize all independent data fetches
+      const [marketRes, congestionRes, products, noticeList, catalogs, historyRes] = await Promise.allSettled([
+        fetch('/api/market', { cache: 'no-store' }),
+        fetch('/api/incheon/congestion', { cache: 'no-store' }),
+        getProducts(),
+        getNotices(),
+        getCatalogs(),
+        fetch('/api/market/history', { cache: 'no-store' })
+      ]);
 
-          if (mData.metals) {
-            Object.entries(mData.metals).forEach(([key, val]) => {
-              if (val && val.last && val.prevClose) {
-                newTrends[key] = val.last >= val.prevClose ? 'up' : 'down';
-              }
-            });
-          }
-
-          return {
-            ...prev,
-            usd: mData.rates?.usd || prev.usd,
-            cny: mData.rates?.cny || prev.cny,
-            metals: mData.metals || prev.metals,
-            trends: newTrends
-          };
-        });
-      }
-    } catch (err) {
-      console.error("Market data fetch failed", err);
-    }
-
-    try {
-      const res = await fetch('/api/incheon/congestion');
-      const json = await res.json();
-
-      if (json.success && Array.isArray(json.data) && json.data.length > 0) {
-        const updateTime = json.data[0].trafficTime || json.data[0].regdate || '';
-        if (updateTime) setPortLastUpdated(updateTime.split(' ')[1] || updateTime);
-
-        setHubs(prev => prev.map((hub) => {
-          const match = json.data.find(d => {
-            const apiNm = (d.termName || d.trmnlNm || '').toUpperCase();
-            const hubNm = hub.name.toUpperCase();
-            return hubNm.includes(apiNm) || apiNm.includes(hubNm.substr(0, 2)) ||
-              (hubNm.includes('인천') && apiNm.includes('ICT')) ||
-              (hubNm.includes('한진') && apiNm.includes('HJIT')) ||
-              (hubNm.includes('선광') && apiNm.includes('SNCT'));
-          });
-
-          if (match) {
-            const level = (match.trafficStatus || match.cgstLevel || '').toUpperCase();
-            let status = 'Smooth';
-            let color = '#f0fdf4';
-            let textColor = '#16a34a';
-            let trend = 'Stable';
-            let cargo = Math.floor(Math.random() * 40 + 60) + '%'; // Mock data
-
-            if (level === 'R' || level.includes('혼잡') || level.includes('포화')) {
-              status = 'Congested';
-              color = '#fef2f2';
-              textColor = '#dc2626';
-              trend = 'Increasing';
-            } else if (level === 'Y' || level === 'M' || level.includes('보통')) {
-              status = 'Moderate';
-              color = '#fefce8';
-              textColor = '#ca8a04';
-              trend = 'Fluctuating';
-            } else if (level === 'B' || level === 'G' || level.includes('원활')) {
-              status = 'Smooth';
-              color = '#f0fdf4';
-              textColor = '#16a34a';
-              trend = 'Stable';
+      // 1. Process Market Data
+      if (marketRes.status === 'fulfilled') {
+        const mData = await marketRes.value.json();
+        if (mData.success) {
+          setMarketData(prev => {
+            const newTrends = { ...prev.trends };
+            if (mData.rates?.usd) newTrends.usd = mData.rates.usd >= prev.usd ? 'up' : 'down';
+            if (mData.rates?.cny) newTrends.cny = mData.rates.cny >= prev.cny ? 'up' : 'down';
+            if (mData.metals) {
+              Object.entries(mData.metals).forEach(([key, val]) => {
+                if (val && val.last && val.prevClose) {
+                  newTrends[key] = val.last >= val.prevClose ? 'up' : 'down';
+                }
+              });
             }
-
-            return { ...hub, status, color, textColor, trend, cargo };
-          }
-          return hub;
-        }));
-      }
-    } catch (err) {
-      console.error("Port status fetch failed", err);
-    }
-
-    try {
-      const products = await getProducts();
-      setCatalogData(products);
-
-      const noticeList = await getNotices();
-      setNotices(noticeList);
-
-      const catalogList = await getCatalogs(); // 최신 목록 강제 로드
-      console.log('Fetched Catalogs:', catalogList);
-      setECatalogs([...catalogList]);
-
-      const hRes = await fetch('/api/market/history');
-      const hData = await hRes.json();
-      if (Array.isArray(hData)) {
-        setHistoryData(hData);
+            return {
+              ...prev,
+              usd: mData.rates?.usd || prev.usd,
+              cny: mData.rates?.cny || prev.cny,
+              metals: mData.metals || prev.metals,
+              trends: newTrends
+            };
+          });
+        }
       }
 
+      // 2. Process Congestion Data
+      if (congestionRes.status === 'fulfilled') {
+        const json = await congestionRes.value.json();
+        if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+          const updateTime = json.data[0].trafficTime || json.data[0].regdate || '';
+          if (updateTime) setPortLastUpdated(updateTime.split(' ')[1] || updateTime);
+
+          setHubs(prev => prev.map((hub) => {
+            const match = json.data.find(d => {
+              const apiNm = (d.termName || d.trmnlNm || '').toUpperCase();
+              const hubNm = hub.name.toUpperCase();
+              return hubNm.includes(apiNm) || apiNm.includes(hubNm.substr(0, 2)) ||
+                (hubNm.includes('인천') && apiNm.includes('ICT')) ||
+                (hubNm.includes('한진') && apiNm.includes('HJIT')) ||
+                (hubNm.includes('선광') && apiNm.includes('SNCT'));
+            });
+
+            if (match) {
+              const level = (match.trafficStatus || match.cgstLevel || '').toUpperCase();
+              let status = 'Smooth', color = '#f0fdf4', textColor = '#16a34a', trend = 'Stable';
+              let cargo = Math.floor(Math.random() * 40 + 60) + '%';
+
+              if (level === 'R' || level.includes('혼잡') || level.includes('포화')) {
+                status = 'Congested'; color = '#fef2f2'; textColor = '#dc2626'; trend = 'Increasing';
+              } else if (level === 'Y' || level === 'M' || level.includes('보통')) {
+                status = 'Moderate'; color = '#fefce8'; textColor = '#ca8a04'; trend = 'Fluctuating';
+              } else if (level === 'B' || level === 'G' || level.includes('원활')) {
+                status = 'Smooth'; color = '#f0fdf4'; textColor = '#16a34a'; trend = 'Stable';
+              }
+              return { ...hub, status, color, textColor, trend, cargo };
+            }
+            return hub;
+          }));
+        }
+      }
+
+      // 3. Simple State setters
+      if (products.status === 'fulfilled') setCatalogData(products.value);
+      if (noticeList.status === 'fulfilled') setNotices(noticeList.value);
+      if (catalogs.status === 'fulfilled') setECatalogs([...catalogs.value]);
+
+      if (historyRes.status === 'fulfilled') {
+        const hData = await historyRes.value.json();
+        if (Array.isArray(hData)) setHistoryData(hData);
+      }
+
+      // 4. Background News fetch
       fetch('/api/news')
         .then(res => res.json())
         .then(data => setNews(data.news || []))
         .catch(err => console.error("News fetch error", err));
 
     } catch (e) {
-      console.error("Failed to load data", e);
+      console.error("Critical error in fetchData", e);
     }
   };
 

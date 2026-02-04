@@ -2,21 +2,19 @@ import { NextResponse } from 'next/server';
 
 export async function GET() {
     try {
-        // 1. Fetch Exchange Rates
-        const exchangeRes = await fetch('https://api.manana.kr/exchange/rate/KRW/USD,CNY.json', {
-            cache: 'no-store'
-        });
-        const exchangeData = await exchangeRes.json();
+        // 1 & 2. Fetch Exchange Rates and SHFE Metal Prices concurrently
+        const [exchangeRes, metalRes] = await Promise.all([
+            fetch('https://api.manana.kr/exchange/rate/KRW/USD,CNY.json', { cache: 'no-store' }),
+            fetch('http://hq.sinajs.cn/list=nf_AL0,nf_CU0,nf_RB0,nf_NI0,nf_ZN0', {
+                headers: { 'Referer': 'http://finance.sina.com.cn' },
+                cache: 'no-store'
+            })
+        ]);
 
-        // 2. Fetch SHFE Metal Prices from Sina
-        // nf_AL0: Alum, nf_CU0: Copper, nf_RB0: Steel, nf_NI0: Nickel, nf_ZN0: Zinc
-        const metalRes = await fetch('http://hq.sinajs.cn/list=nf_AL0,nf_CU0,nf_RB0,nf_NI0,nf_ZN0', {
-            headers: {
-                'Referer': 'http://finance.sina.com.cn'
-            },
-            cache: 'no-store'
-        });
-        const metalRaw = await metalRes.text();
+        const [exchangeData, metalRaw] = await Promise.all([
+            exchangeRes.json(),
+            metalRes.text()
+        ]);
 
         const parseSina = (str, symbol) => {
             const match = str.match(new RegExp(`hq_str_${symbol}="([^"]+)"`));
