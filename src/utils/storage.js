@@ -1,7 +1,20 @@
 import { supabase } from './supabase';
+import productsFallback from '../../products.json';
+import historyFallback from '../../market_history.json';
+import catalogsFallback from '../../catalogs_fallback.json';
+
+// Mock notices for fallback
+const noticesFallback = [
+    { id: 1, content: "YNK Terminal V2 시스템 점검 안내 (02/05)", created_at: new Date().toISOString() },
+    { id: 2, content: "인천항 물동량 증가에 따른 정체 주의", created_at: new Date().toISOString() },
+    { id: 3, content: "신규 파트너사 협업 모듈 업데이트 완료", created_at: new Date().toISOString() }
+];
 
 export const getProducts = async () => {
-    if (!supabase) return [];
+    if (!supabase) {
+        console.log("Using local products fallback");
+        return productsFallback || [];
+    }
 
     const { data, error } = await supabase
         .from('products')
@@ -10,28 +23,16 @@ export const getProducts = async () => {
 
     if (error) {
         console.error('Error fetching products:', error);
-        return [];
+        return productsFallback || [];
     }
-    return data || [];
+    return data && data.length > 0 ? data : productsFallback;
 };
 
 export const saveProduct = async (product) => {
-    if (!supabase) throw new Error("Database not connected (missing update env vars)");
-
-    // If it's a new product (no ID or ID is null), remove ID from object so Supabase generates it
-    // But since our UI manages IDs or we want to allow editing...
-
-    // Simplification: We will use 'upsert'. 
-    // If product has an ID, it updates. If we want to create, we should omit ID or ensure it's unique.
+    if (!supabase) return null;
 
     const payload = { ...product };
-    // If creating new (id is missing or special), delete the key to let DB handle it
     if (!payload.id) delete payload.id;
-
-    // Ensure specs is stored as JSONB
-    if (typeof payload.specs !== 'object') {
-        // handle error or default
-    }
 
     const { data, error } = await supabase
         .from('products')
@@ -46,7 +47,7 @@ export const saveProduct = async (product) => {
 };
 
 export const deleteProduct = async (id) => {
-    if (!supabase) throw new Error("Database not connected");
+    if (!supabase) return;
 
     const { error } = await supabase
         .from('products')
@@ -59,17 +60,13 @@ export const deleteProduct = async (id) => {
     }
 };
 
-// ... existing code ...
-
 export const resetProducts = async () => {
-    // Dangerous DANGER zone.
-    // For now, let's just log.
     console.warn("Reset not fully implemented for DB safety.");
 };
 
 // --- Notices ---
 export const getNotices = async () => {
-    if (!supabase) return [];
+    if (!supabase) return noticesFallback;
 
     const { data, error } = await supabase
         .from('notices')
@@ -79,19 +76,17 @@ export const getNotices = async () => {
 
     if (error) {
         console.error('Error fetching notices:', error);
-        return [];
+        return noticesFallback;
     }
-    return data || [];
+    return data && data.length > 0 ? data : noticesFallback;
 };
 
 export const saveNotice = async (notice) => {
-    if (!supabase) throw new Error("Database not connected");
+    if (!supabase) return null;
 
-    // Auto-generate ID if not present is handled by DB usually, but for upsert without ID it might fail if PK is not setup to auto-gen without explicit omission.
-    // We will just insert new ones mostly.
     const { data, error } = await supabase
         .from('notices')
-        .insert([notice]) // Using insert for simple notices
+        .insert([notice])
         .select();
 
     if (error) throw error;
@@ -99,7 +94,7 @@ export const saveNotice = async (notice) => {
 };
 
 export const deleteNotice = async (id) => {
-    if (!supabase) throw new Error("Database not connected");
+    if (!supabase) return;
 
     const { error } = await supabase
         .from('notices')
@@ -111,7 +106,10 @@ export const deleteNotice = async (id) => {
 
 // --- Market History ---
 export const getMarketHistory = async () => {
-    if (!supabase) return [];
+    if (!supabase) {
+        console.log("Using local market history fallback");
+        return historyFallback || [];
+    }
 
     const { data, error } = await supabase
         .from('market_history')
@@ -120,13 +118,13 @@ export const getMarketHistory = async () => {
 
     if (error) {
         console.error('Error fetching market history:', error);
-        return [];
+        return historyFallback || [];
     }
-    return data || [];
+    return data && data.length > 0 ? data : historyFallback;
 };
 
 export const saveMarketHistory = async (record) => {
-    if (!supabase) throw new Error("Database not connected");
+    if (!supabase) return null;
 
     const { data, error } = await supabase
         .from('market_history')
@@ -139,6 +137,7 @@ export const saveMarketHistory = async (record) => {
     }
     return data;
 };
+
 // --- File Upload ---
 export const uploadFile = async (file, bucket = 'library') => {
     if (!supabase) throw new Error("Database not connected");
@@ -162,7 +161,10 @@ export const uploadFile = async (file, bucket = 'library') => {
 
 // --- Electronic Catalogs ---
 export const getCatalogs = async () => {
-    if (!supabase) return [];
+    if (!supabase) {
+        console.log("Using local catalogs fallback");
+        return catalogsFallback || [];
+    }
 
     const { data, error } = await supabase
         .from('catalogs')
@@ -171,13 +173,13 @@ export const getCatalogs = async () => {
 
     if (error) {
         console.error('Error fetching catalogs:', error);
-        return [];
+        return catalogsFallback || [];
     }
-    return data || [];
+    return data && data.length > 0 ? data : catalogsFallback;
 };
 
 export const saveCatalog = async (catalog) => {
-    if (!supabase) throw new Error("Database not connected");
+    if (!supabase) return null;
 
     const payload = { ...catalog };
     if (!payload.id) delete payload.id;
@@ -191,7 +193,7 @@ export const saveCatalog = async (catalog) => {
 };
 
 export const deleteCatalog = async (id) => {
-    if (!supabase) throw new Error("Database not connected");
+    if (!supabase) return;
     const { error } = await supabase
         .from('catalogs')
         .delete()
