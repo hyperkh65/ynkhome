@@ -466,39 +466,54 @@ export default function Home() {
                     {eCatalogs.length === 0 ? (
                       <div style={{ fontSize: '0.75rem', color: '#86868b', textAlign: 'center', py: '20px' }}>No catalogs available.</div>
                     ) : (
-                      eCatalogs.slice(catalogPage * 4, (catalogPage * 4) + 4).map((cat) => (
+                      eCatalogs.slice(catalogPage * 4, (catalogPage * 4) + 4).map((cat, i) => (
                         <div
                           key={cat.id}
                           onClick={() => { setSelectedCatalog(cat); setShowCatalogModal(true); }}
                           style={{
-                            display: 'flex', alignItems: 'center', padding: '10px 12px',
-                            background: '#f8f9fa', borderRadius: '10px', cursor: 'pointer',
-                            transition: 'all 0.2s ease', border: '1px solid transparent'
+                            display: 'flex', alignItems: 'center', padding: '12px 14px',
+                            background: '#f8f9fa', borderRadius: '12px', cursor: 'pointer',
+                            transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)', border: '1px solid #f0f0f0',
+                            position: 'relative', overflow: 'hidden'
                           }}
                           onMouseEnter={(e) => {
                             e.currentTarget.style.background = '#fff';
                             e.currentTarget.style.borderColor = '#007aff';
-                            e.currentTarget.style.transform = 'translateX(4px)';
+                            e.currentTarget.style.transform = 'translateY(-2px)';
+                            e.currentTarget.style.boxShadow = '0 8px 15px rgba(0,0,0,0.05)';
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.style.background = '#f8f9fa';
-                            e.currentTarget.style.borderColor = 'transparent';
-                            e.currentTarget.style.transform = 'translateX(0)';
+                            e.currentTarget.style.borderColor = '#f0f0f0';
+                            e.currentTarget.style.transform = 'translateY(0)';
+                            e.currentTarget.style.boxShadow = 'none';
                           }}
                         >
-                          <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'rgba(0,122,255,0.1)', color: '#007aff', display: 'flex', alignItems: 'center', justifyContent: 'center', marginRight: '12px', fontSize: '1.1rem' }}>
-                            📄
+                          <div style={{
+                            width: '40px', height: '40px', borderRadius: '10px',
+                            background: 'linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            marginRight: '14px', fontSize: '1.2rem', flexShrink: 0,
+                            boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.5)',
+                            position: 'relative'
+                          }}>
+                            📚
+                            {i === 0 && (
+                              <div style={{ position: 'absolute', top: '-4px', right: '-4px', width: '12px', height: '12px', background: '#ff3b30', borderRadius: '50%', border: '2px solid white' }}></div>
+                            )}
                           </div>
                           <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#1d1d1f', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#1d1d1f', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                               {cat.name}
                             </div>
-                            <div style={{ fontSize: '0.65rem', color: '#86868b', marginTop: '2px' }}>
-                              {cat.created_at ? new Date(cat.created_at).toLocaleDateString() : 'YNK Global'}
+                            <div style={{ fontSize: '0.65rem', color: '#86868b', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              <span>{cat.created_at ? new Date(cat.created_at).toLocaleDateString() : '2024. 01. 27.'}</span>
+                              <span style={{ color: '#e5e5ea' }}>|</span>
+                              <span>YNK Global</span>
                             </div>
                           </div>
-                          <div style={{ marginLeft: '12px', fontSize: '0.8rem', color: '#007aff' }}>
-                            🔐
+                          <div style={{ marginLeft: '12px', fontSize: '0.9rem', opacity: 0.6 }}>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#007aff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
                           </div>
                         </div>
                       ))
