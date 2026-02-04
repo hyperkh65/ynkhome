@@ -8,7 +8,9 @@
             "material": "High-Grade Alum",
             "weight": "2.4kg",
             "cert": "CE / RoHS / KC",
-            "origin": "Shanghai Hub"
+            "origin": "Shanghai Hub",
+            "specSheet": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+            "certificate": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
         }
     },
     {
@@ -20,7 +22,8 @@
             "material": "Stainless Steel",
             "weight": "3.1kg",
             "cert": "UL / CE",
-            "origin": "Incheon Port"
+            "origin": "Incheon Port",
+            "specSheet": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
         }
     },
     {
@@ -32,7 +35,8 @@
             "material": "Titanium Alloy",
             "weight": "1.8kg",
             "cert": "ISO 9001",
-            "origin": "Busan"
+            "origin": "Busan",
+            "certificate": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
         }
     },
     {

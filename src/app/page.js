@@ -629,15 +629,23 @@ export default function Home() {
 
                   {/* Download Buttons */}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    {selectedProduct.specs?.specSheet && (
+                    {selectedProduct.specs?.specSheet ? (
                       <a href={selectedProduct.specs.specSheet} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', background: '#007aff', color: 'white', borderRadius: '12px', textDecoration: 'none', fontWeight: 600, fontSize: '0.9rem' }}>
                         📄 Download Spec Sheet
                       </a>
+                    ) : (
+                      <div style={{ padding: '12px', background: '#f5f5f7', color: '#86868b', borderRadius: '12px', textAlign: 'center', fontSize: '0.8rem', border: '1px dashed #d2d2d7' }}>
+                        No Spec Sheet Available
+                      </div>
                     )}
-                    {selectedProduct.specs?.certificate && (
+                    {selectedProduct.specs?.certificate ? (
                       <a href={selectedProduct.specs.certificate} target="_blank" rel="noopener noreferrer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', background: '#34c759', color: 'white', borderRadius: '12px', textDecoration: 'none', fontWeight: 600, fontSize: '0.9rem' }}>
                         ✅ Download Certificate
                       </a>
+                    ) : (
+                      <div style={{ padding: '12px', background: '#f5f5f7', color: '#86868b', borderRadius: '12px', textAlign: 'center', fontSize: '0.8rem', border: '1px dashed #d2d2d7' }}>
+                        No Certificate Available
+                      </div>
                     )}
                   </div>
                 </div>

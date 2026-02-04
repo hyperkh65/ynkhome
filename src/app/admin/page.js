@@ -267,8 +267,20 @@ export default function AdminPage() {
                             </div>
 
                             <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '15px' }}>
-                                <div className={styles.formGroup}><label className={styles.label}>Spec Sheet (PDF)</label><input type="file" onChange={(e) => handleFileUpload(e, 'specSheet')} /></div>
-                                <div className={styles.formGroup}><label className={styles.label}>Certificate</label><input type="file" onChange={(e) => handleFileUpload(e, 'certificate')} /></div>
+                                <div className={styles.formGroup}>
+                                    <label className={styles.label}>Spec Sheet (PDF)</label>
+                                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                        <input type="file" onChange={(e) => handleFileUpload(e, 'specSheet')} />
+                                        {formData.specSheet && <span style={{ color: '#10b981', fontSize: '0.75rem', fontWeight: 600 }}>✅ Linked</span>}
+                                    </div>
+                                </div>
+                                <div className={styles.formGroup}>
+                                    <label className={styles.label}>Certificate (PDF)</label>
+                                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                        <input type="file" onChange={(e) => handleFileUpload(e, 'certificate')} />
+                                        {formData.certificate && <span style={{ color: '#10b981', fontSize: '0.75rem', fontWeight: 600 }}>✅ Linked</span>}
+                                    </div>
+                                </div>
                             </div>
 
                             <button type="submit" className={styles.submitBtn} disabled={isUploading} style={{ background: editingId ? '#3b82f6' : '#10b981', marginTop: '10px' }}>
