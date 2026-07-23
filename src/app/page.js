@@ -94,9 +94,10 @@ export default function Home() {
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const dismissed = localStorage.getItem('data_popup_dismissed');
-    if (!dismissed) {
-      const t = setTimeout(() => setShowDataPopup(true), 1500);
+    const dismissedUntil = localStorage.getItem('data_popup_until');
+    const show = !dismissedUntil || Date.now() > Number(dismissedUntil);
+    if (show) {
+      const t = setTimeout(() => setShowDataPopup(true), 1000);
       return () => clearTimeout(t);
     }
   }, []);
@@ -771,12 +772,12 @@ export default function Home() {
 
       {/* Data Hub Popup */}
       {showDataPopup && (
-        <div onClick={() => { setShowDataPopup(false); localStorage.setItem('data_popup_dismissed', '1'); }}
+        <div onClick={() => { setShowDataPopup(false); localStorage.setItem('data_popup_until', String(Date.now() + 86400000)); }}
           style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(8px)', zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
           <div onClick={e => e.stopPropagation()}
             style={{ background: '#fff', borderRadius: '20px', maxWidth: '420px', width: '100%', overflow: 'hidden', boxShadow: '0 32px 80px rgba(0,0,0,0.25)' }}>
             <div style={{ background: 'linear-gradient(135deg,#101827,#0f766e)', padding: '28px 28px 20px', color: '#fff', position: 'relative' }}>
-              <button onClick={() => { setShowDataPopup(false); localStorage.setItem('data_popup_dismissed', '1'); }}
+              <button onClick={() => { setShowDataPopup(false); localStorage.setItem('data_popup_until', String(Date.now() + 86400000)); }}
                 style={{ position: 'absolute', top: '14px', right: '14px', background: 'rgba(255,255,255,0.15)', border: 'none', color: '#fff', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', fontSize: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(34,197,94,0.2)', border: '1px solid rgba(34,197,94,0.4)', borderRadius: '999px', padding: '4px 12px', fontSize: '12px', fontWeight: 700, color: '#4ade80', marginBottom: '12px' }}>
                 <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#4ade80', display: 'inline-block' }} />
@@ -794,11 +795,11 @@ export default function Home() {
                 ))}
               </div>
               <a href="https://data.ynk2014.com" target="_blank" rel="noopener noreferrer"
-                onClick={() => { setShowDataPopup(false); localStorage.setItem('data_popup_dismissed', '1'); }}
+                onClick={() => { setShowDataPopup(false); localStorage.setItem('data_popup_until', String(Date.now() + 86400000)); }}
                 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', width: '100%', padding: '14px', background: 'linear-gradient(135deg,#0f766e,#22c55e)', color: '#fff', border: 'none', borderRadius: '12px', fontSize: '1rem', fontWeight: 800, cursor: 'pointer', textDecoration: 'none', boxSizing: 'border-box' }}>
                 데이터 허브 바로가기 →
               </a>
-              <button onClick={() => { setShowDataPopup(false); localStorage.setItem('data_popup_dismissed', '1'); }}
+              <button onClick={() => { setShowDataPopup(false); localStorage.setItem('data_popup_until', String(Date.now() + 86400000)); }}
                 style={{ width: '100%', marginTop: '10px', padding: '10px', background: 'none', border: 'none', color: '#86868b', fontSize: '0.85rem', cursor: 'pointer' }}>
                 다시 보지 않기
               </button>
