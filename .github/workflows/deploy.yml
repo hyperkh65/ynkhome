@@ -21,45 +21,34 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Package standalone
-        run: |
-          cp -r public .next/standalone/public
-          cp -r .next/static .next/standalone/.next/static
-          tar czf deploy.tar.gz -C .next/standalone .
-
-      - name: Upload package to NAS
+      - name: Copy build to NAS
         uses: appleboy/scp-action@v0.1.7
         with:
           host: hy64.synology.me
           username: urjent
           key: ${{ secrets.NAS_SSH_PRIVATE_KEY }}
-          source: "deploy.tar.gz"
-          target: /tmp/
+          source: ".next/standalone/,.next/static/,public/"
+          target: /volume1/web/ynkhome/
 
-      - name: Deploy on NAS
+      - name: Restart server on NAS
         uses: appleboy/ssh-action@v1
         with:
           host: hy64.synology.me
           username: urjent
           key: ${{ secrets.NAS_SSH_PRIVATE_KEY }}
           command_timeout: 2m
+          script_stop: false
           script: |
-            set +e
-            export NODE=/volume1/homes/urjent/runtime/node-v22.16.0-linux-x64/bin/node
+            NODE=/volume1/homes/urjent/runtime/node-v22.16.0-linux-x64/bin/node
 
-            echo "=== Extracting build ==="
-            mkdir -p /volume1/web/ynkhome/.next/standalone
-            tar xzf /tmp/deploy.tar.gz -C /volume1/web/ynkhome/.next/standalone
-            echo "Extracted OK"
+            mkdir -p /volume1/web/ynkhome/.next/standalone/.next
 
-            echo "=== Stopping old server ==="
-            pkill -f "standalone/server.js" 2>/dev/null && echo "killed" || echo "no old process"
-            fuser -k 3102/tcp 2>/dev/null && echo "freed port" || echo "port was free"
+            cp -r /volume1/web/ynkhome/.next/static /volume1/web/ynkhome/.next/standalone/.next/static 2>/dev/null
+            cp -r /volume1/web/ynkhome/public /volume1/web/ynkhome/.next/standalone/public 2>/dev/null
 
-            echo "=== Starting server ==="
-            cd /volume1/web/ynkhome/.next/standalone
-            PORT=3102 nohup $NODE server.js > /tmp/ynkhome.log 2>&1 &
-            echo "PID=$!"
+            kill $(cat /tmp/ynkhome.pid 2>/dev/null) 2>/dev/null
 
-            echo "=== Done ==="
+            PORT=3102 $NODE /volume1/web/ynkhome/.next/standalone/server.js >> /tmp/ynkhome.log 2>&1 &
+            echo $! > /tmp/ynkhome.pid
+            echo "Started PID=$(cat /tmp/ynkhome.pid)"
             exit 0
