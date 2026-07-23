@@ -27,6 +27,7 @@ export default function Home() {
   const [showCatalogModal, setShowCatalogModal] = useState(false);
   const [selectedCatalog, setSelectedCatalog] = useState(null);
   const [showToolModal, setShowToolModal] = useState(null); // 'cbm' | 'tracking' | null
+  const [showDataPopup, setShowDataPopup] = useState(false);
 
   const [notices, setNotices] = useState([]);
   const [eCatalogs, setECatalogs] = useState([]);
@@ -89,6 +90,15 @@ export default function Home() {
       clearInterval(worldTimer);
       clearInterval(refreshTimer);
     };
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const dismissed = localStorage.getItem('data_popup_dismissed');
+    if (!dismissed) {
+      const t = setTimeout(() => setShowDataPopup(true), 1500);
+      return () => clearTimeout(t);
+    }
   }, []);
 
   const fetchData = async () => {
@@ -754,6 +764,44 @@ export default function Home() {
                   )}
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Data Hub Popup */}
+      {showDataPopup && (
+        <div onClick={() => { setShowDataPopup(false); localStorage.setItem('data_popup_dismissed', '1'); }}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(8px)', zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+          <div onClick={e => e.stopPropagation()}
+            style={{ background: '#fff', borderRadius: '20px', maxWidth: '420px', width: '100%', overflow: 'hidden', boxShadow: '0 32px 80px rgba(0,0,0,0.25)' }}>
+            <div style={{ background: 'linear-gradient(135deg,#101827,#0f766e)', padding: '28px 28px 20px', color: '#fff', position: 'relative' }}>
+              <button onClick={() => { setShowDataPopup(false); localStorage.setItem('data_popup_dismissed', '1'); }}
+                style={{ position: 'absolute', top: '14px', right: '14px', background: 'rgba(255,255,255,0.15)', border: 'none', color: '#fff', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', fontSize: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(34,197,94,0.2)', border: '1px solid rgba(34,197,94,0.4)', borderRadius: '999px', padding: '4px 12px', fontSize: '12px', fontWeight: 700, color: '#4ade80', marginBottom: '12px' }}>
+                <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#4ade80', display: 'inline-block' }} />
+                NEW
+              </div>
+              <h2 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 800, lineHeight: 1.2 }}>조달·민수 데이터 허브</h2>
+              <p style={{ margin: '8px 0 0', color: 'rgba(255,255,255,0.8)', fontSize: '0.9rem', lineHeight: 1.5 }}>제품·업체·주소·카테고리를 한 곳에서<br/>API로 바로 필터링하세요.</p>
+            </div>
+            <div style={{ padding: '24px 28px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '20px' }}>
+                {[['📦', '제품 데이터'], ['🏢', '공급업체'], ['📊', 'Overview'], ['🔍', 'API 필터링']].map(([icon, label]) => (
+                  <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 14px', background: '#f5f5f7', borderRadius: '10px', fontSize: '0.85rem', fontWeight: 600, color: '#1d1d1f' }}>
+                    <span>{icon}</span>{label}
+                  </div>
+                ))}
+              </div>
+              <a href="https://data.ynk2014.com" target="_blank" rel="noopener noreferrer"
+                onClick={() => { setShowDataPopup(false); localStorage.setItem('data_popup_dismissed', '1'); }}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', width: '100%', padding: '14px', background: 'linear-gradient(135deg,#0f766e,#22c55e)', color: '#fff', border: 'none', borderRadius: '12px', fontSize: '1rem', fontWeight: 800, cursor: 'pointer', textDecoration: 'none', boxSizing: 'border-box' }}>
+                데이터 허브 바로가기 →
+              </a>
+              <button onClick={() => { setShowDataPopup(false); localStorage.setItem('data_popup_dismissed', '1'); }}
+                style={{ width: '100%', marginTop: '10px', padding: '10px', background: 'none', border: 'none', color: '#86868b', fontSize: '0.85rem', cursor: 'pointer' }}>
+                다시 보지 않기
+              </button>
             </div>
           </div>
         </div>
