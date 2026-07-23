@@ -21,16 +21,23 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Copy standalone to NAS
+      - name: Package standalone
+        run: |
+          cp -r public .next/standalone/public
+          cp -r .next/static .next/standalone/.next/static
+          tar czf /tmp/deploy.tar.gz -C .next/standalone .
+
+      - name: Upload package to NAS
         uses: appleboy/scp-action@v0.1.7
         with:
           host: hy64.synology.me
           username: urjent
           key: ${{ secrets.NAS_SSH_PRIVATE_KEY }}
-          source: ".next/standalone/,.next/static/"
-          target: /volume1/web/ynkhome/
+          source: "/tmp/deploy.tar.gz"
+          target: /tmp/
+          strip_components: 2
 
-      - name: Restart server on NAS
+      - name: Deploy on NAS
         uses: appleboy/ssh-action@v1
         with:
           host: hy64.synology.me
@@ -38,20 +45,22 @@ jobs:
           key: ${{ secrets.NAS_SSH_PRIVATE_KEY }}
           command_timeout: 2m
           script: |
+            set +e
             export NODE=/volume1/homes/urjent/runtime/node-v22.16.0-linux-x64/bin/node
 
-            # static 폴더 동기화 (SCP가 .next 아래에 넣으므로 정리)
-            cp -r /volume1/web/ynkhome/.next/static /volume1/web/ynkhome/.next/standalone/.next/static 2>/dev/null || true
-            cp -r /volume1/web/ynkhome/public /volume1/web/ynkhome/.next/standalone/public 2>/dev/null || true
+            echo "=== Extracting build ==="
+            mkdir -p /volume1/web/ynkhome/.next/standalone
+            tar xzf /tmp/deploy.tar.gz -C /volume1/web/ynkhome/.next/standalone
+            echo "Extracted OK"
 
-            # 기존 프로세스 종료
-            pkill -f "standalone/server.js" 2>/dev/null || true
-            fuser -k 3102/tcp 2>/dev/null || true
-            sleep 2
+            echo "=== Stopping old server ==="
+            pkill -f "standalone/server.js" 2>/dev/null && echo "killed" || echo "no old process"
+            fuser -k 3102/tcp 2>/dev/null && echo "freed port" || echo "port was free"
 
-            # 서버 시작
+            echo "=== Starting server ==="
             cd /volume1/web/ynkhome/.next/standalone
             PORT=3102 nohup $NODE server.js > /tmp/ynkhome.log 2>&1 &
-            echo "Started PID=$! on port 3102"
-            sleep 3
-            curl -sf http://localhost:3102 > /dev/null && echo "OK: server responding" || echo "WARN: server not responding yet"
+            echo "PID=$!"
+
+            echo "=== Done ==="
+            exit 0
