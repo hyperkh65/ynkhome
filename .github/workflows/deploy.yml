@@ -8,41 +8,26 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Create .env.production
-        run: |
-          cat > .env.production << ENVEOF
-          NOTION_API_KEY=${{ secrets.NOTION_API_KEY }}
-          NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-          ENVEOF
-
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: true
-          tags: ghcr.io/hyperkh65/ynkhome:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
       - uses: appleboy/ssh-action@v1
         with:
           host: hy64.synology.me
           username: urjent
           key: ${{ secrets.NAS_SSH_PRIVATE_KEY }}
+          command_timeout: 5m
           script: |
-            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u hyperkh65 --password-stdin
-            docker pull ghcr.io/hyperkh65/ynkhome:latest
-            docker rm -f ynkhome || true
-            docker run -d --name ynkhome --restart unless-stopped -p 3102:3000 \
-              --env-file /volume1/web/ynkhome/.env.production \
-              ghcr.io/hyperkh65/ynkhome:latest
-            docker image prune -f
+            export NODE=/volume1/homes/urjent/runtime/node-v22.16.0-linux-x64/bin/node
+            export PATH=/volume1/homes/urjent/runtime/node-v22.16.0-linux-x64/bin:$PATH
+
+            cd /volume1/web/ynkhome
+            git pull origin main
+
+            $NODE node_modules/.bin/next build --no-turbopack
+
+            # 기존 프로세스 종료
+            pkill -f "server.js.*ynkhome\|ynkhome.*server.js" 2>/dev/null || true
+            fuser -k 3102/tcp 2>/dev/null || true
+            sleep 2
+
+            # standalone 서버 시작
+            PORT=3102 nohup $NODE .next/standalone/server.js > /tmp/ynkhome.log 2>&1 &
+            echo "Deployed PID=$!"
